@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Privacy Policy - Global Movie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-color: #e50914; /* Streaming Red */
+            --accent-hover: #b80710;
+            --border-color: #1f293d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 40px 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        /* Content Area */
+        .content-section {
+            display: none;
+            padding: 40px 35px;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            color: #ffffff;
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+
+        p, ul {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { margin: 10px auto; }
+            .content-section { padding: 25px 20px; }
+            .tab-btn { padding: 12px 16px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Global Movie Legal Center</h1>
+        <p>Effective Date: July 31, 2026</p>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('terms')">Terms of Service</button>
+        <button class="tab-btn" onclick="switchTab('privacy')">Privacy Policy</button>
+    </nav>
+
+    <!-- TERMS OF SERVICE -->
+    <main id="terms" class="content-section active">
+        <h2>1. Acceptance of Terms</h2>
+        <p>By downloading, installing, accessing, or using <strong>Global Movie</strong> ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the application.</p>
+
+        <h2>2. Use of Service & Content</h2>
+        <p><strong>Global Movie</strong> provides audio-visual content, movie details, trailers, and streaming services for personal, non-commercial entertainment purposes only.</p>
+        <ul>
+            <li>You may not reproduce, redistribute, record, or retransmit any stream or content provided through the app without explicit permission.</li>
+            <li>You agree not to attempt to bypass, reverse engineer, or tamper with any digital rights management (DRM) or access restrictions implemented within the app.</li>
+        </ul>
+
+        <h2>3. User Accounts</h2>
+        <p>To access certain features, you may be required to create an account. You are responsible for maintaining the confidentiality of your credentials and for all activities conducted under your account.</p>
+
+        <h2>4. Subscriptions and Payments</h2>
+        <p>Certain features or content libraries may require a paid subscription or one-time purchase:</p>
+        <ul>
+            <li>Subscriptions automatically renew unless canceled at least 24 hours prior to the renewal date.</li>
+            <li>Fees and charges are non-refundable except where required by law or specified in explicit promotional terms.</li>
+        </ul>
+
+        <h2>5. Intellectual Property & DMCA Notice</h2>
+        <p>All trademarks, title graphics, video content, images, and metadata displayed on <strong>Global Movie</strong> are the property of their respective owners or licensors.</p>
+        <p>If you believe that any material available on or through the app infringes upon your copyright, please notify our designated copyright agent at <a href="mailto:support@globaltech.com">support@globaltech.com</a> with complete details of the alleged infringement.</p>
+
+        <h2>6. Limitation of Liability</h2>
+        <p><strong>Global Movie</strong> is provided on an "AS IS" and "AS AVAILABLE" basis. We do not guarantee uninterrupted or error-free operation. In no event shall Global Tech (Developer: Kelvin) be liable for any indirect, incidental, or consequential damages resulting from your use or inability to use the service.</p>
+
+        <h2>7. Changes to Terms</h2>
+        <p>We reserve the right to modify these Terms at any time. Continued use of the application following any posted changes constitutes your acceptance of the revised Terms.</p>
+
+        <h2>8. Contact Us</h2>
+        <p>For questions regarding these Terms, please contact us at: <a href="mailto:support@globaltech.com">support@globaltech.com</a></p>
+    </main>
+
+    <!-- PRIVACY POLICY -->
+    <main id="privacy" class="content-section">
+        <h2>1. Information We Collect</h2>
+        <p>We collect information to provide a personalized streaming experience. This includes:</p>
+        <ul>
+            <li><strong>Account Data:</strong> Name, email address, password, and subscription history when you sign up.</li>
+            <li><strong>Usage Data:</strong> Watch history, playback progress, search queries, app interactions, and crash reports.</li>
+            <li><strong>Device & Network Data:</strong> Device model, operating system, IP address, device identifiers, and network connection speed (for video quality optimization).</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use the collected information for the following purposes:</p>
+        <ul>
+            <li>To operate, maintain, and deliver app features and content.</li>
+            <li>To personalize recommendations and remember watch progress across devices.</li>
+            <li>To manage payments, subscriptions, and customer support inquiries.</li>
+            <li>To detect, prevent, and address security breaches or unauthorized stream access.</li>
+        </ul>
+
+        <h2>3. Third-Party Services & Analytics</h2>
+        <p>We may integrate third-party software and SDKs (such as analytics providers, ad networks, and payment gateways) to enhance performance and manage monetization. These third parties operate under their own privacy policies.</p>
+
+        <h2>4. Data Retention & Security</h2>
+        <p>We implement industry-standard security measures to safeguard your personal data against unauthorized access, loss, or alteration. We retain your account information for as long as your account is active or necessary to fulfill service commitments.</p>
+
+        <h2>5. Your Rights & Choices</h2>
+        <p>Depending on your location, you may have rights regarding your personal data, including:</p>
+        <ul>
+            <li>The right to access, request a copy of, or update your personal information.</li>
+            <li>The right to request deletion of your account and associated watch history.</li>
+            <li>The right to opt-out of promotional emails or targeted advertising.</li>
+        </ul>
+
+        <h2>6. Children's Privacy</h2>
+        <p><strong>Global Movie</strong> is not directed at children under the age of 13 (or 16 in certain jurisdictions). We do not knowingly collect personal data from children without parental consent.</p>
+
+        <h2>7. Updates to This Policy</h2>
+        <p>We may update this Privacy Policy periodically. We will notify you of material changes by updating the "Effective Date" at the top of this document or sending an in-app notice.</p>
+
+        <h2>8. Contact Information</h2>
+        <p>If you have questions or concerns regarding our Privacy Policy, contact us at: <a href="mailto:support@globaltech.com">support@globaltech.com</a></p>
+    </main>
+
+    <footer>
+        &copy; <span id="year"></span> Global Movie / Global Tech (Kelvin). All rights reserved.
+    </footer>
+</div>
+
+<script>
+    // Tab switching logic
+    function switchTab(tabId) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // Auto update copyright year
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
