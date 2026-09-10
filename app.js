@@ -4,13 +4,6 @@ const cameraScreen = document.getElementById('cameraScreen');
 const reviewScreen = document.getElementById('reviewScreen');
 const downloadModal = document.getElementById('downloadModal');
 const toast = document.getElementById('toast');
-// Offscreen canvases for real-time background subtraction
-const bgCanvas = document.createElement('canvas');
-const bgCtx = bgCanvas.getContext('2d', { willReadFrequently: true });
-const processCanvas = document.createElement('canvas');
-const processCtx = processCanvas.getContext('2d', { willReadFrequently: true });
-const cutoutCanvas = document.createElement('canvas');
-const cutoutCtx = cutoutCanvas.getContext('2d');
 
 const webcam = document.getElementById('webcam');
 const cameraCanvas = document.getElementById('cameraCanvas');
@@ -51,7 +44,7 @@ let rawChunks = [];
 let originalBlob = null;
 let leftCloneSnapshot = null;
 let rightCloneSnapshot = null;
-let bgCaptured = false;
+let cloneSnapshot = null
 let recordedFrames = [];
 let captureInterval = null;
 let animationFrameId = null;
@@ -196,57 +189,16 @@ function startTimer() {
 }
 
 
-
-
-function captureBackgroundSnapshot() {
-    if (webcam.readyState >= 2) {
-        bgCanvas.width = 320;
-        bgCanvas.height = 180;
-        bgCtx.drawImage(webcam, 0, 0, 320, 180);
-        bgCaptured = true;
-    }
-}
-
-function getLivePersonCutout() {
-    if (!bgCaptured) return null;
-
-    processCanvas.width = 320;
-    processCanvas.height = 180;
-    cutoutCanvas.width = 320;
-    cutoutCanvas.height = 180;
-
-    processCtx.drawImage(webcam, 0, 0, 320, 180);
-
-    const liveImg = processCtx.getImageData(0, 0, 320, 180);
-    const bgImg = bgCtx.getImageData(0, 0, 320, 180);
-    const liveData = liveImg.data;
-    const bgData = bgImg.data;
-
-    const threshold = 45; // Background difference threshold
-
-    for (let i = 0; i < liveData.length; i += 4) {
-        const rDiff = Math.abs(liveData[i] - bgData[i]);
-        const gDiff = Math.abs(liveData[i + 1] - bgData[i + 1]);
-        const bDiff = Math.abs(liveData[i + 2] - bgData[i + 2]);
-
-        if (rDiff + gDiff + bDiff < threshold) {
-            liveData[i + 3] = 0; // Make background pixel transparent
-        }
-    }
-
-    processCtx.putImageData(liveImg, 0, 0);
-
-    cutoutCtx.clearRect(0, 0, 320, 180);
-    cutoutCtx.drawImage(processCanvas, 0, 0);
-
-    return cutoutCanvas;
-}
-
 function startRecording() {
     isRecording = true;
     isPaused = false;
     accumulatedSeconds = 0;
-    bgCaptured = false;
+
+    // Reset the frozen clone snapshot for a new recording
+    if (cloneSnapshot) {
+        cloneSnapshot.close && cloneSnapshot.close();
+        cloneSnapshot = null;
+    }
 
     btnShutter.classList.add('recording');
     recBadge.classList.remove('hidden', 'paused');
@@ -258,8 +210,6 @@ function startRecording() {
     recordedFrames = [];
     rawChunks = [];
     particles = [];
-
-    captureBackgroundSnapshot();
 
     startTimer();
     startFrameCapture();
@@ -278,41 +228,44 @@ function startFrameCapture() {
 
                 const elapsed = accumulatedSeconds + ((Date.now() - startTime) / 1000);
 
-                // Capture background snapshot right before shadow clone trigger
-                if (!bgCaptured || Math.abs(elapsed - (cloneTimeSeconds - 0.2)) < 0.1) {
-                    captureBackgroundSnapshot();
-                }
-
                 if (currentMode === 'shadow' && elapsed >= cloneTimeSeconds) {
                     if (particles.length === 0 && Math.abs(elapsed - cloneTimeSeconds) < 0.2) {
                         createSmokeParticles(w, h);
                     }
 
-                    camCtx.clearRect(0, 0, w, h);
-
-                    // 1. Render ONE single, unbroken background frame across full video
-                    camCtx.drawImage(webcam, 0, 0, w, h);
-
-                    // 2. Extract live moving person cutout (transparent background)
-                    const personCutout = getLivePersonCutout();
-
-                    if (personCutout) {
-                        const offset = w * 0.28;
-
-                        // Left Live Moving Clone
-                        camCtx.save();
-                        camCtx.drawImage(personCutout, -offset, 0, w, h);
-                        camCtx.restore();
-
-                        // Right Live Moving Clone (if 3 clones active)
-                        if (cloneCount >= 3) {
-                            camCtx.save();
-                            camCtx.drawImage(personCutout, offset, 0, w, h);
-                            camCtx.restore();
-                        }
+                    // 1. Capture the clone snapshot exactly when clone mode triggers
+                    if (!cloneSnapshot) {
+                        cloneSnapshot = await createImageBitmap(webcam);
                     }
 
-                    // 3. Render Smoke Particle Burst
+                    camCtx.clearRect(0, 0, w, h);
+
+                    // 2. Draw the live webcam feed across the FULL background
+                    camCtx.drawImage(webcam, 0, 0, w, h);
+
+                    // 3. Overlay the clone(s) onto the SAME background using transparency
+                    camCtx.save();
+                    
+                    if (cloneCount >= 3) {
+                        // 3 Clones Mode: Static overlay + a trailing delayed overlay
+                        camCtx.globalAlpha = 0.5; // Transparency for static clone
+                        camCtx.drawImage(cloneSnapshot, 0, 0, w, h);
+                        
+                        // Add a trailing delayed frame (moving clone) if enough frames exist
+                        if (recordedFrames.length > 15) {
+                            const delayedFrame = recordedFrames[Math.max(0, recordedFrames.length - 15)];
+                            camCtx.globalAlpha = 0.35; // Transparency for delayed clone
+                            camCtx.drawImage(delayedFrame, 0, 0, w, h);
+                        }
+                    } else {
+                        // 2 Clones Mode: Single static overlay over the live feed
+                        camCtx.globalAlpha = 0.5; // Adjust from 0.0 to 1.0 to change ghost opacity
+                        camCtx.drawImage(cloneSnapshot, 0, 0, w, h);
+                    }
+                    
+                    camCtx.restore();
+
+                    // Render Smoke Burst Animation on top
                     updateAndDrawParticles(camCtx, w, h);
 
                     const bitmap = await createImageBitmap(cameraCanvas);
