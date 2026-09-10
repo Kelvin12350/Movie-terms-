@@ -212,6 +212,8 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transform: translateZ(0);
+            will-change: transform;
         }
 
         #webcam.fit-screen {
@@ -230,8 +232,7 @@
         }
 
         .icon-btn {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.2);
             width: 42px;
             height: 42px;
@@ -247,8 +248,7 @@
             position: absolute;
             top: calc(70px + env(safe-area-inset-top));
             left: 20px;
-            background: rgba(220, 38, 38, 0.9);
-            backdrop-filter: blur(6px);
+            background: rgba(220, 38, 38, 0.95);
             padding: 6px 14px;
             border-radius: 20px;
             display: flex;
@@ -546,7 +546,7 @@
                 <div style="font-size: 1.5rem;">✨</div>
                 <div>
                     <div style="font-weight:700; font-size:0.88rem; color:#f8fafc;">Ultra-HD Engine Enabled</div>
-                    <div style="font-size:0.75rem; color:#94a3b8;">High bitrate export (1080p Crisp Quality)</div>
+                    <div style="font-size:0.75rem; color:#94a3b8;">High bitrate export (Smooth HD Preview)</div>
                 </div>
             </div>
         </div>
@@ -709,11 +709,12 @@
                 mediaStream.getTracks().forEach(t => t.stop());
             }
             try {
-                // Request High-HD resolution constraints (1080p full clarity)
+                // Smooth camera constraints: 720p at 30-60 FPS removes preview latency
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     video: { 
-                        width: { ideal: 1920 }, 
-                        height: { ideal: 1080 }, 
+                        width: { ideal: 1280 }, 
+                        height: { ideal: 720 }, 
+                        frameRate: { ideal: 30, max: 60 },
                         facingMode: currentFacingMode 
                     },
                     audio: false
@@ -767,7 +768,7 @@
             rawChunks = [];
 
             try {
-                mediaRecorder = new MediaRecorder(mediaStream, { videoBitsPerSecond: 8000000 });
+                mediaRecorder = new MediaRecorder(mediaStream, { videoBitsPerSecond: 6000000 });
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) rawChunks.push(e.data); };
                 mediaRecorder.start();
             } catch(e) { console.warn(e); }
@@ -780,7 +781,6 @@
                 recTimer.innerText = `REC ${m}:${s}`;
             }, 1000);
 
-            // Capture frames using Full Camera Native Resolution (Fixes blurry output)
             const videoWidth = webcam.videoWidth || 1280;
             const videoHeight = webcam.videoHeight || 720;
 
@@ -788,7 +788,6 @@
             tempCanvas.width = videoWidth;
             tempCanvas.height = videoHeight;
             const tempCtx = tempCanvas.getContext('2d', { alpha: false });
-            tempCtx.imageSmoothingQuality = 'high';
 
             captureInterval = setInterval(async () => {
                 tempCtx.drawImage(webcam, 0, 0, videoWidth, videoHeight);
@@ -815,7 +814,6 @@
 
             frames.reverse();
 
-            // Set canvas output resolution strictly to recorded frame dimensions
             reviewCanvas.width = frames[0].width;
             reviewCanvas.height = frames[0].height;
 
@@ -868,7 +866,6 @@
         btnDLReversed.addEventListener('click', async () => {
             showToast('Processing HD Reversed Download...');
             
-            // Capture high-bitrate canvas stream (8 Mbps for sharp HD recording)
             const stream = reviewCanvas.captureStream(30);
             
             let recorderOptions = { videoBitsPerSecond: 8000000 };
