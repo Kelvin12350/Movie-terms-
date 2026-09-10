@@ -2,310 +2,864 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reverse Video Studio</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #0f172a;
+            background-color: #0b0f19;
             color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* App Container mimicking Phone Screen */
+        .app-viewport {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background-color: #121826;
+            position: relative;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 640px;
-            background: #1e293b;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #38bdf8;
-        }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            background-color: #000;
-            border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        video, canvas {
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            background: #121826;
+            z-index: 1;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .hidden {
+        .screen.hidden {
             display: none !important;
         }
 
-        /* Recording Indicator Badge */
-        .recording-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: #ef4444;
-            color: white;
-            padding: 6px 12px;
+        /* ================= HOME SCREEN ================= */
+        .home-header {
+            padding: 30px 20px 10px;
+            text-align: center;
+        }
+
+        .home-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px 20px;
+        }
+
+        .card-btn {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
             border-radius: 20px;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-btn:active {
+            transform: scale(0.96);
+            border-color: #38bdf8;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+
+        .icon-circle.loop {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .card-btn span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #f1f5f9;
+        }
+
+        .banner-container {
+            margin: auto 20px 30px;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px dashed #475569;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .banner-thumb {
+            width: 70px;
+            height: 50px;
+            background: #334155;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* ================= CAMERA SCREEN ================= */
+        .camera-viewport {
+            position: relative;
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: object-fit 0.3s ease;
+        }
+
+        #webcam.fit-screen {
+            object-fit: contain;
+        }
+
+        /* Camera Header Controls */
+        .camera-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            z-index: 10;
+        }
+
+        .icon-btn {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Recording Corner Badge */
+        .rec-indicator {
+            position: absolute;
+            top: 75px;
+            left: 20px;
+            background: rgba(220, 38, 38, 0.85);
+            backdrop-filter: blur(4px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 0.85rem;
-            font-weight: bold;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .rec-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Camera Bottom Bar */
+        .camera-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            z-index: 10;
+        }
+
+        /* Phone Camera Shutter Button */
+        .shutter-btn {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: transparent;
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .shutter-btn:active {
+            transform: scale(0.9);
+        }
+
+        .shutter-inner {
+            width: 100%;
+            height: 100%;
+            background: #ef4444;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .shutter-btn.recording .shutter-inner {
+            border-radius: 8px;
+            transform: scale(0.55);
+        }
+
+        /* ================= REVIEW SCREEN ================= */
+        .review-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .review-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .btn-download-top {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             gap: 6px;
-            animation: pulse 1.5s infinite;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
         }
 
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .controls {
+        .review-viewport {
+            flex: 1;
+            background: #000;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
         }
 
-        .btn {
-            padding: 12px 24px;
+        #reviewCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Bottom Review Controls */
+        .review-toolbar {
+            padding: 24px 20px 34px;
+            background: #0f172a;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #1e293b;
+        }
+
+        .tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: none;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .tool-btn.active, .tool-btn:hover {
+            color: #38bdf8;
+        }
+
+        .tool-circle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #334155;
+            color: #f8fafc;
+        }
+
+        .tool-circle.main {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            border: none;
+        }
+
+        /* ================= MODAL & TOAST ================= */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 100%;
+            background: #1e293b;
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #f8fafc;
+        }
+
+        .modal-option {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .modal-option:hover {
+            border-color: #38bdf8;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            padding: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        .btn-primary {
-            background-color: #ef4444;
+        /* Toast notification */
+        .toast {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #38bdf8;
             color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 200;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        .btn-primary:hover {
-            background-color: #dc2626;
-        }
-
-        .btn-stop {
-            background-color: #f59e0b;
-            color: white;
-        }
-
-        .btn-stop:hover {
-            background-color: #d97706;
-        }
-
-        .btn-secondary {
-            background-color: #3b82f6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #2563eb;
-        }
-
-        .btn:disabled {
-            background-color: #64748b;
-            cursor: not-allowed;
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>⏪ Reverse Video Studio</h1>
+    <div class="app-viewport">
 
-        <div class="video-container">
-            <!-- Live Preview Video -->
-            <video id="webcam" autoplay playsinline muted></video>
+        <!-- 1. HOME SCREEN -->
+        <div id="homeScreen" class="screen">
+            <div class="home-header">
+                <h1 class="home-title">REVERSE</h1>
+            </div>
 
-            <!-- Reversed Video Output Canvas -->
-            <canvas id="canvas" class="hidden"></canvas>
+            <div class="home-grid">
+                <!-- Reverse Video Tile -->
+                <div class="card-btn" id="btnOpenReverse">
+                    <div class="icon-circle">
+                        <!-- Rewind SVG -->
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                            <path d="M11 16.07V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87zm10 0V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87z"/>
+                        </svg>
+                    </div>
+                    <span>Reverse Video</span>
+                </div>
 
-            <!-- Recording Indicator -->
-            <div id="recordingBadge" class="recording-badge hidden">
-                <div class="dot"></div> Recording...
+                <!-- Loop Video Tile -->
+                <div class="card-btn" id="btnOpenLoop">
+                    <div class="icon-circle loop">
+                        <!-- Loop Infinity SVG -->
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                            <path d="M18.6 6.62c-1.44 0-2.8.56-3.77 1.53L12 10.66 9.17 7.85C8.2 6.88 6.84 6.32 5.4 6.32 2.42 6.32 0 8.74 0 11.72s2.42 5.4 5.4 5.4c1.44 0 2.8-.56 3.77-1.53L12 12.78l2.83 2.81c.97.97 2.33 1.53 3.77 1.53 2.98 0 5.4-2.42 5.4-5.4s-2.42-5.4-5.4-5.4zm-13.2 9c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6c.96 0 1.86.38 2.55 1.07l2.12 2.12-2.12 2.12c-.69.68-1.59 1.07-2.55 1.07zm13.2 0c-.96 0-1.86-.38-2.55-1.07l-2.12-2.12 2.12-2.12c.69-.69 1.59-1.07 2.55-1.07 1.98 0 3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                    </div>
+                    <span>Loop Video</span>
+                </div>
+            </div>
+
+            <div class="banner-container">
+                <div class="banner-thumb"></div>
+                <div>
+                    <div style="font-weight:700; font-size:0.9rem;">Pro Studio Mode</div>
+                    <div style="font-size:0.75rem; color:#94a3b8;">High FPS frame extraction enabled</div>
+                </div>
             </div>
         </div>
 
-        <div class="controls">
-            <button id="startBtn" class="btn btn-secondary">Enable Camera</button>
-            <button id="switchBtn" class="btn btn-secondary hidden">🔄 Switch Camera</button>
-            <button id="recordBtn" class="btn btn-primary hidden">Start Recording</button>
-            <button id="stopBtn" class="btn btn-stop hidden">Stop & Reverse</button>
-            <button id="resetBtn" class="btn btn-secondary hidden">Record Again</button>
+        <!-- 2. FULL SCREEN CAMERA SCREEN -->
+        <div id="cameraScreen" class="screen hidden">
+            <!-- Top Controls -->
+            <div class="camera-top-bar">
+                <button class="icon-btn" id="btnCloseCamera">
+                    <!-- Back Arrow SVG -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+
+                <div style="display:flex; gap:12px;">
+                    <!-- Screen Fit / Aspect Toggle SVG -->
+                    <button class="icon-btn" id="btnToggleFit" title="Toggle Fullscreen/Fit">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                    <!-- Switch Camera Flip SVG -->
+                    <button class="icon-btn" id="btnFlipCamera">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8e0 1.38.35 2.63 1 .38l2.12-2.12M4 14c0 4.418 3.582 8 8 8s8-3.582 8-8e0-1.38-.35-2.63-1-.38l-2.12 2.12"/><path d="M4 4v6h6M20 20v-6h-6"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pulsing Corner Recording Indicator -->
+            <div id="recBadge" class="rec-indicator hidden">
+                <div class="rec-dot"></div>
+                <span id="recTimer">REC 00:00</span>
+            </div>
+
+            <!-- Camera Viewport -->
+            <div class="camera-viewport">
+                <video id="webcam" autoplay playsinline muted></video>
+            </div>
+
+            <!-- Bottom Shutter Bar -->
+            <div class="camera-bottom-bar">
+                <div style="width:44px;"></div>
+                
+                <button class="shutter-btn" id="btnShutter">
+                    <div class="shutter-inner"></div>
+                </button>
+
+                <div style="width:44px;"></div>
+            </div>
         </div>
+
+        <!-- 3. SEPARATE REVIEW / PLAYBACK SCREEN -->
+        <div id="reviewScreen" class="screen hidden">
+            <!-- Review Top Bar -->
+            <div class="review-header">
+                <button class="icon-btn" id="btnBackToCam" style="width:36px; height:36px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+                <h2>Preview</h2>
+                <button class="btn-download-top" id="btnOpenDownload">
+                    <!-- Download SVG -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download
+                </button>
+            </div>
+
+            <!-- Video Player Canvas -->
+            <div class="review-viewport">
+                <canvas id="reviewCanvas"></canvas>
+            </div>
+
+            <!-- Review Toolbar -->
+            <div class="review-toolbar">
+                <button class="tool-btn" id="btnToggleMute">
+                    <div class="tool-circle">
+                        <!-- Volume Mute SVG -->
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
+                    </div>
+                    <span>Mute</span>
+                </button>
+
+                <button class="tool-btn" id="btnTogglePlay">
+                    <div class="tool-circle main">
+                        <!-- Reverse Play SVG -->
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M11 16.07V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87zm10 0V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87z"/></svg>
+                    </div>
+                    <span>Reverse</span>
+                </button>
+
+                <button class="tool-btn" id="btnAddMusic">
+                    <div class="tool-circle">
+                        <!-- Music Note SVG -->
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13M9 9l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    </div>
+                    <span>Add Music</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- DOWNLOAD SELECTION MODAL -->
+        <div id="downloadModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-title">Export Video</div>
+                
+                <div class="modal-option" id="btnDLReversed">
+                    <span>⏪ Save Reversed Video</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+
+                <div class="modal-option" id="btnDLOriginal">
+                    <span>▶️ Save Original Video</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+
+                <button class="modal-close" id="btnCloseModal">Cancel</button>
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast" class="toast">Feature coming soon!</div>
+
     </div>
 
     <script>
-        const webcam = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        const startBtn = document.getElementById('startBtn');
-        const switchBtn = document.getElementById('switchBtn');
-        const recordBtn = document.getElementById('recordBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const recordingBadge = document.getElementById('recordingBadge');
+        // DOM Elements
+        const homeScreen = document.getElementById('homeScreen');
+        const cameraScreen = document.getElementById('cameraScreen');
+        const reviewScreen = document.getElementById('reviewScreen');
+        const downloadModal = document.getElementById('downloadModal');
+        const toast = document.getElementById('toast');
 
+        const webcam = document.getElementById('webcam');
+        const reviewCanvas = document.getElementById('reviewCanvas');
+        const ctx = reviewCanvas.getContext('2d');
+
+        const btnOpenReverse = document.getElementById('btnOpenReverse');
+        const btnOpenLoop = document.getElementById('btnOpenLoop');
+        const btnCloseCamera = document.getElementById('btnCloseCamera');
+        const btnFlipCamera = document.getElementById('btnFlipCamera');
+        const btnToggleFit = document.getElementById('btnToggleFit');
+        const btnShutter = document.getElementById('btnShutter');
+        const recBadge = document.getElementById('recBadge');
+        const recTimer = document.getElementById('recTimer');
+
+        const btnBackToCam = document.getElementById('btnBackToCam');
+        const btnOpenDownload = document.getElementById('btnOpenDownload');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnDLReversed = document.getElementById('btnDLReversed');
+        const btnDLOriginal = document.getElementById('btnDLOriginal');
+        const btnAddMusic = document.getElementById('btnAddMusic');
+
+        // State Variables
         let mediaStream = null;
+        let mediaRecorder = null;
+        let rawChunks = [];
+        let originalBlob = null;
+
         let frames = [];
         let captureInterval = null;
         let animationFrameId = null;
-        let currentFacingMode = 'environment'; // Defaults to back camera
+        let isRecording = false;
+        let currentFacingMode = 'environment';
+        let startTime = 0;
+        let timerInterval = null;
 
-        // Initialize Camera Stream
+        // Navigation helpers
+        function showScreen(screen) {
+            homeScreen.classList.add('hidden');
+            cameraScreen.classList.add('hidden');
+            reviewScreen.classList.add('hidden');
+            screen.classList.remove('hidden');
+        }
+
+        function showToast(text) {
+            toast.innerText = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Camera Initialization
         async function initCamera() {
             if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream.getTracks().forEach(t => t.stop());
             }
-
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 1280 }, 
-                        height: { ideal: 720 }, 
-                        facingMode: currentFacingMode 
-                    },
-                    audio: false 
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentFacingMode },
+                    audio: false
                 });
                 webcam.srcObject = mediaStream;
                 return true;
             } catch (err) {
-                alert('Camera access error: ' + err.message);
+                alert('Camera error: ' + err.message);
                 return false;
             }
         }
 
-        startBtn.addEventListener('click', async () => {
-            const success = await initCamera();
-            if (success) {
-                startBtn.classList.add('hidden');
-                recordBtn.classList.remove('hidden');
-                switchBtn.classList.remove('hidden');
-            }
+        // Home Actions
+        btnOpenReverse.addEventListener('click', async () => {
+            const ok = await initCamera();
+            if (ok) showScreen(cameraScreen);
         });
 
-        switchBtn.addEventListener('click', async () => {
+        btnOpenLoop.addEventListener('click', () => {
+            showToast('Loop Video Coming Soon!');
+        });
+
+        btnCloseCamera.addEventListener('click', () => {
+            if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+            showScreen(homeScreen);
+        });
+
+        btnFlipCamera.addEventListener('click', async () => {
             currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
             await initCamera();
         });
 
-        // Start real-time frame capturing
-        recordBtn.addEventListener('click', () => {
-            // Clean up previous frame buffer
-            frames.forEach(frame => frame.close && frame.close());
+        btnToggleFit.addEventListener('click', () => {
+            webcam.classList.toggle('fit-screen');
+        });
+
+        // Recording & Shutter Handler
+        btnShutter.addEventListener('click', () => {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+
+        function startRecording() {
+            isRecording = true;
+            btnShutter.classList.add('recording');
+            recBadge.classList.remove('hidden');
+
+            // Memory reset
+            frames.forEach(f => f.close && f.close());
             frames = [];
+            rawChunks = [];
 
-            recordingBadge.classList.remove('hidden');
-            recordBtn.classList.add('hidden');
-            switchBtn.classList.add('hidden');
-            stopBtn.classList.remove('hidden');
+            // Setup MediaRecorder for Original Video Download
+            try {
+                mediaRecorder = new MediaRecorder(mediaStream);
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) rawChunks.push(e.data); };
+                mediaRecorder.start();
+            } catch(e) { console.warn("MediaRecorder fallback"); }
 
-            canvas.width = webcam.videoWidth || 640;
-            canvas.height = webcam.videoHeight || 480;
+            // Timer display
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((Date.now() - startTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                recTimer.innerText = `REC ${m}:${s}`;
+            }, 1000);
 
+            // Capture frames for Reverse Playback
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
+            tempCanvas.width = webcam.videoWidth || 640;
+            tempCanvas.height = webcam.videoHeight || 480;
             const tempCtx = tempCanvas.getContext('2d');
 
-            // Capture frames directly from webcam feed every 33ms (~30 FPS)
             captureInterval = setInterval(async () => {
                 tempCtx.drawImage(webcam, 0, 0, tempCanvas.width, tempCanvas.height);
                 const bitmap = await createImageBitmap(tempCanvas);
                 frames.push(bitmap);
             }, 1000 / 30);
-        });
+        }
 
-        // Stop recording and trigger immediate reverse playback
-        stopBtn.addEventListener('click', () => {
+        function stopRecording() {
+            isRecording = false;
+            btnShutter.classList.remove('recording');
+            recBadge.classList.add('hidden');
             clearInterval(captureInterval);
-            recordingBadge.classList.add('hidden');
-            stopBtn.classList.add('hidden');
+            clearInterval(timerInterval);
+
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = () => {
+                    originalBlob = new Blob(rawChunks, { type: 'video/webm' });
+                };
+            }
 
             if (frames.length === 0) return;
 
-            // Reverse the collected frames array directly
+            // Reverse frame array
             frames.reverse();
 
-            // Display reversed canvas playback
-            webcam.classList.add('hidden');
-            canvas.classList.remove('hidden');
-            resetBtn.classList.remove('hidden');
+            // Prepare Review Canvas
+            reviewCanvas.width = frames[0].width;
+            reviewCanvas.height = frames[0].height;
 
-            playReversedLoop();
-        });
-
-        // Canvas animation playback loop
-        let frameIndex = 0;
-        let lastTimestamp = 0;
-        const frameInterval = 1000 / 30; // 30 FPS
-
-        function playReversedLoop(timestamp = 0) {
-            animationFrameId = requestAnimationFrame(playReversedLoop);
-
-            const elapsed = timestamp - lastTimestamp;
-            if (elapsed > frameInterval) {
-                lastTimestamp = timestamp - (elapsed % frameInterval);
-
-                if (frames.length > 0) {
-                    ctx.drawImage(frames[frameIndex], 0, 0, canvas.width, canvas.height);
-                    frameIndex = (frameIndex + 1) % frames.length;
-                }
-            }
+            showScreen(reviewScreen);
+            startReversePlayback();
         }
 
-        // Reset UI state for next recording
-        resetBtn.addEventListener('click', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
+        // Reverse Playback Loop
+        let frameIdx = 0;
+        let lastTs = 0;
+
+        function startReversePlayback() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            frameIdx = 0;
+            lastTs = 0;
+
+            function loop(ts) {
+                animationFrameId = requestAnimationFrame(loop);
+                if (ts - lastTs > (1000 / 30)) {
+                    lastTs = ts;
+                    if (frames.length > 0) {
+                        ctx.drawImage(frames[frameIdx], 0, 0, reviewCanvas.width, reviewCanvas.height);
+                        frameIdx = (frameIdx + 1) % frames.length;
+                    }
+                }
             }
+            animationFrameId = requestAnimationFrame(loop);
+        }
 
-            // Free GPU/RAM frame memory
-            frames.forEach(frame => frame.close && frame.close());
-            frames = [];
-            frameIndex = 0;
-
-            canvas.classList.add('hidden');
-            webcam.classList.remove('hidden');
-            resetBtn.classList.add('hidden');
-            recordBtn.classList.remove('hidden');
-            switchBtn.classList.remove('hidden');
+        btnBackToCam.addEventListener('click', () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            showScreen(cameraScreen);
         });
+
+        // Add Music Coming Soon
+        btnAddMusic.addEventListener('click', () => {
+            showToast('🎵 Add Music coming soon!');
+        });
+
+        // Download Modal Logic
+        btnOpenDownload.addEventListener('click', () => downloadModal.classList.add('active'));
+        btnCloseModal.addEventListener('click', () => downloadModal.classList.remove('active'));
+
+        btnDLOriginal.addEventListener('click', () => {
+            if (!originalBlob) {
+                showToast('Original video unavailable');
+                return;
+            }
+            triggerDownload(originalBlob, 'original-video.webm');
+            downloadModal.classList.remove('active');
+        });
+
+        btnDLReversed.addEventListener('click', async () => {
+            showToast('Preparing reversed download...');
+            
+            // Re-render frames into canvas stream to record reversed video blob
+            const stream = reviewCanvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const chunks = [];
+            
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                triggerDownload(blob, 'reversed-video.webm');
+                downloadModal.classList.remove('active');
+            };
+
+            recorder.start();
+            
+            // Play through frames exactly once for export
+            let idx = 0;
+            const exportInterval = setInterval(() => {
+                if (idx >= frames.length) {
+                    clearInterval(exportInterval);
+                    recorder.stop();
+                } else {
+                    ctx.drawImage(frames[idx], 0, 0, reviewCanvas.width, reviewCanvas.height);
+                    idx++;
+                }
+            }, 1000 / 30);
+        });
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     </script>
 </body>
 </html>
