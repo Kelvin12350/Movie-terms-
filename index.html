@@ -198,6 +198,7 @@
 
         <div class="controls">
             <button id="startBtn" class="btn btn-secondary">Enable Camera</button>
+            <button id="switchBtn" class="btn btn-secondary hidden">🔄 Switch Camera</button>
             <button id="recordBtn" class="btn btn-primary hidden">Start Recording</button>
             <button id="stopBtn" class="btn btn-stop hidden">Stop & Reverse</button>
             <button id="resetBtn" class="btn btn-secondary hidden">Record Again</button>
@@ -210,6 +211,7 @@
         const ctx = canvas.getContext('2d');
         
         const startBtn = document.getElementById('startBtn');
+        const switchBtn = document.getElementById('switchBtn');
         const recordBtn = document.getElementById('recordBtn');
         const stopBtn = document.getElementById('stopBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -223,21 +225,48 @@
         let recordedChunks = [];
         let frames = [];
         let animationFrameId = null;
+        
+        // Mode tracking: defaults to back camera ('environment')
+        let currentFacingMode = 'environment';
 
-        // Step 1: Start Camera Stream
-        startBtn.addEventListener('click', async () => {
+        // Helper function to initialize camera with current facingMode
+        async function initCamera() {
+            // Stop any existing tracks before changing cameras
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+                    video: { 
+                        width: { ideal: 1280 }, 
+                        height: { ideal: 720 }, 
+                        facingMode: currentFacingMode 
+                    },
                     audio: false 
                 });
                 webcam.srcObject = mediaStream;
-                
-                startBtn.classList.add('hidden');
-                recordBtn.classList.remove('hidden');
+                return true;
             } catch (err) {
                 alert('Camera access error: ' + err.message);
+                return false;
             }
+        }
+
+        // Step 1: Start Camera Stream
+        startBtn.addEventListener('click', async () => {
+            const success = await initCamera();
+            if (success) {
+                startBtn.classList.add('hidden');
+                recordBtn.classList.remove('hidden');
+                switchBtn.classList.remove('hidden');
+            }
+        });
+
+        // Step 1b: Switch Camera (Toggle between 'environment' and 'user')
+        switchBtn.addEventListener('click', async () => {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            await initCamera();
         });
 
         // Step 2: Start Recording
@@ -254,6 +283,7 @@
             mediaRecorder.start();
             recordingBadge.classList.remove('hidden');
             recordBtn.classList.add('hidden');
+            switchBtn.classList.add('hidden'); // Hide switch camera during recording
             stopBtn.classList.remove('hidden');
         });
 
@@ -375,6 +405,7 @@
             webcam.classList.remove('hidden');
             resetBtn.classList.add('hidden');
             recordBtn.classList.remove('hidden');
+            switchBtn.classList.remove('hidden'); // Show switch camera again
         });
     </script>
 </body>
