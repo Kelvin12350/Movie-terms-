@@ -593,7 +593,6 @@
             </div>
 
             <div class="camera-bottom-bar">
-                <!-- Pause / Resume Button on Left side during recording -->
                 <button class="icon-btn hidden" id="btnPauseRec" title="Pause / Resume Recording">
                     <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="white">
                         <rect x="6" y="4" width="4" height="16" rx="1"/>
@@ -717,6 +716,7 @@
         let animationFrameId = null;
         let isRecording = false;
         let isPaused = false;
+        let isCapturing = false;
         let currentFacingMode = 'environment';
         
         let startTime = 0;
@@ -798,16 +798,22 @@
             }
         });
 
-        function startFrameCapture(videoWidth, videoHeight) {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = videoWidth;
-            tempCanvas.height = videoHeight;
-            const tempCtx = tempCanvas.getContext('2d', { alpha: false });
-
+        function startFrameCapture() {
+            isCapturing = true;
             captureInterval = setInterval(async () => {
-                tempCtx.drawImage(webcam, 0, 0, videoWidth, videoHeight);
-                const bitmap = await createImageBitmap(tempCanvas);
-                frames.push(bitmap);
+                if (!isCapturing) return;
+                if (webcam.readyState >= 2) {
+                    try {
+                        const bitmap = await createImageBitmap(webcam);
+                        if (isCapturing) {
+                            frames.push(bitmap);
+                        } else {
+                            bitmap.close();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
             }, 1000 / 30);
         }
 
@@ -843,14 +849,12 @@
             } catch(e) { console.warn(e); }
 
             startTimer();
-
-            const videoWidth = webcam.videoWidth || 1280;
-            const videoHeight = webcam.videoHeight || 720;
-            startFrameCapture(videoWidth, videoHeight);
+            startFrameCapture();
         }
 
         function pauseRecording() {
             isPaused = true;
+            isCapturing = false;
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.pause();
             }
@@ -874,14 +878,13 @@
             playIcon.classList.add('hidden');
 
             startTimer();
-            const videoWidth = webcam.videoWidth || 1280;
-            const videoHeight = webcam.videoHeight || 720;
-            startFrameCapture(videoWidth, videoHeight);
+            startFrameCapture();
         }
 
-        function stopRecording() {
+        async function stopRecording() {
             isRecording = false;
             isPaused = false;
+            isCapturing = false;
 
             btnShutter.classList.remove('recording');
             recBadge.classList.add('hidden');
@@ -896,6 +899,9 @@
                     originalBlob = new Blob(rawChunks, { type: 'video/webm' });
                 };
             }
+
+            // Allow in-flight async image bitmap captures to finish
+            await new Promise(r => setTimeout(r, 100));
 
             if (frames.length === 0) return;
 
@@ -950,20 +956,21 @@
             downloadModal.classList.remove('active');
         });
 
-        // Fully Fixed HD Reversed Download without glitches or timing conflicts
+        // Fully Fixed HD Reversed Download
         btnDLReversed.addEventListener('click', async () => {
             if (frames.length === 0) return;
 
             showToast('Processing HD Reversed Download...');
             
-            // 1. Pause preview loop so it does not conflict during canvas encoding
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
             }
 
-            // 2. Prepare MediaRecorder stream with supported codecs
-            const stream = reviewCanvas.captureStream(30);
+            // Capture stream with manual frame request for 1:1 precision
+            const stream = reviewCanvas.captureStream(0);
+            const track = stream.getVideoTracks()[0];
+
             let mimeType = 'video/webm;codecs=vp9';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
                 mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
@@ -984,23 +991,33 @@
                 triggerDownload(blob, 'reversed-hd-video.webm');
                 downloadModal.classList.remove('active');
                 
-                // Restart preview loop after export
                 startReversePlayback();
             };
 
-            recorder.start(100);
+            // Draw initial frame before recorder initialization
+            ctx.drawImage(frames[0], 0, 0, reviewCanvas.width, reviewCanvas.height);
+            if (track && track.requestFrame) track.requestFrame();
 
-            // 3. Draw each reversed frame synchronously to avoid jitter/glitch
-            let idx = 0;
-            const exportInterval = setInterval(() => {
-                if (idx >= frames.length) {
-                    clearInterval(exportInterval);
-                    setTimeout(() => recorder.stop(), 200);
-                } else {
-                    ctx.drawImage(frames[idx], 0, 0, reviewCanvas.width, reviewCanvas.height);
-                    idx++;
+            recorder.start();
+
+            // Give MediaRecorder encoder brief warmup time
+            await new Promise(r => setTimeout(r, 150));
+
+            // Record every frame systematically
+            for (let idx = 0; idx < frames.length; idx++) {
+                ctx.drawImage(frames[idx], 0, 0, reviewCanvas.width, reviewCanvas.height);
+                if (track && track.requestFrame) {
+                    track.requestFrame();
                 }
-            }, 1000 / 30);
+                await new Promise(r => setTimeout(r, 1000 / 30));
+            }
+
+            // Request trailing data and delay stop to prevent premature cutoff
+            if (recorder.state === 'recording') {
+                recorder.requestData();
+                await new Promise(r => setTimeout(r, 300));
+                recorder.stop();
+            }
         });
 
         function triggerDownload(blob, filename) {
