@@ -60,36 +60,6 @@
             display: none !important;
         }
 
-        /* Overlay for status and loader */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            z-index: 10;
-        }
-
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 5px solid #38bdf8;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Recording Indicator Badge */
         .recording-badge {
             position: absolute;
@@ -188,12 +158,6 @@
             <div id="recordingBadge" class="recording-badge hidden">
                 <div class="dot"></div> Recording...
             </div>
-
-            <!-- Processing Overlay -->
-            <div id="processingOverlay" class="overlay hidden">
-                <div class="spinner"></div>
-                <p id="progressText">Processing frames: 0%</p>
-            </div>
         </div>
 
         <div class="controls">
@@ -215,23 +179,16 @@
         const recordBtn = document.getElementById('recordBtn');
         const stopBtn = document.getElementById('stopBtn');
         const resetBtn = document.getElementById('resetBtn');
-        
         const recordingBadge = document.getElementById('recordingBadge');
-        const processingOverlay = document.getElementById('processingOverlay');
-        const progressText = document.getElementById('progressText');
 
         let mediaStream = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
         let frames = [];
+        let captureInterval = null;
         let animationFrameId = null;
-        
-        // Mode tracking: defaults to back camera ('environment')
-        let currentFacingMode = 'environment';
+        let currentFacingMode = 'environment'; // Defaults to back camera
 
-        // Helper function to initialize camera with current facingMode
+        // Initialize Camera Stream
         async function initCamera() {
-            // Stop any existing tracks before changing cameras
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
             }
@@ -253,7 +210,6 @@
             }
         }
 
-        // Step 1: Start Camera Stream
         startBtn.addEventListener('click', async () => {
             const success = await initCamera();
             if (success) {
@@ -263,117 +219,61 @@
             }
         });
 
-        // Step 1b: Switch Camera (Toggle between 'environment' and 'user')
         switchBtn.addEventListener('click', async () => {
             currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
             await initCamera();
         });
 
-        // Step 2: Start Recording
+        // Start real-time frame capturing
         recordBtn.addEventListener('click', () => {
-            recordedChunks = [];
-            mediaRecorder = new MediaRecorder(mediaStream);
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    recordedChunks.push(e.data);
-                }
-            };
-
-            mediaRecorder.start();
-            recordingBadge.classList.remove('hidden');
-            recordBtn.classList.add('hidden');
-            switchBtn.classList.add('hidden'); // Hide switch camera during recording
-            stopBtn.classList.remove('hidden');
-        });
-
-        // Step 3: Stop Recording & Process Frames
-        stopBtn.addEventListener('click', () => {
-            recordingBadge.classList.add('hidden');
-            stopBtn.classList.add('hidden');
-            processingOverlay.classList.remove('hidden');
-
-            mediaRecorder.stop();
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                await processAndReverse(blob);
-            };
-        });
-
-        // Step 4: Extract Frames & Reverse
-        async function processAndReverse(videoBlob) {
-            const videoUrl = URL.createObjectURL(videoBlob);
-            const tempVideo = document.createElement('video');
-            tempVideo.src = videoUrl;
-            tempVideo.muted = true;
-            tempVideo.playsInline = true;
-
-            await new Promise((resolve) => {
-                tempVideo.onloadedmetadata = resolve;
-            });
-
-            // Match canvas dimensions to video aspect ratio
-            canvas.width = tempVideo.videoWidth || 640;
-            canvas.height = tempVideo.videoHeight || 480;
-
-            const duration = tempVideo.duration;
-            const fps = 30; // Frames per second
-            const totalFrames = Math.floor(duration * fps);
-            
-            // Clean up old frames if any
+            // Clean up previous frame buffer
             frames.forEach(frame => frame.close && frame.close());
             frames = [];
+
+            recordingBadge.classList.remove('hidden');
+            recordBtn.classList.add('hidden');
+            switchBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+
+            canvas.width = webcam.videoWidth || 640;
+            canvas.height = webcam.videoHeight || 480;
 
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
             const tempCtx = tempCanvas.getContext('2d');
 
-            // Extract frames step by step
-            for (let i = 0; i < totalFrames; i++) {
-                const time = i / fps;
-                tempVideo.currentTime = time;
-
-                await new Promise((resolve) => {
-                    const onSeeked = () => {
-                        tempVideo.removeEventListener('seeked', onSeeked);
-                        resolve();
-                    };
-                    tempVideo.addEventListener('seeked', onSeeked);
-                    
-                    // Fallback timeout in case seeked doesn't trigger
-                    setTimeout(onSeeked, 150);
-                });
-
-                tempCtx.drawImage(tempVideo, 0, 0, tempCanvas.width, tempCanvas.height);
+            // Capture frames directly from webcam feed every 33ms (~30 FPS)
+            captureInterval = setInterval(async () => {
+                tempCtx.drawImage(webcam, 0, 0, tempCanvas.width, tempCanvas.height);
                 const bitmap = await createImageBitmap(tempCanvas);
                 frames.push(bitmap);
+            }, 1000 / 30);
+        });
 
-                // Update UI progress
-                const percent = Math.round(((i + 1) / totalFrames) * 100);
-                progressText.innerText = `Processing frames: ${percent}%`;
-            }
+        // Stop recording and trigger immediate reverse playback
+        stopBtn.addEventListener('click', () => {
+            clearInterval(captureInterval);
+            recordingBadge.classList.add('hidden');
+            stopBtn.classList.add('hidden');
 
-            // Cleanup Blob URL
-            URL.revokeObjectURL(videoUrl);
+            if (frames.length === 0) return;
 
-            // Reverse extracted frame array
+            // Reverse the collected frames array directly
             frames.reverse();
 
-            // Switch view from Live Webcam to Canvas
-            processingOverlay.classList.add('hidden');
+            // Display reversed canvas playback
             webcam.classList.add('hidden');
             canvas.classList.remove('hidden');
             resetBtn.classList.remove('hidden');
 
-            // Play the reversed frames in a loop
             playReversedLoop();
-        }
+        });
 
-        // Step 5: Animation loop for canvas playback
+        // Canvas animation playback loop
         let frameIndex = 0;
         let lastTimestamp = 0;
-        const frameInterval = 1000 / 30; // ~33ms for 30fps
+        const frameInterval = 1000 / 30; // 30 FPS
 
         function playReversedLoop(timestamp = 0) {
             animationFrameId = requestAnimationFrame(playReversedLoop);
@@ -389,23 +289,22 @@
             }
         }
 
-        // Step 6: Reset App state for a new recording
+        // Reset UI state for next recording
         resetBtn.addEventListener('click', () => {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
             }
 
-            // Memory cleanup
+            // Free GPU/RAM frame memory
             frames.forEach(frame => frame.close && frame.close());
             frames = [];
             frameIndex = 0;
 
-            // Reset UI
             canvas.classList.add('hidden');
             webcam.classList.remove('hidden');
             resetBtn.classList.add('hidden');
             recordBtn.classList.remove('hidden');
-            switchBtn.classList.remove('hidden'); // Show switch camera again
+            switchBtn.classList.remove('hidden');
         });
     </script>
 </body>
