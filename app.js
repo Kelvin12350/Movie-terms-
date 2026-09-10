@@ -223,33 +223,57 @@ function startFrameCapture() {
                 const elapsed = accumulatedSeconds + ((Date.now() - startTime) / 1000);
 
                 if (currentMode === 'shadow' && elapsed >= cloneTimeSeconds) {
-                    // Trigger smoke particle burst at the threshold timestamp
                     if (particles.length === 0 && Math.abs(elapsed - cloneTimeSeconds) < 0.2) {
                         createSmokeParticles(w, h);
                     }
 
                     camCtx.clearRect(0, 0, w, h);
 
-                    const xOffset = w * 0.25;
-
-                    // Render moving side clones with live video stream
-                    camCtx.save();
-                    camCtx.globalAlpha = 0.65; // Translucent blending prevents background blocking
-
-                    // Left Moving Clone
-                    camCtx.drawImage(webcam, -xOffset, 0, w, h);
-
-                    // Right Moving Clone (if 3 clones enabled)
                     if (cloneCount >= 3) {
-                        camCtx.drawImage(webcam, xOffset, 0, w, h);
-                    }
-                    camCtx.restore();
+                        const colW = w / 3;
 
-                    // Center Live Main Stream
-                    camCtx.save();
-                    camCtx.globalAlpha = 0.85;
-                    camCtx.drawImage(webcam, 0, 0, w, h);
-                    camCtx.restore();
+                        // 1. Left Separate Column (Solid Live Motion)
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(0, 0, colW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, -colW, 0, w, h);
+                        camCtx.restore();
+
+                        // 2. Center Separate Column (Solid Live Motion)
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(colW, 0, colW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, 0, 0, w, h);
+                        camCtx.restore();
+
+                        // 3. Right Separate Column (Solid Live Motion)
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(colW * 2, 0, colW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, colW, 0, w, h);
+                        camCtx.restore();
+                    } else {
+                        const colW = w / 2;
+
+                        // 1. Left Column (2 Clones Mode)
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(0, 0, colW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, -colW / 2, 0, w, h);
+                        camCtx.restore();
+
+                        // 2. Right Column (2 Clones Mode)
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(colW, 0, colW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, colW / 2, 0, w, h);
+                        camCtx.restore();
+                    }
 
                     // Render Smoke Burst Animation on top
                     updateAndDrawParticles(camCtx, w, h);
@@ -257,7 +281,7 @@ function startFrameCapture() {
                     const bitmap = await createImageBitmap(cameraCanvas);
                     recordedFrames.push(bitmap);
                 } else {
-                    // Standard frame capture before clone timestamp
+                    // Standard frame capture before clone activation
                     camCtx.drawImage(webcam, 0, 0, w, h);
                     const bitmap = await createImageBitmap(cameraCanvas);
                     recordedFrames.push(bitmap);
