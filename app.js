@@ -42,6 +42,8 @@ let mediaStream = null;
 let mediaRecorder = null;
 let rawChunks = [];
 let originalBlob = null;
+let leftCloneSnapshot = null;
+let rightCloneSnapshot = null;
 
 let recordedFrames = [];
 let captureInterval = null;
@@ -186,6 +188,8 @@ function startTimer() {
     }, 1000);
 }
 
+
+
 function startRecording() {
     isRecording = true;
     isPaused = false;
@@ -201,6 +205,9 @@ function startRecording() {
     recordedFrames = [];
     rawChunks = [];
     particles = [];
+
+    if (leftCloneSnapshot) { leftCloneSnapshot.close(); leftCloneSnapshot = null; }
+    if (rightCloneSnapshot) { rightCloneSnapshot.close(); rightCloneSnapshot = null; }
 
     startTimer();
     startFrameCapture();
@@ -219,41 +226,66 @@ function startFrameCapture() {
 
                 const elapsed = accumulatedSeconds + ((Date.now() - startTime) / 1000);
 
-                // Check for Shadow Clone activation timestamp
                 if (currentMode === 'shadow' && elapsed >= cloneTimeSeconds) {
+                    // Trigger smoke and capture snapshot poses at the threshold time
                     if (particles.length === 0 && Math.abs(elapsed - cloneTimeSeconds) < 0.2) {
                         createSmokeParticles(w, h);
+                        leftCloneSnapshot = await createImageBitmap(webcam);
+                        rightCloneSnapshot = await createImageBitmap(webcam);
                     }
 
                     camCtx.clearRect(0, 0, w, h);
 
-                    // Render Left Shadow Clone
-                    camCtx.save();
-                    camCtx.globalAlpha = 0.85;
-                    camCtx.translate(-w * 0.22, 0);
-                    camCtx.drawImage(webcam, 0, 0, w, h);
-                    camCtx.restore();
+                    const sectionW = w / (cloneCount === 3 ? 3 : 2);
 
-                    // Render Right Shadow Clone
-                    if (cloneCount >= 3) {
+                    if (cloneCount === 3) {
+                        // 1. Left Clone Section
                         camCtx.save();
-                        camCtx.globalAlpha = 0.85;
-                        camCtx.translate(w * 0.22, 0);
+                        camCtx.beginPath();
+                        camCtx.rect(0, 0, sectionW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(leftCloneSnapshot || webcam, 0, 0, w, h);
+                        camCtx.restore();
+
+                        // 2. Center Live Feed Section
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(sectionW, 0, sectionW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(webcam, 0, 0, w, h);
+                        camCtx.restore();
+
+                        // 3. Right Clone Section
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(sectionW * 2, 0, sectionW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(rightCloneSnapshot || webcam, 0, 0, w, h);
+                        camCtx.restore();
+                    } else {
+                        // 2 Clones Split
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(0, 0, sectionW, h);
+                        camCtx.clip();
+                        camCtx.drawImage(leftCloneSnapshot || webcam, 0, 0, w, h);
+                        camCtx.restore();
+
+                        camCtx.save();
+                        camCtx.beginPath();
+                        camCtx.rect(sectionW, 0, sectionW, h);
+                        camCtx.clip();
                         camCtx.drawImage(webcam, 0, 0, w, h);
                         camCtx.restore();
                     }
 
-                    // Render Main Center User
-                    camCtx.drawImage(webcam, 0, 0, w, h);
-
-                    // Render Smoke Burst Animation
+                    // Render Smoke Burst Animation on top of all sections
                     updateAndDrawParticles(camCtx, w, h);
 
-                    // Capture fully composited frame
                     const bitmap = await createImageBitmap(cameraCanvas);
                     recordedFrames.push(bitmap);
                 } else {
-                    // Standard frame capture
+                    // Standard frame capture before clone time
                     camCtx.drawImage(webcam, 0, 0, w, h);
                     const bitmap = await createImageBitmap(cameraCanvas);
                     recordedFrames.push(bitmap);
@@ -264,6 +296,7 @@ function startFrameCapture() {
         }
     }, 1000 / 30);
 }
+
 
 function pauseRecording() {
     isPaused = true;
