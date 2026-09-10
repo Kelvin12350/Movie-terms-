@@ -28,7 +28,6 @@
             align-items: center;
         }
 
-        /* Responsive Mobile Viewport container */
         .app-viewport {
             width: 100%;
             max-width: 480px;
@@ -59,6 +58,10 @@
             display: none !important;
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         /* ================= HOME SCREEN ================= */
         .home-screen {
             background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 70%);
@@ -73,7 +76,6 @@
             margin-top: 15px;
         }
 
-        /* Magic Icon Animated Styling */
         .magic-icon-wrapper {
             position: relative;
             width: 86px;
@@ -234,14 +236,20 @@
         .icon-btn {
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+            background: rgba(168, 85, 247, 0.4);
         }
 
         .rec-indicator {
@@ -257,6 +265,11 @@
             font-size: 0.8rem;
             font-weight: 700;
             z-index: 10;
+            transition: background 0.3s ease;
+        }
+
+        .rec-indicator.paused {
+            background: rgba(234, 179, 8, 0.95);
         }
 
         .rec-dot {
@@ -267,6 +280,11 @@
             animation: pulse-red 1s infinite;
         }
 
+        .rec-indicator.paused .rec-dot {
+            animation: none;
+            opacity: 0.8;
+        }
+
         @keyframes pulse-red {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.3; transform: scale(0.8); }
@@ -275,10 +293,10 @@
         .camera-bottom-bar {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            padding: 20px;
+            padding: 20px 30px;
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
             background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
             z-index: 10;
@@ -502,7 +520,6 @@
         <!-- 1. HOME SCREEN -->
         <div id="homeScreen" class="screen home-screen">
             <div class="home-header">
-                <!-- Magic Icon with Animated Sparkle/Glow -->
                 <div class="magic-icon-wrapper">
                     <div class="magic-glow"></div>
                     <div class="magic-badge">
@@ -521,7 +538,6 @@
             </div>
 
             <div class="home-grid">
-                <!-- Reverse Video Tile -->
                 <div class="card-btn" id="btnOpenReverse">
                     <div class="icon-circle">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
@@ -531,7 +547,6 @@
                     <span>Reverse Video</span>
                 </div>
 
-                <!-- Loop Video Tile -->
                 <div class="card-btn" id="btnOpenLoop">
                     <div class="icon-circle loop">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
@@ -543,7 +558,7 @@
             </div>
 
             <div class="pro-banner">
-                <div style="font-size: 1.5rem;">✨</div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 <div>
                     <div style="font-weight:700; font-size:0.88rem; color:#f8fafc;">Ultra-HD Engine Enabled</div>
                     <div style="font-size:0.75rem; color:#94a3b8;">High bitrate export (Smooth HD Preview)</div>
@@ -578,11 +593,22 @@
             </div>
 
             <div class="camera-bottom-bar">
-                <div style="width:42px;"></div>
+                <!-- Pause / Resume Button on Left side during recording -->
+                <button class="icon-btn hidden" id="btnPauseRec" title="Pause / Resume Recording">
+                    <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                        <rect x="6" y="4" width="4" height="16" rx="1"/>
+                        <rect x="14" y="4" width="4" height="16" rx="1"/>
+                    </svg>
+                    <svg id="playIcon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+
                 <button class="shutter-btn" id="btnShutter">
                     <div class="shutter-inner"></div>
                 </button>
-                <div style="width:42px;"></div>
+
+                <div style="width:44px;"></div>
             </div>
         </div>
 
@@ -668,6 +694,9 @@
         const btnFlipCamera = document.getElementById('btnFlipCamera');
         const btnToggleFit = document.getElementById('btnToggleFit');
         const btnShutter = document.getElementById('btnShutter');
+        const btnPauseRec = document.getElementById('btnPauseRec');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const playIcon = document.getElementById('playIcon');
         const recBadge = document.getElementById('recBadge');
         const recTimer = document.getElementById('recTimer');
 
@@ -687,8 +716,11 @@
         let captureInterval = null;
         let animationFrameId = null;
         let isRecording = false;
+        let isPaused = false;
         let currentFacingMode = 'environment';
+        
         let startTime = 0;
+        let accumulatedSeconds = 0;
         let timerInterval = null;
 
         function showScreen(screen) {
@@ -709,7 +741,6 @@
                 mediaStream.getTracks().forEach(t => t.stop());
             }
             try {
-                // Smooth camera constraints: 720p at 30-60 FPS removes preview latency
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         width: { ideal: 1280 }, 
@@ -758,32 +789,16 @@
             }
         });
 
-        function startRecording() {
-            isRecording = true;
-            btnShutter.classList.add('recording');
-            recBadge.classList.remove('hidden');
+        btnPauseRec.addEventListener('click', () => {
+            if (!isRecording) return;
+            if (!isPaused) {
+                pauseRecording();
+            } else {
+                resumeRecording();
+            }
+        });
 
-            frames.forEach(f => f.close && f.close());
-            frames = [];
-            rawChunks = [];
-
-            try {
-                mediaRecorder = new MediaRecorder(mediaStream, { videoBitsPerSecond: 6000000 });
-                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) rawChunks.push(e.data); };
-                mediaRecorder.start();
-            } catch(e) { console.warn(e); }
-
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const diff = Math.floor((Date.now() - startTime) / 1000);
-                const m = String(Math.floor(diff / 60)).padStart(2, '0');
-                const s = String(diff % 60).padStart(2, '0');
-                recTimer.innerText = `REC ${m}:${s}`;
-            }, 1000);
-
-            const videoWidth = webcam.videoWidth || 1280;
-            const videoHeight = webcam.videoHeight || 720;
-
+        function startFrameCapture(videoWidth, videoHeight) {
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = videoWidth;
             tempCanvas.height = videoHeight;
@@ -796,10 +811,82 @@
             }, 1000 / 30);
         }
 
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = accumulatedSeconds + Math.floor((Date.now() - startTime) / 1000);
+                const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const s = String(elapsed % 60).padStart(2, '0');
+                recTimer.innerText = `REC ${m}:${s}`;
+            }, 1000);
+        }
+
+        function startRecording() {
+            isRecording = true;
+            isPaused = false;
+            accumulatedSeconds = 0;
+
+            btnShutter.classList.add('recording');
+            recBadge.classList.remove('hidden', 'paused');
+            btnPauseRec.classList.remove('hidden');
+            pauseIcon.classList.remove('hidden');
+            playIcon.classList.add('hidden');
+
+            frames.forEach(f => f.close && f.close());
+            frames = [];
+            rawChunks = [];
+
+            try {
+                mediaRecorder = new MediaRecorder(mediaStream, { videoBitsPerSecond: 6000000 });
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) rawChunks.push(e.data); };
+                mediaRecorder.start();
+            } catch(e) { console.warn(e); }
+
+            startTimer();
+
+            const videoWidth = webcam.videoWidth || 1280;
+            const videoHeight = webcam.videoHeight || 720;
+            startFrameCapture(videoWidth, videoHeight);
+        }
+
+        function pauseRecording() {
+            isPaused = true;
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.pause();
+            }
+            clearInterval(captureInterval);
+            clearInterval(timerInterval);
+            accumulatedSeconds += Math.floor((Date.now() - startTime) / 1000);
+
+            recBadge.classList.add('paused');
+            pauseIcon.classList.add('hidden');
+            playIcon.classList.remove('hidden');
+        }
+
+        function resumeRecording() {
+            isPaused = false;
+            if (mediaRecorder && mediaRecorder.state === 'paused') {
+                mediaRecorder.resume();
+            }
+
+            recBadge.classList.remove('paused');
+            pauseIcon.classList.remove('hidden');
+            playIcon.classList.add('hidden');
+
+            startTimer();
+            const videoWidth = webcam.videoWidth || 1280;
+            const videoHeight = webcam.videoHeight || 720;
+            startFrameCapture(videoWidth, videoHeight);
+        }
+
         function stopRecording() {
             isRecording = false;
+            isPaused = false;
+
             btnShutter.classList.remove('recording');
             recBadge.classList.add('hidden');
+            btnPauseRec.classList.add('hidden');
+            
             clearInterval(captureInterval);
             clearInterval(timerInterval);
 
@@ -863,35 +950,52 @@
             downloadModal.classList.remove('active');
         });
 
+        // Fully Fixed HD Reversed Download without glitches or timing conflicts
         btnDLReversed.addEventListener('click', async () => {
+            if (frames.length === 0) return;
+
             showToast('Processing HD Reversed Download...');
             
-            const stream = reviewCanvas.captureStream(30);
-            
-            let recorderOptions = { videoBitsPerSecond: 8000000 };
-            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-                recorderOptions.mimeType = 'video/webm;codecs=vp9';
-            } else if (MediaRecorder.isTypeSupported('video/webm')) {
-                recorderOptions.mimeType = 'video/webm';
+            // 1. Pause preview loop so it does not conflict during canvas encoding
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
             }
 
-            const recorder = new MediaRecorder(stream, recorderOptions);
+            // 2. Prepare MediaRecorder stream with supported codecs
+            const stream = reviewCanvas.captureStream(30);
+            let mimeType = 'video/webm;codecs=vp9';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+            }
+
+            const recorder = new MediaRecorder(stream, { 
+                mimeType: mimeType,
+                videoBitsPerSecond: 8000000 
+            });
             const chunks = [];
             
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: recorderOptions.mimeType || 'video/webm' });
-                triggerDownload(blob, 'reversed-hd-video.webm');
-                downloadModal.classList.remove('active');
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
             };
 
-            recorder.start();
-            
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                triggerDownload(blob, 'reversed-hd-video.webm');
+                downloadModal.classList.remove('active');
+                
+                // Restart preview loop after export
+                startReversePlayback();
+            };
+
+            recorder.start(100);
+
+            // 3. Draw each reversed frame synchronously to avoid jitter/glitch
             let idx = 0;
             const exportInterval = setInterval(() => {
                 if (idx >= frames.length) {
                     clearInterval(exportInterval);
-                    recorder.stop();
+                    setTimeout(() => recorder.stop(), 200);
                 } else {
                     ctx.drawImage(frames[idx], 0, 0, reviewCanvas.width, reviewCanvas.height);
                     idx++;
