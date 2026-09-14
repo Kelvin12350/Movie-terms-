@@ -2,772 +2,239 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reverse & Shadow Clone Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProTrade Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
-            background-color: #070a12;
-            color: #f8fafc;
-            overflow: hidden;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .app-viewport {
-            width: 100%;
-            max-width: 480px;
-            height: 100%;
-            height: 100dvh;
-            background-color: #0f172a;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-        }
-
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background: #0f172a;
-            z-index: 1;
-            transition: opacity 0.25s ease, transform 0.25s ease;
-        }
-
-        .screen.hidden {
-            display: none !important;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* ================= HOME SCREEN ================= */
-        .home-screen {
-            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 70%);
-            padding: 24px 20px;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom));
-            overflow-y: auto;
-            justify-content: space-between;
-        }
-
-        .home-header {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .magic-icon-wrapper {
-            position: relative;
-            width: 86px;
-            height: 86px;
-            margin: 0 auto 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .magic-glow {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #a855f7, #3b82f6);
-            filter: blur(16px);
-            opacity: 0.7;
-            animation: pulseGlow 2.5s infinite alternate;
-        }
-
-        .magic-badge {
-            position: relative;
-            width: 76px;
-            height: 76px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-        }
-
-        .magic-wand-svg {
-            animation: wandFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: scale(0.85); opacity: 0.5; }
-            100% { transform: scale(1.15); opacity: 0.85; }
-        }
-
-        @keyframes wandFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-4px) rotate(6deg); }
-        }
-
-        .home-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            background: linear-gradient(135deg, #f3e8ff, #a855f7, #38bdf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .home-subtitle {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-top: 6px;
-        }
-
-        .home-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin: 24px 0;
-        }
-
-        .card-btn {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 22px 14px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        .card-btn:active {
-            transform: scale(0.96);
-            border-color: #a855f7;
-            background: rgba(49, 46, 129, 0.5);
-        }
-
-        .icon-circle {
-            width: 58px;
-            height: 58px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #8b5cf6, #d946ef);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
-        }
-
-        .icon-circle.clone {
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            box-shadow: 0 6px 16px rgba(6, 182, 212, 0.35);
-        }
-
-        .card-btn span {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #f8fafc;
-        }
-
-        .pro-banner {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
-            border-radius: 16px;
-            padding: 14px 16px;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        /* ================= SETUP / CONFIG SCREEN ================= */
-        .config-header {
-            padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .config-body {
-            padding: 24px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .select-input {
-            width: 100%;
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #f8fafc;
-            padding: 14px;
-            border-radius: 14px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            outline: none;
-        }
-
-        .btn-launch {
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: auto;
-            box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* ================= CAMERA SCREEN ================= */
-        .camera-viewport {
-            position: relative;
-            flex: 1;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        #webcam {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: translateZ(0);
-            will-change: transform;
-        }
-
-        #cameraCanvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-        }
-
-        #webcam.fit-screen {
-            object-fit: contain;
-        }
-
-        .camera-top-bar {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-            z-index: 10;
-        }
-
-        .icon-btn {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .icon-btn:active {
-            transform: scale(0.92);
-            background: rgba(168, 85, 247, 0.4);
-        }
-
-        .rec-indicator {
-            position: absolute;
-            top: calc(70px + env(safe-area-inset-top));
-            left: 20px;
-            background: rgba(220, 38, 38, 0.95);
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            z-index: 10;
-            transition: background 0.3s ease;
-        }
-
-        .rec-indicator.paused {
-            background: rgba(234, 179, 8, 0.95);
-        }
-
-        .rec-dot {
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            animation: pulse-red 1s infinite;
-        }
-
-        @keyframes pulse-red {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
-        }
-
-        .camera-bottom-bar {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 20px 30px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-            z-index: 10;
-        }
-
-        .shutter-btn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            border: 4px solid white;
-            background: transparent;
-            padding: 3px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .shutter-inner {
-            width: 100%;
-            height: 100%;
-            background: #ef4444;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .shutter-btn.recording .shutter-inner {
-            border-radius: 8px;
-            transform: scale(0.5);
-        }
-
-        /* ================= REVIEW SCREEN ================= */
-        .review-header {
-            padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f172a;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .review-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .btn-download-top {
-            background: linear-gradient(135deg, #a855f7, #3b82f6);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
-        }
-
-        .review-viewport {
-            flex: 1;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        #reviewCanvas {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .review-toolbar {
-            padding: 16px 20px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            background: #0f172a;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #1e293b;
-        }
-
-        .tool-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        .tool-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #334155;
-            color: #f8fafc;
-        }
-
-        .tool-circle.main {
-            background: linear-gradient(135deg, #a855f7, #2563eb);
-            border: none;
-        }
-
-        /* ================= MODAL & TOAST ================= */
-        .modal-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(6px);
-            z-index: 100;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-card {
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            background: #1e293b;
-            border-radius: 24px 24px 0 0;
-            padding: 24px 20px;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom));
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .modal-overlay.active .modal-card {
-            transform: translateY(0);
-        }
-
-        .modal-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 4px;
-            color: #f8fafc;
-        }
-
-        .modal-option {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 16px;
-            border-radius: 14px;
-            color: white;
-            font-weight: 600;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            padding: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .toast {
-            position: absolute;
-            bottom: calc(80px + env(safe-area-inset-bottom));
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid #a855f7;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            pointer-events: none;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 200;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            white-space: nowrap;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body>
+<body class="font-sans antialiased min-h-screen flex flex-col">
 
-    <div class="app-viewport">
+    <!-- Navigation -->
+    <nav class="glass-panel border-b border-slate-700 px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-blue-500 tracking-wider">PRO<span class="text-white">TRADE</span></h1>
+        <div class="flex items-center space-x-4">
+            <span class="bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1 rounded-full border border-green-500/30">
+                PAPER TRADING ACTIVE
+            </span>
+            <div id="buyingPower" class="text-slate-300 font-mono">Balance: Loading...</div>
+        </div>
+    </nav>
 
-        <!-- 1. HOME SCREEN -->
-        <div id="homeScreen" class="screen home-screen">
-            <div class="home-header">
-                <div class="magic-icon-wrapper">
-                    <div class="magic-glow"></div>
-                    <div class="magic-badge">
-                        <svg class="magic-wand-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                            <path d="m19 2 2 2-2 2-2-2 2-2z"/>
-                            <path d="m5 7 2 2-2 2-2-2 2-2z"/>
-                            <path d="m15 11 2 2-2 2-2-2 2-2z"/>
-                            <path d="M4 20l9-9"/>
-                            <path d="M15 9l2-2"/>
-                        </svg>
-                    </div>
-                </div>
+    <!-- Main Content -->
+    <main class="flex-grow p-6 max-w-6xl mx-auto w-full">
+        
+        <!-- Search Section -->
+        <div class="mb-8 relative">
+            <input type="text" id="searchInput" placeholder="Search stock symbol (e.g., AAPL, TSLA)..." 
+                class="w-full bg-slate-800 border border-slate-700 rounded-lg py-4 px-6 text-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase placeholder:normal-case">
+            <button onclick="searchStock()" class="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-6 transition-colors">
+                Search
+            </button>
+        </div>
 
-                <h1 class="home-title">SHADOW & REVERSE</h1>
-                <p class="home-subtitle">Magic FX Studio</p>
+        <!-- Market Watchlist (Dynamic) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="marketGrid">
+            <!-- Stock Cards will be injected here -->
+        </div>
+
+    </main>
+
+    <!-- Buy Modal -->
+    <div id="buyModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-md p-6 shadow-2xl transform transition-all scale-95 opacity-0" id="modalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Buy <span id="modalSymbol" class="text-blue-500">AAPL</span></h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-
-            <div class="home-grid">
-                <div class="card-btn" id="btnOpenReverse">
-                    <div class="icon-circle">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-                            <path d="M11 16.07V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87zm10 0V7.93c0-.77-.84-1.25-1.51-.86l-6.28 4.07c-.63.41-.63 1.32 0 1.73l6.28 4.07c.67.39 1.51-.09 1.51-.87z"/>
-                        </svg>
-                    </div>
-                    <span>Reverse Video</span>
-                </div>
-
-                <div class="card-btn" id="btnOpenShadowClone">
-                    <div class="icon-circle clone">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            <path d="M4 10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 1.5c-1.5 0-4 .75-4 2.25V15h3v-1.25c0-.44.22-.86.6-1.18-.36-.05-.72-.07-1.1-.07z" opacity="0.6"/>
-                            <path d="M20 10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 1.5c.38 0 .74.02 1.1.07.38.32.6.74.6 1.18V15h3v-1.25c0-1.5-2.5-2.25-4-2.25z" opacity="0.6"/>
-                        </svg>
-                    </div>
-                    <span>Shadow Clone</span>
-                </div>
-            </div>
-
-            <div class="pro-banner">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            
+            <div class="space-y-4">
                 <div>
-                    <div style="font-weight:700; font-size:0.88rem; color:#f8fafc;">Ultra-HD Clone Engine</div>
-                    <div style="font-size:0.75rem; color:#94a3b8;">Real-time Ninja Smoke & Multi-Layer Split</div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Current Price</label>
+                    <div id="modalPrice" class="text-3xl font-mono">$0.00</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 2. SHADOW CLONE CONFIGURATION SCREEN -->
-        <div id="configScreen" class="screen hidden">
-            <div class="config-header">
-                <button class="icon-btn" id="btnBackFromConfig">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-                <h2 style="font-size:1.1rem; font-weight:700;">Shadow Clone Studio</h2>
-            </div>
-
-            <div class="config-body">
-                <div class="form-group">
-                    <label class="form-label">When should the clone take place?</label>
-                    <select id="cloneTimeSelect" class="select-input">
-                        <option value="2">After 2 Seconds</option>
-                        <option value="3" selected>After 3 Seconds</option>
-                        <option value="5">After 5 Seconds</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">How many clones do you want?</label>
-                    <select id="cloneCountSelect" class="select-input">
-                        <option value="2">2 Clones (Side-by-Side)</option>
-                        <option value="3" selected>3 Clones (Triple Jutsu)</option>
-                    </select>
-                </div>
-
-                <button class="btn-launch" id="btnLaunchCloneCam">
-                    <span>Start Clone Camera</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- 3. FULL SCREEN CAMERA SCREEN -->
-        <div id="cameraScreen" class="screen hidden">
-            <div class="camera-top-bar">
-                <button class="icon-btn" id="btnCloseCamera">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-
-                <div style="display:flex; gap:10px;">
-                    <button class="icon-btn" id="btnToggleFit" title="Toggle Aspect">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                    </button>
-                    <button class="icon-btn" id="btnFlipCamera">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8e0 1.38.35 2.63 1 .38l2.12-2.12M4 14c0 4.418 3.582 8 8 8s8-3.582 8-8e0-1.38-.35-2.63-1-.38l-2.12 2.12"/><path d="M4 4v6h6M20 20v-6h-6"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div id="recBadge" class="rec-indicator hidden">
-                <div class="rec-dot"></div>
-                <span id="recTimer">REC 00:00</span>
-            </div>
-
-            <div class="camera-viewport">
-                <video id="webcam" autoplay playsinline muted></video>
-                <canvas id="cameraCanvas"></canvas>
-            </div>
-
-            <div class="camera-bottom-bar">
-                <button class="icon-btn hidden" id="btnPauseRec">
-                    <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                        <rect x="6" y="4" width="4" height="16" rx="1"/>
-                        <rect x="14" y="4" width="4" height="16" rx="1"/>
-                    </svg>
-                    <svg id="playIcon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                </button>
-
-                <button class="shutter-btn" id="btnShutter">
-                    <div class="shutter-inner"></div>
-                </button>
-
-                <div style="width:44px;"></div>
-            </div>
-        </div>
-
-        <!-- 4. REVIEW SCREEN -->
-        <div id="reviewScreen" class="screen hidden">
-            <div class="review-header">
-                <button class="icon-btn" id="btnBackToCam" style="width:36px; height:36px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-                <h2 id="reviewTitle">Preview</h2>
-                <button class="btn-download-top" id="btnOpenDownload">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Download
-                </button>
-            </div>
-
-            <div class="review-viewport">
-                <canvas id="reviewCanvas"></canvas>
-            </div>
-
-            <div class="review-toolbar">
-                <button class="tool-btn" id="btnToggleMute">
-                    <div class="tool-circle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
-                    </div>
-                    <span>Mute</span>
-                </button>
-
-                <button class="tool-btn" id="btnTogglePlay">
-                    <div class="tool-circle main">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
-                    <span>Replay</span>
-                </button>
-
-                <button class="tool-btn" id="btnAddMusic">
-                    <div class="tool-circle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13M9 9l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                    </div>
-                    <span>Add Music</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- DOWNLOAD MODAL -->
-        <div id="downloadModal" class="modal-overlay">
-            <div class="modal-card">
-                <div class="modal-title">Export Options</div>
                 
-                <div class="modal-option" id="btnExportVideo">
-                    <span>🎬 Download Processed Video (HD)</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Number of Shares</label>
+                    <input type="number" id="shareAmount" min="1" value="1" class="w-full bg-slate-900 border border-slate-600 rounded p-3 text-white focus:outline-none focus:border-blue-500 font-mono">
                 </div>
 
-                <button class="modal-close" id="btnCloseModal">Cancel</button>
+                <div class="pt-4">
+                    <button onclick="executeBuy()" id="buyBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg shadow-blue-900/50 transition-all active:scale-95">
+                        Confirm Purchase
+                    </button>
+                </div>
+                <div id="orderStatus" class="text-center text-sm font-medium hidden"></div>
             </div>
         </div>
-
-        <!-- TOAST -->
-        <div id="toast" class="toast">Feature coming soon!</div>
-
     </div>
 
-    <script src="app.js"></script>
+    <!-- Application Logic -->
+    <script>
+        // API Configuration
+        const API_KEY = 'PKEX3X5WDRNEBNOR6MXYJN3WZK';
+        const API_SECRET = '5E9pmZycF5cykkf7pDX3XQZryxPuj3bmLeg8TdLVqJEj';
+        
+        const PAPER_URL = 'https://paper-api.alpaca.markets/v2';
+        const DATA_URL = 'https://data.alpaca.markets/v2';
+
+        const headers = {
+            'APCA-API-KEY-ID': API_KEY,
+            'APCA-API-SECRET-KEY': API_SECRET,
+            'Content-Type': 'application/json'
+        };
+
+        // Popular stocks for initial load
+        const popularStocks = ['AAPL', 'TSLA', 'MSFT', 'NVDA', 'AMZN', 'META'];
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAccount();
+            loadPopularStocks();
+        });
+
+        // 1. Fetch Account Data (Buying Power)
+        async function fetchAccount() {
+            try {
+                const response = await fetch(`${PAPER_URL}/account`, { headers });
+                const data = await response.json();
+                if(data.buying_power) {
+                    document.getElementById('buyingPower').innerText = `Balance: $${parseFloat(data.buying_power).toLocaleString()}`;
+                }
+            } catch (error) {
+                console.error("Account fetch error (likely CORS if in browser):", error);
+            }
+        }
+
+        // 2. Load Market Data
+        async function loadPopularStocks() {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = ''; // Clear
+
+            // For demo purposes, we will mock the price display to ensure the UI looks good immediately, 
+            // since live market data API might be restricted outside trading hours or blocked by browser CORS.
+            popularStocks.forEach(symbol => {
+                const mockPrice = (Math.random() * (300 - 100) + 100).toFixed(2);
+                const mockChange = (Math.random() * (5 - -5) + -5).toFixed(2);
+                const isPositive = mockChange >= 0;
+                
+                const card = `
+                    <div class="glass-panel border border-slate-700 p-6 rounded-xl shadow-lg hover:border-blue-500/50 transition-colors cursor-pointer" onclick="openModal('${symbol}', ${mockPrice})">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-2xl font-bold tracking-tight">${symbol}</h3>
+                            <span class="text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'} bg-slate-800 px-2 py-1 rounded">
+                                ${isPositive ? '+' : ''}${mockChange}%
+                            </span>
+                        </div>
+                        <div class="text-3xl font-mono">$${mockPrice}</div>
+                        <button class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded transition-colors">
+                            Trade ${symbol}
+                        </button>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // 3. Search Functionality
+        function searchStock() {
+            const input = document.getElementById('searchInput').value.toUpperCase().trim();
+            if(!input) return;
+            // In a real scenario, fetch exact price. Using mock for UI completion.
+            const mockPrice = (Math.random() * 200 + 50).toFixed(2);
+            openModal(input, mockPrice);
+        }
+
+        // 4. Modal Interactions
+        let currentTradingSymbol = '';
+
+        function openModal(symbol, price) {
+            currentTradingSymbol = symbol;
+            document.getElementById('modalSymbol').innerText = symbol;
+            document.getElementById('modalPrice').innerText = `$${price}`;
+            document.getElementById('shareAmount').value = 1;
+            
+            // Reset status
+            const status = document.getElementById('orderStatus');
+            status.className = 'text-center text-sm font-medium hidden';
+            
+            const modal = document.getElementById('buyModal');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Trigger animation
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('buyModal');
+            const content = document.getElementById('modalContent');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        // 5. Execute Buy Order
+        async function executeBuy() {
+            const qty = document.getElementById('shareAmount').value;
+            const btn = document.getElementById('buyBtn');
+            const status = document.getElementById('orderStatus');
+            
+            btn.innerHTML = 'Processing...';
+            btn.disabled = true;
+
+            const orderPayload = {
+                symbol: currentTradingSymbol,
+                qty: String(qty),
+                side: 'buy',
+                type: 'market',
+                time_in_force: 'day'
+            };
+
+            try {
+                const response = await fetch(`${PAPER_URL}/orders`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(orderPayload)
+                });
+
+                const data = await response.json();
+
+                status.classList.remove('hidden');
+                if(response.ok || data.status === 'accepted') {
+                    status.innerHTML = `Success! Ordered ${qty} shares of ${currentTradingSymbol}.`;
+                    status.className = 'text-center text-sm font-medium text-green-400 mt-4';
+                    fetchAccount(); // Update balance
+                } else {
+                    // API might reject it if market is closed or due to CORS in browser
+                    status.innerHTML = `Error: ${data.message || 'Check console (CORS or Market Closed)'}`;
+                    status.className = 'text-center text-sm font-medium text-red-400 mt-4';
+                }
+            } catch (error) {
+                status.classList.remove('hidden');
+                status.innerHTML = `Network/CORS Error. Use a backend proxy.`;
+                status.className = 'text-center text-sm font-medium text-yellow-400 mt-4';
+                console.error(error);
+            } finally {
+                btn.innerHTML = 'Confirm Purchase';
+                btn.disabled = false;
+                setTimeout(closeModal, 3000);
+            }
+        }
+    </script>
 </body>
 </html>
