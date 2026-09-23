@@ -1,364 +1,275 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Pro - Alpaca Sandbox</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieBox Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+    .aspect-poster { aspect-ratio: 2 / 3; }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col">
+<body class="min-h-screen flex flex-col font-sans">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-brand-500 p-2 rounded-lg text-slate-950 font-bold">
-                    <i class="fa-solid me-1 fa-chart-line"></i> TradePro
-                </div>
-                <span class="text-xs bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded border border-amber-500/30">
-                    PAPER SANDBOX
-                </span>
-            </div>
-            
-            <button onclick="fetchAccountInfo()" class="text-sm bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-md border border-slate-700 transition">
-                <i class="fa-solid fa-rotate me-1 text-slate-400"></i> Refresh
-            </button>
-        </div>
-    </header>
+  <!-- Header & Search -->
+  <header class="sticky top-0 z-30 bg-[#0b0f19]/90 backdrop-blur border-b border-gray-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <h1 class="text-xl font-bold tracking-wider text-red-500 uppercase cursor-pointer" onclick="loadDefault()">
+        Movie<span class="text-white">Box</span>
+      </h1>
+      
+      <form id="search-form" class="w-full sm:w-80 flex items-center">
+        <input 
+          id="search-input" 
+          type="text" 
+          placeholder="Search movies, series..." 
+          class="w-full bg-gray-900 border border-gray-700 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 text-white placeholder-gray-400"
+          required
+        />
+        <button 
+          type="submit" 
+          class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-lg text-sm font-semibold transition"
+        >
+          Search
+        </button>
+      </form>
+    </div>
+  </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
-
-        <!-- Account Balance Dashboard Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Portfolio Value</p>
-                <h2 id="portfolio-value" class="text-3xl font-extrabold text-white mt-1">$0.00</h2>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Buying Power</p>
-                <h2 id="buying-power" class="text-3xl font-extrabold text-brand-500 mt-1">$0.00</h2>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Cash Balance</p>
-                <h2 id="cash-balance" class="text-3xl font-extrabold text-slate-200 mt-1">$0.00</h2>
-            </div>
-        </div>
-
-        <!-- Search Stock Section -->
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-            <h3 class="text-lg font-semibold text-white">Search Market Stock</h3>
-            <div class="flex gap-2">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
-                    <input type="text" id="symbol-input" placeholder="Enter Ticker Symbol (e.g. AAPL, TSLA, NVDA, AMZN)" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 uppercase">
-                </div>
-                <button onclick="searchAsset()" class="bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition flex items-center gap-2">
-                    Search
-                </button>
-            </div>
-
-            <!-- Search Result Container -->
-            <div id="search-result" class="hidden border border-slate-800 bg-slate-950 p-4 rounded-lg flex items-center justify-between">
-                <div>
-                    <span id="res-symbol" class="text-xl font-bold text-white">AAPL</span>
-                    <span id="res-name" class="text-sm text-slate-400 block">Apple Inc.</span>
-                    <span id="res-status" class="inline-block mt-1 text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">TRADABLE</span>
-                </div>
-                <button id="open-buy-btn" onclick="openBuyModal()" class="bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold px-5 py-2.5 rounded-lg transition">
-                    Buy Stock
-                </button>
-            </div>
-        </div>
-
-        <!-- Popular Watchlist Grid -->
-        <div class="space-y-3">
-            <h3 class="text-lg font-semibold text-white">Popular Stocks</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div onclick="quickSelect('AAPL')" class="bg-slate-900 border border-slate-800 p-4 rounded-xl hover:border-brand-500/50 cursor-pointer transition">
-                    <p class="font-bold text-white">AAPL</p>
-                    <p class="text-xs text-slate-400">Apple Inc.</p>
-                </div>
-                <div onclick="quickSelect('TSLA')" class="bg-slate-900 border border-slate-800 p-4 rounded-xl hover:border-brand-500/50 cursor-pointer transition">
-                    <p class="font-bold text-white">TSLA</p>
-                    <p class="text-xs text-slate-400">Tesla, Inc.</p>
-                </div>
-                <div onclick="quickSelect('NVDA')" class="bg-slate-900 border border-slate-800 p-4 rounded-xl hover:border-brand-500/50 cursor-pointer transition">
-                    <p class="font-bold text-white">NVDA</p>
-                    <p class="text-xs text-slate-400">NVIDIA Corporation</p>
-                </div>
-                <div onclick="quickSelect('AMZN')" class="bg-slate-900 border border-slate-800 p-4 rounded-xl hover:border-brand-500/50 cursor-pointer transition">
-                    <p class="font-bold text-white">AMZN</p>
-                    <p class="text-xs text-slate-400">Amazon.com Inc.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Positions & Orders -->
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-            <h3 class="text-lg font-semibold text-white">Open Portfolio Positions</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
-                        <tr>
-                            <th class="p-3">Symbol</th>
-                            <th class="p-3">Shares</th>
-                            <th class="p-3">Avg Entry</th>
-                            <th class="p-3">Current Value</th>
-                            <th class="p-3">Unrealized P/L</th>
-                        </tr>
-                    </thead>
-                    <tbody id="positions-table" class="divide-y divide-slate-800">
-                        <tr>
-                            <td colspan="5" class="p-4 text-center text-slate-500">Loading open positions...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Buy Modal -->
-    <div id="buy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-xl font-bold text-white">Place Buy Order</h3>
-                <button onclick="closeBuyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Stock Ticker</label>
-                    <input type="text" id="modal-symbol" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white font-bold uppercase">
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Order Type</label>
-                    <select id="modal-order-type" onchange="toggleOrderInput()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white">
-                        <option value="notional">Dollar Amount ($)</option>
-                        <option value="qty">Number of Shares</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label id="amount-label" class="block text-xs text-slate-400 mb-1">Amount ($ USD)</label>
-                    <input type="number" id="modal-amount" placeholder="e.g. 100" min="1" step="any"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500">
-                </div>
-            </div>
-
-            <div id="modal-status" class="hidden text-sm p-3 rounded-lg"></div>
-
-            <div class="flex gap-3 pt-2">
-                <button onclick="closeBuyModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-lg transition">
-                    Cancel
-                </button>
-                <button onclick="submitBuyOrder()" id="confirm-buy-btn" class="flex-1 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold py-3 rounded-lg transition">
-                    Confirm Order
-                </button>
-            </div>
-        </div>
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <!-- Status / Loading Indicator -->
+    <div id="status-container" class="text-center py-8 hidden">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+      <p id="status-text" class="text-sm text-gray-400 mt-2">Loading...</p>
     </div>
 
-    <script>
-        // Alpaca Configuration
-        const API_KEY = 'PKEX3X5WDRNEBNOR6MXYJN3WZK';
-        const API_SECRET = '5E9pmZycF5cykkf7pDX3XQZryxPuj3bmLeg8TdLVqJEj';
-        const BASE_URL = 'https://paper-api.alpaca.markets/v2';
+    <!-- Movie Grid -->
+    <div id="movie-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+  </main>
 
-        const headers = {
-            'APCA-API-KEY-ID': API_KEY,
-            'APCA-API-SECRET-KEY': API_SECRET,
-            'Content-Type': 'application/json'
-        };
+  <!-- Video Player Modal -->
+  <div id="player-modal" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-4xl bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl relative">
+      
+      <!-- Modal Top Bar -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+        <div class="truncate pr-4">
+          <h2 id="modal-title" class="font-semibold text-white truncate text-base">Playing Video</h2>
+          <span id="stream-status" class="text-xs text-yellow-400">Resolving stream link...</span>
+        </div>
+        <button onclick="closePlayer()" class="text-gray-400 hover:text-white p-1 text-xl font-bold">
+          ✕
+        </button>
+      </div>
 
-        // Initialize Data on Load
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchAccountInfo();
-            fetchPositions();
+      <!-- Player Box -->
+      <div class="relative bg-black w-full aspect-video flex items-center justify-center">
+        <div id="stream-loader" class="absolute flex flex-col items-center gap-2">
+          <div class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent"></div>
+          <span class="text-xs text-gray-400">Fetching resolutions from relay (takes 5–10s)...</span>
+        </div>
+        <video 
+          id="video-element" 
+          class="w-full h-full hidden" 
+          controls 
+          playsinline 
+          autoplay
+        ></video>
+      </div>
+
+      <!-- Resolution Selector Bar -->
+      <div id="quality-bar" class="p-3 bg-gray-950 flex items-center gap-2 flex-wrap border-t border-gray-800">
+        <span class="text-xs text-gray-400 font-medium">Quality:</span>
+        <div id="quality-buttons" class="flex gap-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://allinoneba.ozokelvin293.workers.dev";
+    const API_SECRET = "lordtech";
+
+    const movieGrid = document.getElementById("movie-grid");
+    const statusContainer = document.getElementById("status-container");
+    const statusText = document.getElementById("status-text");
+    const searchForm = document.getElementById("search-form");
+    const searchInput = document.getElementById("search-input");
+    const playerModal = document.getElementById("player-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const streamStatus = document.getElementById("stream-status");
+    const streamLoader = document.getElementById("stream-loader");
+    const videoElement = document.getElementById("video-element");
+    const qualityButtons = document.getElementById("quality-buttons");
+
+    let currentStreams = [];
+
+    // Search API
+    async function searchMovies(query) {
+      showStatus(`Searching for "${query}"...`);
+      movieGrid.innerHTML = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/search`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Worker-Secret": API_SECRET
+          },
+          body: JSON.stringify({ keyword: query, page: 1 })
         });
 
-        // 1. Fetch Account Information
-        async function fetchAccountInfo() {
-            try {
-                const res = await fetch(`${BASE_URL}/account`, { headers });
-                if (!res.ok) throw new Error('Failed to fetch account info');
-                const account = await res.json();
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        const data = await res.json();
+        
+        hideStatus();
+        renderCards(data.items || []);
+      } catch (err) {
+        showStatus(`Failed to search: ${err.message}`);
+      }
+    }
 
-                document.getElementById('portfolio-value').innerText = `$${parseFloat(account.portfolio_value).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-                document.getElementById('buying-power').innerText = `$${parseFloat(account.buying_power).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-                document.getElementById('cash-balance').innerText = `$${parseFloat(account.cash).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            } catch (err) {
-                console.error(err);
-            }
+    // Render Movie Grid
+    function renderCards(items) {
+      if (!items.length) {
+        showStatus("No movies found.");
+        return;
+      }
+
+      movieGrid.innerHTML = items.map(item => `
+        <div 
+          onclick="openStream('${item.subjectId}', '${escapeHtml(item.title)}')"
+          class="group bg-gray-900 border border-gray-800 hover:border-red-500 rounded-lg overflow-hidden cursor-pointer transition transform hover:-translate-y-1 shadow-md flex flex-col"
+        >
+          <div class="relative w-full aspect-poster bg-gray-800 overflow-hidden">
+            <img 
+              src="${item.poster || ''}" 
+              alt="${escapeHtml(item.title)}" 
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              onerror="this.src='https://placehold.co/300x450/1f2937/9ca3af?text=No+Poster'"
+            />
+            <span class="absolute top-2 right-2 bg-black/75 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide">
+              ${item.type || 'Movie'}
+            </span>
+          </div>
+          <div class="p-2.5 flex-1 flex flex-col justify-between">
+            <h3 class="font-semibold text-sm line-clamp-1 group-hover:text-red-400 text-gray-100">${escapeHtml(item.title)}</h3>
+            <div class="flex items-center justify-between text-[11px] text-gray-400 mt-1.5">
+              <span>${item.releaseDate ? item.releaseDate.split('-')[0] : 'N/A'}</span>
+              <span>⭐ ${item.rating || 'NR'}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Open Player and Fetch Stream
+    async function openStream(subjectId, title) {
+      modalTitle.textContent = title;
+      streamStatus.textContent = "Resolving stream URLs...";
+      streamLoader.classList.remove("hidden");
+      videoElement.classList.add("hidden");
+      videoElement.pause();
+      videoElement.src = "";
+      qualityButtons.innerHTML = "";
+      playerModal.classList.remove("hidden");
+
+      try {
+        const res = await fetch(`${API_BASE}/stream/${subjectId}?se=0&ep=0`, {
+          headers: { "X-Worker-Secret": API_SECRET }
+        });
+
+        if (!res.ok) throw new Error(`Stream Error (${res.status})`);
+        const data = await res.json();
+
+        if (!data.streams || !data.streams.length) {
+          throw new Error("No playable streams available for this item.");
         }
 
-        // 2. Search Asset by Symbol
-        async function searchAsset() {
-            const symbol = document.getElementById('symbol-input').value.trim().toUpperCase();
-            if (!symbol) return;
+        currentStreams = data.streams;
+        renderQualityButtons(currentStreams);
 
-            try {
-                const res = await fetch(`${BASE_URL}/assets/${symbol}`, { headers });
-                if (!res.ok) {
-                    alert('Stock asset not found or inactive.');
-                    return;
-                }
-                const asset = await res.json();
+        // Pick highest quality available by default
+        selectQuality(0);
+      } catch (err) {
+        streamStatus.textContent = `Error: ${err.message}`;
+        streamLoader.classList.add("hidden");
+      }
+    }
 
-                document.getElementById('res-symbol').innerText = asset.symbol;
-                document.getElementById('res-name').innerText = asset.name;
-                document.getElementById('res-status').innerText = asset.tradable ? 'TRADABLE' : 'NON-TRADABLE';
-                document.getElementById('search-result').classList.remove('hidden');
-            } catch (err) {
-                alert('Error looking up asset. Check console or CORS settings.');
-                console.error(err);
-            }
-        }
+    // Set Quality Buttons
+    function renderQualityButtons(streams) {
+      qualityButtons.innerHTML = streams.map((stream, idx) => `
+        <button 
+          onclick="selectQuality(${idx})"
+          id="btn-quality-${idx}"
+          class="px-2.5 py-1 text-xs rounded border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200"
+        >
+          ${stream.quality || stream.resolution + 'p'}
+        </button>
+      `).join("");
+    }
 
-        function quickSelect(symbol) {
-            document.getElementById('symbol-input').value = symbol;
-            searchAsset();
-        }
+    // Select Stream URL & Play
+    function selectQuality(index) {
+      const stream = currentStreams[index];
+      if (!stream) return;
 
-        // 3. Modal Controls
-        function openBuyModal() {
-            const symbol = document.getElementById('res-symbol').innerText;
-            document.getElementById('modal-symbol').value = symbol;
-            document.getElementById('modal-amount').value = '';
-            document.getElementById('modal-status').classList.add('hidden');
-            document.getElementById('buy-modal').classList.remove('hidden');
-            document.getElementById('buy-modal').classList.add('flex');
-        }
+      // Update button highlights
+      document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
+        b.className = i === index 
+          ? "px-2.5 py-1 text-xs rounded border border-red-500 bg-red-600 font-bold text-white"
+          : "px-2.5 py-1 text-xs rounded border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200";
+      });
 
-        function closeBuyModal() {
-            document.getElementById('buy-modal').classList.add('hidden');
-            document.getElementById('buy-modal').classList.remove('flex');
-        }
+      streamStatus.textContent = `Playing ${stream.quality || stream.resolution + 'p'}`;
+      streamLoader.classList.add("hidden");
+      videoElement.classList.remove("hidden");
 
-        function toggleOrderInput() {
-            const type = document.getElementById('modal-order-type').value;
-            const label = document.getElementById('amount-label');
-            const input = document.getElementById('modal-amount');
-            if (type === 'notional') {
-                label.innerText = 'Amount ($ USD)';
-                input.placeholder = 'e.g. 100';
-            } else {
-                label.innerText = 'Number of Shares';
-                input.placeholder = 'e.g. 2';
-            }
-        }
+      videoElement.src = stream.url;
+      videoElement.play().catch(() => {
+        // Auto-play block fallback
+        console.log("Autoplay blocked by browser. Press play manually.");
+      });
+    }
 
-        // 4. Submit Buy Order to Alpaca
-        async function submitBuyOrder() {
-            const symbol = document.getElementById('modal-symbol').value;
-            const orderType = document.getElementById('modal-order-type').value;
-            const amountVal = document.getElementById('modal-amount').value;
-            const statusDiv = document.getElementById('modal-status');
-            const btn = document.getElementById('confirm-buy-btn');
+    function closePlayer() {
+      playerModal.classList.add("hidden");
+      videoElement.pause();
+      videoElement.src = "";
+    }
 
-            if (!amountVal || amountVal <= 0) {
-                alert('Please enter a valid amount or quantity');
-                return;
-            }
+    function showStatus(msg) {
+      statusContainer.classList.remove("hidden");
+      statusText.textContent = msg;
+    }
 
-            btn.disabled = true;
-            btn.innerText = 'Processing...';
+    function hideStatus() {
+      statusContainer.classList.add("hidden");
+    }
 
-            const payload = {
-                symbol: symbol,
-                side: 'buy',
-                type: 'market',
-                time_in_force: 'gtc'
-            };
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
 
-            if (orderType === 'notional') {
-                payload.notional = parseFloat(amountVal);
-            } else {
-                payload.qty = parseFloat(amountVal);
-            }
+    function loadDefault() {
+      searchInput.value = "Avatar";
+      searchMovies("Avatar");
+    }
 
-            try {
-                const res = await fetch(`${BASE_URL}/orders`, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(payload)
-                });
+    // Initial Event Listeners
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = searchInput.value.trim();
+      if (val) searchMovies(val);
+    });
 
-                const data = await res.json();
-
-                if (res.ok) {
-                    statusDiv.className = 'text-sm p-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                    statusDiv.innerText = `Order Placed Successfully! ID: ${data.id.substring(0, 8)}...`;
-                    statusDiv.classList.remove('hidden');
-                    
-                    setTimeout(() => {
-                        closeBuyModal();
-                        fetchAccountInfo();
-                        fetchPositions();
-                    }, 1800);
-                } else {
-                    throw new Error(data.message || 'Order failed to submit');
-                }
-            } catch (err) {
-                statusDiv.className = 'text-sm p-3 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30';
-                statusDiv.innerText = `Failed: ${err.message}`;
-                statusDiv.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Confirm Order';
-            }
-        }
-
-        // 5. Fetch Portfolio Open Positions
-        async function fetchPositions() {
-            const tableBody = document.getElementById('positions-table');
-            try {
-                const res = await fetch(`${BASE_URL}/positions`, { headers });
-                if (!res.ok) throw new Error('Failed to fetch positions');
-                const positions = await res.json();
-
-                if (positions.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No active positions yet. Buy a stock to get started!</td></tr>`;
-                    return;
-                }
-
-                tableBody.innerHTML = positions.map(pos => {
-                    const pl = parseFloat(pos.unrealized_pl);
-                    const plClass = pl >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                    return `
-                        <tr class="hover:bg-slate-950/50">
-                            <td class="p-3 font-bold text-white">${pos.symbol}</td>
-                            <td class="p-3">${parseFloat(pos.qty).toFixed(2)}</td>
-                            <td class="p-3">$${parseFloat(pos.avg_entry_price).toFixed(2)}</td>
-                            <td class="p-3">$${parseFloat(pos.market_value).toFixed(2)}</td>
-                            <td class="p-3 font-semibold ${plClass}">$${pl.toFixed(2)}</td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-rose-400">Failed to load positions.</td></tr>`;
-                console.error(err);
-            }
-        }
-    </script>
+    // Load initial titles on launch
+    loadDefault();
+  </script>
 </body>
 </html>
