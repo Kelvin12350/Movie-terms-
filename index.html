@@ -153,6 +153,14 @@
       const stream = currentStreams[index];
       if (!stream) return;
 
+      // Smart routing based on MovieBox's official linkType flag
+      if (stream.linkType === 2) {
+          alert("This title is hosted on a third-party server. It will open in a new tab.");
+          window.open(stream.url, '_blank');
+          closePlayer();
+          return;
+      }
+
       document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
         b.className = i === index 
           ? "px-2.5 py-1 text-xs rounded border border-red-500 bg-red-600 font-bold text-white"
@@ -165,7 +173,7 @@
       videoElement.src = "";
       videoElement.classList.add("hidden");
 
-      // Load native video
+      // Load native video for official CDN links
       videoElement.src = stream.url;
       videoElement.classList.remove("hidden");
       streamLoader.classList.add("hidden");
