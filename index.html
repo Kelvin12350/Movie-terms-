@@ -78,8 +78,7 @@
           id="video-element" 
           class="w-full h-full hidden" 
           controls 
-          playsinline 
-          autoplay
+          playsinline
         ></video>
       </div>
 
@@ -92,9 +91,6 @@
   </div>
 
   <script>
-    const API_BASE = "https://allinoneba.ozokelvin293.workers.dev";
-    const API_SECRET = "lordtech";
-
     const movieGrid = document.getElementById("movie-grid");
     const statusContainer = document.getElementById("status-container");
     const statusText = document.getElementById("status-text");
@@ -110,19 +106,15 @@
 
     let currentStreams = [];
 
-    // Search API
     async function searchMovies(query) {
       showStatus(`Searching for "${query}"...`);
       movieGrid.innerHTML = "";
       errorBanner.classList.add("hidden");
 
       try {
-        const res = await fetch(`${API_BASE}/search`, {
+        const res = await fetch('/api/search', {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Worker-Secret": API_SECRET
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ keyword: query, page: 1 })
         });
 
@@ -136,7 +128,6 @@
       }
     }
 
-    // Render Movie Grid
     function renderCards(items) {
       if (!items.length) {
         showStatus("No movies found.");
@@ -171,7 +162,6 @@
       `).join("");
     }
 
-    // Open Player and Fetch Stream
     async function openStream(subjectId, title) {
       modalTitle.textContent = title;
       streamStatus.textContent = "Resolving stream URLs...";
@@ -184,9 +174,7 @@
       playerModal.classList.remove("hidden");
 
       try {
-        const res = await fetch(`${API_BASE}/stream/${subjectId}?se=0&ep=0`, {
-          headers: { "X-Worker-Secret": API_SECRET }
-        });
+        const res = await fetch(`/api/stream?id=${subjectId}&se=0&ep=0`);
 
         if (!res.ok) throw new Error(`Stream Error (${res.status})`);
         const data = await res.json();
@@ -197,8 +185,6 @@
 
         currentStreams = data.streams;
         renderQualityButtons(currentStreams);
-
-        // Pick highest quality available by default
         selectQuality(0);
       } catch (err) {
         streamStatus.textContent = `Error: ${err.message}`;
@@ -206,7 +192,6 @@
       }
     }
 
-    // Set Quality Buttons
     function renderQualityButtons(streams) {
       qualityButtons.innerHTML = streams.map((stream, idx) => `
         <button 
@@ -219,29 +204,10 @@
       `).join("");
     }
 
-    // Select Stream URL & Play
     function selectQuality(index) {
       const stream = currentStreams[index];
       if (!stream) return;
 
-      // 1. Check for Third-Party Webpage Links (e.g., ailok.pe)
-      if (!stream.url.includes(".mp4") && !stream.url.includes("pterodactyl")) {
-          alert("This movie is hosted on a third-party website. It will open in a new tab.");
-          window.open(stream.url, '_blank');
-          closePlayer();
-          return;
-      }
-
-      // 2. Check for HTTPS Mixed Content Block
-      if (window.location.protocol === "https:" && stream.url.startsWith("http://")) {
-          closePlayer();
-          errorBanner.innerHTML = `<strong>Browser Security Block:</strong> You are hosting this player securely on HTTPS (Vercel), but the video stream is insecure HTTP (Pterodactyl). <br><br> Browsers automatically block this. To fix it, you must either test this index.html file locally on your computer, or add an SSL certificate to your Pterodactyl VPS.`;
-          errorBanner.classList.remove("hidden");
-          window.scrollTo(0, 0);
-          return;
-      }
-
-      // Update button highlights
       document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
         b.className = i === index 
           ? "px-2.5 py-1 text-xs rounded border border-red-500 bg-red-600 font-bold text-white"
@@ -253,10 +219,8 @@
       videoElement.classList.remove("hidden");
 
       videoElement.src = stream.url;
-      
-      // Auto-play block handling (Browser policy requires user interaction)
-      videoElement.play().catch((err) => {
-        console.log("Autoplay blocked by browser. Press play manually.");
+      videoElement.play().catch(() => {
+        console.log("Press the play button to start video playback.");
       });
     }
 
@@ -286,14 +250,12 @@
       searchMovies("Avatar");
     }
 
-    // Initial Event Listeners
     searchForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const val = searchInput.value.trim();
       if (val) searchMovies(val);
     });
 
-    // Load initial titles on launch
     loadDefault();
   </script>
 </body>
