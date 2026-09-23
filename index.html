@@ -48,12 +48,7 @@
           <div class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent"></div>
           <span class="text-xs text-gray-400">Fetching stream...</span>
         </div>
-        
-        <!-- Native Player for MP4s -->
         <video id="video-element" class="w-full h-full hidden" controls playsinline autoplay></video>
-        
-        <!-- Embed Player for Third-Party Webpages -->
-        <iframe id="iframe-element" class="w-full h-full hidden border-0" allowfullscreen allow="autoplay"></iframe>
       </div>
 
       <div id="quality-bar" class="p-3 bg-gray-950 flex items-center gap-2 flex-wrap border-t border-gray-800">
@@ -74,7 +69,6 @@
     const streamStatus = document.getElementById("stream-status");
     const streamLoader = document.getElementById("stream-loader");
     const videoElement = document.getElementById("video-element");
-    const iframeElement = document.getElementById("iframe-element");
     const qualityButtons = document.getElementById("quality-buttons");
     const errorBanner = document.getElementById("error-banner");
 
@@ -123,13 +117,10 @@
       streamStatus.textContent = "Resolving stream URLs...";
       streamLoader.classList.remove("hidden");
       
-      // Reset and hide both players
       videoElement.classList.add("hidden");
-      iframeElement.classList.add("hidden");
       errorBanner.classList.add("hidden");
       videoElement.pause();
       videoElement.src = "";
-      iframeElement.src = "";
       
       qualityButtons.innerHTML = "";
       playerModal.classList.remove("hidden");
@@ -162,7 +153,6 @@
       const stream = currentStreams[index];
       if (!stream) return;
 
-      // Update active button styling
       document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
         b.className = i === index 
           ? "px-2.5 py-1 text-xs rounded border border-red-500 bg-red-600 font-bold text-white"
@@ -171,33 +161,21 @@
 
       streamStatus.textContent = `Playing ${stream.quality || stream.resolution + 'p'}`;
       
-      // Stop and hide both players before switching
       videoElement.pause();
       videoElement.src = "";
-      iframeElement.src = "";
       videoElement.classList.add("hidden");
-      iframeElement.classList.add("hidden");
 
-      // Smart Player Routing
-      if (stream.url.includes("ailok.pe") || stream.url.includes("embed") || !stream.url.includes(".mp4")) {
-          // Use iFrame Embed
-          iframeElement.src = stream.url;
-          iframeElement.classList.remove("hidden");
-          streamLoader.classList.add("hidden");
-      } else {
-          // Use Native Video Tag
-          videoElement.src = stream.url;
-          videoElement.classList.remove("hidden");
-          streamLoader.classList.add("hidden");
-          videoElement.play().catch(() => console.log("Press play manually."));
-      }
+      // Load native video
+      videoElement.src = stream.url;
+      videoElement.classList.remove("hidden");
+      streamLoader.classList.add("hidden");
+      videoElement.play().catch(() => console.log("Press play manually."));
     }
 
     function closePlayer() {
       playerModal.classList.add("hidden");
       videoElement.pause();
       videoElement.src = "";
-      iframeElement.src = "";
     }
 
     function showStatus(msg) {
