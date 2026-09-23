@@ -45,6 +45,10 @@
       <p id="status-text" class="text-sm text-gray-400 mt-2">Loading...</p>
     </div>
 
+    <!-- Error Banner -->
+    <div id="error-banner" class="hidden mb-4 bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg text-sm">
+    </div>
+
     <!-- Movie Grid -->
     <div id="movie-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
   </main>
@@ -102,6 +106,7 @@
     const streamLoader = document.getElementById("stream-loader");
     const videoElement = document.getElementById("video-element");
     const qualityButtons = document.getElementById("quality-buttons");
+    const errorBanner = document.getElementById("error-banner");
 
     let currentStreams = [];
 
@@ -109,6 +114,7 @@
     async function searchMovies(query) {
       showStatus(`Searching for "${query}"...`);
       movieGrid.innerHTML = "";
+      errorBanner.classList.add("hidden");
 
       try {
         const res = await fetch(`${API_BASE}/search`, {
@@ -171,6 +177,7 @@
       streamStatus.textContent = "Resolving stream URLs...";
       streamLoader.classList.remove("hidden");
       videoElement.classList.add("hidden");
+      errorBanner.classList.add("hidden");
       videoElement.pause();
       videoElement.src = "";
       qualityButtons.innerHTML = "";
@@ -217,6 +224,23 @@
       const stream = currentStreams[index];
       if (!stream) return;
 
+      // 1. Check for Third-Party Webpage Links (e.g., ailok.pe)
+      if (!stream.url.includes(".mp4") && !stream.url.includes("pterodactyl")) {
+          alert("This movie is hosted on a third-party website. It will open in a new tab.");
+          window.open(stream.url, '_blank');
+          closePlayer();
+          return;
+      }
+
+      // 2. Check for HTTPS Mixed Content Block
+      if (window.location.protocol === "https:" && stream.url.startsWith("http://")) {
+          closePlayer();
+          errorBanner.innerHTML = `<strong>Browser Security Block:</strong> You are hosting this player securely on HTTPS (Vercel), but the video stream is insecure HTTP (Pterodactyl). <br><br> Browsers automatically block this. To fix it, you must either test this index.html file locally on your computer, or add an SSL certificate to your Pterodactyl VPS.`;
+          errorBanner.classList.remove("hidden");
+          window.scrollTo(0, 0);
+          return;
+      }
+
       // Update button highlights
       document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
         b.className = i === index 
@@ -229,8 +253,9 @@
       videoElement.classList.remove("hidden");
 
       videoElement.src = stream.url;
-      videoElement.play().catch(() => {
-        // Auto-play block fallback
+      
+      // Auto-play block handling (Browser policy requires user interaction)
+      videoElement.play().catch((err) => {
         console.log("Autoplay blocked by browser. Press play manually.");
       });
     }
