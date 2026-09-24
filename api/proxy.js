@@ -1,3 +1,5 @@
+const MOVIEBOX_SECRET = process.env.MOVIEBOX_SECRET || 'MvB7!qP2#xR9@kL4$zT8';
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -17,11 +19,17 @@ export default async function handler(req, res) {
   const targetUrl = `https://api.namelesstech.space${endpoint}`;
 
   try {
+    // Format authorization header (fallback to secret token)
+    const authHeader = req.headers.authorization 
+      ? req.headers.authorization 
+      : (MOVIEBOX_SECRET.startsWith('Bearer ') ? MOVIEBOX_SECRET : `Bearer ${MOVIEBOX_SECRET}`);
+
     const options = {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        ...(req.headers.authorization ? { Authorization: req.headers.authorization } : {})
+        'Authorization': authHeader,
+        'x-api-key': MOVIEBOX_SECRET
       }
     };
 
