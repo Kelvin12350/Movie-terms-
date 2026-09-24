@@ -366,38 +366,27 @@
     playBtn.innerText = "⏳ Finding stream...";
     playBtn.disabled = true;
 
-    // This calls `/api/proxy?path=/api/stream/{id}?detail_path={slug}`
     const streamData = await fetchAPI(`/api/stream/${id}?detail_path=${slug}`);
     
-    if (streamData) {
-        let streamUrl = null;
-
-        // Navigate into the 'sources' array returned by the backend
-        if (streamData.sources && streamData.sources.length > 0) {
-            // Select the highest resolution available (usually the last item)
-            streamUrl = streamData.sources[streamData.sources.length - 1].url;
-        }
-
-        if (streamUrl) {
-    playBtn.style.display = 'none';
-    videoPlayer.style.display = 'block';
-    
-    // Route the raw CDN URL through your VPS proxy with the proper port
-    const vpsUrl = `http://pterodactyl.namelesstech.space:25566/api/play?url=${encodeURIComponent(streamUrl)}`;
-    
-    videoPlayer.src = vpsUrl;
-    videoPlayer.play();
-}
- else {
-            alert("No valid stream URL found in the API response.");
-        }
+    // Target the sources array from the JSON response
+    if (streamData && streamData.sources && streamData.sources.length > 0) {
+        // Extract the 1080p URL (last item in the array)
+        const rawCdnUrl = streamData.sources[streamData.sources.length - 1].url;
+        
+        playBtn.style.display = 'none';
+        videoPlayer.style.display = 'block';
+        
+        // Route through your private Pterodactyl VPS proxy
+        videoPlayer.src = `http://pterodactyl.namelesstech.space:25566/api/play?url=${encodeURIComponent(rawCdnUrl)}`;
+        videoPlayer.play();
     } else {
-        alert("Failed to fetch the stream from the server.");
+        alert("No stream found for this episode.");
     }
 
     playBtn.innerText = "▶ Play Stream";
     playBtn.disabled = false;
 }
+
 
 
         /**
