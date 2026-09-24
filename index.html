@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- CRITICAL FIX: Prevents CDNs from blocking the video link due to hotlinking -->
+    <meta name="referrer" content="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nameless Streamer</title>
     <style>
@@ -248,6 +250,12 @@
             videoPlayer.src = '';
         });
 
+        // Video Player Error Listener (Catches NotSupportedError)
+        videoPlayer.addEventListener('error', (e) => {
+            console.error("Video Player Error:", videoPlayer.error);
+            alert("Failed to load video. The stream link might have expired, or the CDN is blocking access.");
+        });
+
         /**
          * Core Fetch Function using Vercel Serverless Function Proxy
          */
@@ -276,7 +284,6 @@
             searchInput.value = ''; 
             
             const data = await fetchAPI('/home/trending');
-            
             const items = extractArray(data);
             renderGrid(items, "🔥 Trending Now");
         }
@@ -287,7 +294,6 @@
         async function fetchSearch(query) {
             contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
             const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
-            
             const items = extractArray(data);
             renderGrid(items, `Search Results: "${query}"`);
         }
@@ -333,12 +339,15 @@
             playBtn.style.display = 'none';
             videoPlayer.style.display = 'none';
 
-            const detail = await fetchAPI(`/detail/${slug}`);
+            const rawDetail = await fetchAPI(`/detail/${slug}`);
             
-            if (!detail) {
+            if (!rawDetail) {
                 modalTitle.innerText = "Error loading details";
                 return;
             }
+
+            // Un-nest the detail payload if it is wrapped in 'data' or 'result'
+            const detail = rawDetail.data || rawDetail.result || rawDetail.item || rawDetail;
 
             const title = detail.title || detail.name || 'Title';
             const desc = detail.description || detail.synopsis || detail.plot || 'No description available.';
@@ -373,22 +382,22 @@
             if (streamData) {
                 let streamUrl = null;
 
-                // FIX: Check if the API returned an array of resolutions inside 'sources'
                 if (streamData.sources && Array.isArray(streamData.sources) && streamData.sources.length > 0) {
-                    // Grab the last item in the array (usually the highest resolution like 480p or 1080p)
                     const bestSource = streamData.sources[streamData.sources.length - 1];
                     streamUrl = bestSource.url;
-                } 
-                // Fallback for older formats
-                else {
+                } else {
                     streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
                 }
 
                 if (streamUrl) {
+                    console.log("Loading Video URL:", streamUrl);
                     playBtn.style.display = 'none';
                     videoPlayer.style.display = 'block';
                     videoPlayer.src = streamUrl;
-                    videoPlayer.play();
+                    
+                    videoPlayer.play().catch(e => {
+                        console.error("Autoplay/Playback Blocked:", e);
+                    });
                 } else {
                     alert("No valid stream URL found in the API response.");
                 }
