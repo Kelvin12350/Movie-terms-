@@ -230,195 +230,196 @@
         </div>
     </div>
 
-    <script>
-        const contentArea = document.getElementById('contentArea');
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
+<script>
+    const contentArea = document.getElementById('contentArea');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    const modal = document.getElementById('movieModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDetails = document.getElementById('modalDetails');
+    const playBtn = document.getElementById('playBtn');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const errorFallback = document.getElementById('errorFallback');
+    const externalLink = document.getElementById('externalLink');
+
+    let currentVideoUrl = "";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHome();
+    });
+
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (query) fetchSearch(query);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchBtn.click();
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        videoPlayer.pause();
+        videoPlayer.style.display = 'none';
+        videoPlayer.src = '';
+        errorFallback.style.display = 'none';
+    });
+
+    videoPlayer.addEventListener('error', (e) => {
+        console.error("Video Player Error Triggered:", videoPlayer.error);
+        videoPlayer.style.display = 'none';
+        errorFallback.style.display = 'block';
+        externalLink.href = currentVideoUrl;
+    });
+
+    // Uses your Vercel proxy.js for JSON data
+    async function fetchAPI(endpoint) {
+        try {
+            const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error("API Fetch Error:", error);
+            return null;
+        }
+    }
+
+    async function loadHome() {
+        contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
+        searchInput.value = ''; 
+        const data = await fetchAPI('/home'); // Ensure your VPS has a /home route
+        renderGrid(extractArray(data), "🔥 Trending Now");
+    }
+
+    async function fetchSearch(query) {
+        contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
+        const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
+        renderGrid(extractArray(data), `Search Results: "${query}"`);
+    }
+
+    function renderGrid(items, sectionTitle) {
+        if (!items || items.length === 0) {
+            contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
+            return;
+        }
+
+        let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
         
-        const modal = document.getElementById('movieModal');
-        const closeModalBtn = document.getElementById('closeModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDetails = document.getElementById('modalDetails');
-        const playBtn = document.getElementById('playBtn');
-        const videoPlayer = document.getElementById('videoPlayer');
-        const errorFallback = document.getElementById('errorFallback');
-        const externalLink = document.getElementById('externalLink');
-
-        let currentVideoUrl = "";
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadHome();
-        });
-
-        searchBtn.addEventListener('click', () => {
-            const query = searchInput.value.trim();
-            if (query) fetchSearch(query);
-        });
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchBtn.click();
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-            videoPlayer.pause();
-            videoPlayer.style.display = 'none';
-            videoPlayer.src = '';
-            errorFallback.style.display = 'none';
-        });
-
-        // Error Fallback Handler
-        videoPlayer.addEventListener('error', (e) => {
-            console.error("Video Player Error Triggered:", videoPlayer.error);
-            videoPlayer.style.display = 'none';
-            errorFallback.style.display = 'block';
-            externalLink.href = currentVideoUrl;
-        });
-
-        async function fetchAPI(endpoint) {
-            try {
-                const response = await fetch(endpoint);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                console.error("API Fetch Error:", error);
-                return null;
-            }
-        }
-
-        async function loadHome() {
-            contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
-            searchInput.value = ''; 
-            const data = await fetchAPI('/home');
-            renderGrid(extractArray(data), "🔥 Trending Now");
-        }
-
-        async function fetchSearch(query) {
-            contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
-            const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
-            renderGrid(extractArray(data), `Search Results: "${query}"`);
-        }
-
-        function renderGrid(items, sectionTitle) {
-            if (!items || items.length === 0) {
-                contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
-                return;
-            }
-
-            let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
+        items.forEach(item => {
+            const title = item.title || item.name || 'Unknown Title';
+            const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
             
-            items.forEach(item => {
-                const title = item.title || item.name || 'Unknown Title';
-                const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
-                
-                const poster = item.poster_url || item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
-                const slug = item.slug || item.id;
-                const id = item.subject_id || item.id || item.slug;
+            const poster = item.poster_url || item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
+            const slug = item.slug || item.id;
+            const id = item.subject_id || item.id || item.slug;
 
-                html += `
-                    <div class="card" onclick="openDetails('${slug}', '${id}', '${safeTitle}')">
-                        <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
-                        <div class="card-info">
-                            <h3>${title}</h3>
-                        </div>
+            html += `
+                <div class="card" onclick="openDetails('${slug}', '${id}', '${safeTitle}')">
+                    <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
+                    <div class="card-info">
+                        <h3>${title}</h3>
                     </div>
-                `;
-            });
+                </div>
+            `;
+        });
 
-            html += `</div>`;
-            contentArea.innerHTML = html;
+        html += `</div>`;
+        contentArea.innerHTML = html;
+    }
+
+    async function openDetails(slug, fallbackId, fallbackTitle) {
+        modal.classList.add('active');
+        modalTitle.innerText = fallbackTitle || "Loading details...";
+        modalDetails.innerHTML = "<p>Loading synopsis...</p>";
+        playBtn.style.display = 'none';
+        videoPlayer.style.display = 'none';
+        errorFallback.style.display = 'none';
+
+        const rawDetail = await fetchAPI(`/detail/${slug}`);
+        
+        let detail = rawDetail;
+        if (rawDetail && (rawDetail.data || rawDetail.result || rawDetail.item)) {
+            detail = rawDetail.data || rawDetail.result || rawDetail.item;
         }
 
-        async function openDetails(slug, fallbackId, fallbackTitle) {
-            modal.classList.add('active');
-            modalTitle.innerText = fallbackTitle || "Loading details...";
-            modalDetails.innerHTML = "<p>Loading synopsis...</p>";
-            playBtn.style.display = 'none';
-            videoPlayer.style.display = 'none';
-            errorFallback.style.display = 'none';
+        const title = (detail && (detail.title || detail.name)) || fallbackTitle;
+        const desc = (detail && (detail.description || detail.synopsis || detail.plot)) || 'No description available for this title.';
+        const year = (detail && (detail.year || detail.release_date)) ? ` (${detail.year || detail.release_date})` : '';
 
-            const rawDetail = await fetchAPI(`/detail/${slug}`);
-            
-            let detail = rawDetail;
-            if (rawDetail && (rawDetail.data || rawDetail.result || rawDetail.item)) {
-                detail = rawDetail.data || rawDetail.result || rawDetail.item;
+        modalTitle.innerText = title + year;
+        modalDetails.innerHTML = `<p>${desc}</p>`;
+        
+        let realStreamId = fallbackId; 
+        if (detail) {
+            if (detail.subject_id) realStreamId = detail.subject_id;
+            else if (detail.stream_id) realStreamId = detail.stream_id;
+            else if (detail.streamId) realStreamId = detail.streamId;
+            else if (detail.id) realStreamId = detail.id;
+            else if (detail.episodes && detail.episodes.length > 0 && detail.episodes[0].id) {
+                realStreamId = detail.episodes[0].id;
             }
-
-            const title = (detail && (detail.title || detail.name)) || fallbackTitle;
-            const desc = (detail && (detail.description || detail.synopsis || detail.plot)) || 'No description available for this title.';
-            const year = (detail && (detail.year || detail.release_date)) ? ` (${detail.year || detail.release_date})` : '';
-
-            modalTitle.innerText = title + year;
-            modalDetails.innerHTML = `<p>${desc}</p>`;
-            
-            let realStreamId = fallbackId; 
-            if (detail) {
-                if (detail.subject_id) realStreamId = detail.subject_id;
-                else if (detail.stream_id) realStreamId = detail.stream_id;
-                else if (detail.streamId) realStreamId = detail.streamId;
-                else if (detail.id) realStreamId = detail.id;
-                else if (detail.episodes && detail.episodes.length > 0 && detail.episodes[0].id) {
-                    realStreamId = detail.episodes[0].id;
-                }
-            }
-
-            playBtn.style.display = 'inline-block';
-            playBtn.onclick = () => playStream(realStreamId, slug);
         }
 
-        async function playStream(subjectId, slug) {
-            playBtn.innerText = "⏳ Finding stream...";
-            playBtn.disabled = true;
-            errorFallback.style.display = 'none';
+        playBtn.style.display = 'inline-block';
+        playBtn.onclick = () => playStream(realStreamId, slug);
+    }
 
-            const streamData = await fetchAPI(`/api/stream/${subjectId}?detail_path=${slug}`);
-            
-            if (streamData) {
-                let streamUrl = null;
+    async function playStream(subjectId, slug) {
+        playBtn.innerText = "⏳ Finding stream...";
+        playBtn.disabled = true;
+        errorFallback.style.display = 'none';
 
-                if (streamData.sources && Array.isArray(streamData.sources) && streamData.sources.length > 0) {
-                    const bestSource = streamData.sources[streamData.sources.length - 1];
-                    streamUrl = bestSource.url;
-                } else {
-                    streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
-                }
+        const streamData = await fetchAPI(`/api/stream/${subjectId}?detail_path=${slug}`);
+        
+        if (streamData) {
+            let streamUrl = null;
 
-                if (streamUrl) {
-                    currentVideoUrl = streamUrl;
-                    playBtn.style.display = 'none';
-                    videoPlayer.style.display = 'block';
-                    
-                    // Route video request through backend stream proxy to resolve IP restrictions
-                    const proxyUrl = `/api/play?url=${encodeURIComponent(streamUrl)}`;
-                    
-                    videoPlayer.innerHTML = `<source src="${proxyUrl}" type="video/mp4">`;
-                    videoPlayer.load();
-                    videoPlayer.play().catch(e => {
-                        console.error("Autoplay Blocked:", e);
-                    });
-                } else {
-                    alert("No valid stream URL found in the API response.");
-                }
+            if (streamData.sources && Array.isArray(streamData.sources) && streamData.sources.length > 0) {
+                const bestSource = streamData.sources[streamData.sources.length - 1];
+                streamUrl = bestSource.url;
             } else {
-                alert("Failed to fetch the stream from the server.");
+                streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
             }
 
-            playBtn.innerText = "▶ Play Stream";
-            playBtn.disabled = false;
+            if (streamUrl) {
+                currentVideoUrl = streamUrl;
+                playBtn.style.display = 'none';
+                videoPlayer.style.display = 'block';
+                
+                // POINT DIRECTLY TO THE VPS TO BYPASS VERCEL TIMEOUTS
+                const proxyUrl = `http://pterodactyl.namelesstech.space:25566/api/play?url=${encodeURIComponent(streamUrl)}`;
+                
+                videoPlayer.innerHTML = `<source src="${proxyUrl}" type="video/mp4">`;
+                videoPlayer.load();
+                videoPlayer.play().catch(e => {
+                    console.error("Autoplay Blocked:", e);
+                });
+            } else {
+                alert("No valid stream URL found in the API response.");
+            }
+        } else {
+            alert("Failed to fetch the stream from the server.");
         }
 
-        function extractArray(data) {
-            if (Array.isArray(data)) return data;
-            if (data && data.sections) {
-                const combined = [];
-                data.sections.forEach(s => { if (s.items) combined.push(...s.items); });
-                return combined;
-            }
-            if (data && data.results && Array.isArray(data.results)) return data.results;
-            if (data && data.data && Array.isArray(data.data)) return data.data;
-            if (data && data.items && Array.isArray(data.items)) return data.items;
-            return [];
+        playBtn.innerText = "▶ Play Stream";
+        playBtn.disabled = false;
+    }
+
+    function extractArray(data) {
+        if (Array.isArray(data)) return data;
+        if (data && data.sections) {
+            const combined = [];
+            data.sections.forEach(s => { if (s.items) combined.push(...s.items); });
+            return combined;
         }
-    </script>
+        if (data && data.results && Array.isArray(data.results)) return data.results;
+        if (data && data.data && Array.isArray(data.data)) return data.data;
+        if (data && data.items && Array.isArray(data.items)) return data.items;
+        return [];
+    }
+</script>
+
 </body>
 </html>
