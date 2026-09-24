@@ -222,7 +222,7 @@
             <button id="playBtn" class="play-btn" style="display: none;">▶ Play Stream</button>
             
             <div id="errorFallback">
-                <p>The CDN blocked the video player (likely an IP lock or hotlink protection).</p>
+                <p>The stream encountered an issue or was blocked by the host.</p>
                 <a id="externalLink" href="#" target="_blank" class="play-btn" style="background: #333;">🔗 Open Direct Video Link</a>
             </div>
 
@@ -277,7 +277,7 @@
 
         async function fetchAPI(endpoint) {
             try {
-                const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
+                const response = await fetch(endpoint);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return await response.json();
             } catch (error) {
@@ -289,7 +289,7 @@
         async function loadHome() {
             contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
             searchInput.value = ''; 
-            const data = await fetchAPI('/home/trending');
+            const data = await fetchAPI('/home');
             renderGrid(extractArray(data), "🔥 Trending Now");
         }
 
@@ -309,10 +309,9 @@
             
             items.forEach(item => {
                 const title = item.title || item.name || 'Unknown Title';
-                // Escape quotes for inline JS
                 const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
                 
-                const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
+                const poster = item.poster_url || item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
                 const slug = item.slug || item.id;
                 const id = item.subject_id || item.id || item.slug;
 
@@ -330,7 +329,6 @@
             contentArea.innerHTML = html;
         }
 
-        // Added fallbackTitle parameter from the grid
         async function openDetails(slug, fallbackId, fallbackTitle) {
             modal.classList.add('active');
             modalTitle.innerText = fallbackTitle || "Loading details...";
@@ -346,7 +344,6 @@
                 detail = rawDetail.data || rawDetail.result || rawDetail.item;
             }
 
-            // Always prioritize API title, but fallback to Grid title if missing
             const title = (detail && (detail.title || detail.name)) || fallbackTitle;
             const desc = (detail && (detail.description || detail.synopsis || detail.plot)) || 'No description available for this title.';
             const year = (detail && (detail.year || detail.release_date)) ? ` (${detail.year || detail.release_date})` : '';
@@ -391,8 +388,10 @@
                     playBtn.style.display = 'none';
                     videoPlayer.style.display = 'block';
                     
-                    // Add explicit type to help browser
-                    videoPlayer.innerHTML = `<source src="${streamUrl}" type="video/mp4">`;
+                    // Route video request through backend stream proxy to resolve IP restrictions
+                    const proxyUrl = `/api/play?url=${encodeURIComponent(streamUrl)}`;
+                    
+                    videoPlayer.innerHTML = `<source src="${proxyUrl}" type="video/mp4">`;
                     videoPlayer.load();
                     videoPlayer.play().catch(e => {
                         console.error("Autoplay Blocked:", e);
@@ -410,6 +409,11 @@
 
         function extractArray(data) {
             if (Array.isArray(data)) return data;
+            if (data && data.sections) {
+                const combined = [];
+                data.sections.forEach(s => { if (s.items) combined.push(...s.items); });
+                return combined;
+            }
             if (data && data.results && Array.isArray(data.results)) return data.results;
             if (data && data.data && Array.isArray(data.data)) return data.data;
             if (data && data.items && Array.isArray(data.items)) return data.items;
