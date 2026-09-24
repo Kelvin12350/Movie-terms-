@@ -251,10 +251,15 @@
         /**
          * Core Fetch Function using Vercel Serverless Function Proxy
          */
+                /**
+         * Core Fetch Function using Vercel Serverless Function Proxy
+         */
         async function fetchAPI(endpoint) {
             try {
-                // We send the desired endpoint path to our Vercel proxy API
-                const response = await fetch(`/api/proxy?path=${endpoint}`);
+                // encodeURIComponent is REQUIRED here so the '?' and '=' in your endpoints
+                // don't corrupt the Vercel proxy URL structure.
+                const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
+                
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return await response.json();
             } catch (error) {
@@ -262,6 +267,7 @@
                 return null;
             }
         }
+
 
         /**
          * Load Trending / Home Data
