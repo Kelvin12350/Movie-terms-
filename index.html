@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="referrer" content="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nameless Streamer</title>
     <style>
@@ -167,8 +166,6 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            display: inline-block;
-            text-decoration: none;
         }
 
         #videoPlayer {
@@ -184,15 +181,6 @@
             color: var(--text-muted);
             text-align: center;
             padding: 50px;
-        }
-        
-        #errorFallback {
-            margin-top: 15px;
-            display: none;
-            padding: 15px;
-            background: rgba(229, 9, 20, 0.2);
-            border: 1px solid var(--primary);
-            border-radius: 5px;
         }
     </style>
 </head>
@@ -218,208 +206,207 @@
             <span class="close-btn" id="closeModal">&times;</span>
             <h2 id="modalTitle">Loading...</h2>
             <div id="modalDetails" style="color: var(--text-muted); line-height: 1.6;"></div>
-            
             <button id="playBtn" class="play-btn" style="display: none;">▶ Play Stream</button>
-            
-            <div id="errorFallback">
-                <p>The stream encountered an issue or was blocked by the host.</p>
-                <a id="externalLink" href="#" target="_blank" class="play-btn" style="background: #333;">🔗 Open Direct Video Link</a>
-            </div>
-
             <video id="videoPlayer" controls></video>
         </div>
     </div>
 
-<script>
-    const contentArea = document.getElementById('contentArea');
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    
-    const modal = document.getElementById('movieModal');
-    const closeModalBtn = document.getElementById('closeModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDetails = document.getElementById('modalDetails');
-    const playBtn = document.getElementById('playBtn');
-    const videoPlayer = document.getElementById('videoPlayer');
-    const errorFallback = document.getElementById('errorFallback');
-    const externalLink = document.getElementById('externalLink');
-
-    let currentVideoUrl = "";
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadHome();
-    });
-
-    searchBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        if (query) fetchSearch(query);
-    });
-
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') searchBtn.click();
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-        videoPlayer.pause();
-        videoPlayer.style.display = 'none';
-        videoPlayer.src = '';
-        errorFallback.style.display = 'none';
-    });
-
-    videoPlayer.addEventListener('error', (e) => {
-        console.error("Video Player Error Triggered:", videoPlayer.error);
-        videoPlayer.style.display = 'none';
-        errorFallback.style.display = 'block';
-        externalLink.href = currentVideoUrl;
-    });
-
-    // Uses your Vercel proxy.js for JSON data
-    async function fetchAPI(endpoint) {
-        try {
-            const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error("API Fetch Error:", error);
-            return null;
-        }
-    }
-
-    async function loadHome() {
-        contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
-        searchInput.value = ''; 
-        const data = await fetchAPI('/home'); // Ensure your VPS has a /home route
-        renderGrid(extractArray(data), "🔥 Trending Now");
-    }
-
-    async function fetchSearch(query) {
-        contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
-        const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
-        renderGrid(extractArray(data), `Search Results: "${query}"`);
-    }
-
-    function renderGrid(items, sectionTitle) {
-        if (!items || items.length === 0) {
-            contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
-            return;
-        }
-
-        let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
+    <script>
+        // DOM Elements
+        const contentArea = document.getElementById('contentArea');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
         
-        items.forEach(item => {
-            const title = item.title || item.name || 'Unknown Title';
-            const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
-            
-            const poster = item.poster_url || item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
-            const slug = item.slug || item.id;
-            const id = item.subject_id || item.id || item.slug;
+        // Modal Elements
+        const modal = document.getElementById('movieModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDetails = document.getElementById('modalDetails');
+        const playBtn = document.getElementById('playBtn');
+        const videoPlayer = document.getElementById('videoPlayer');
 
-            html += `
-                <div class="card" onclick="openDetails('${slug}', '${id}', '${safeTitle}')">
-                    <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
-                    <div class="card-info">
-                        <h3>${title}</h3>
-                    </div>
-                </div>
-            `;
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHome();
         });
 
-        html += `</div>`;
-        contentArea.innerHTML = html;
-    }
+        // Search listener
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) fetchSearch(query);
+        });
 
-    async function openDetails(slug, fallbackId, fallbackTitle) {
-        modal.classList.add('active');
-        modalTitle.innerText = fallbackTitle || "Loading details...";
-        modalDetails.innerHTML = "<p>Loading synopsis...</p>";
-        playBtn.style.display = 'none';
-        videoPlayer.style.display = 'none';
-        errorFallback.style.display = 'none';
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBtn.click();
+        });
 
-        const rawDetail = await fetchAPI(`/detail/${slug}`);
-        
-        let detail = rawDetail;
-        if (rawDetail && (rawDetail.data || rawDetail.result || rawDetail.item)) {
-            detail = rawDetail.data || rawDetail.result || rawDetail.item;
-        }
+        // Close Modal Listener
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            videoPlayer.pause();
+            videoPlayer.style.display = 'none';
+            videoPlayer.src = '';
+        });
 
-        const title = (detail && (detail.title || detail.name)) || fallbackTitle;
-        const desc = (detail && (detail.description || detail.synopsis || detail.plot)) || 'No description available for this title.';
-        const year = (detail && (detail.year || detail.release_date)) ? ` (${detail.year || detail.release_date})` : '';
-
-        modalTitle.innerText = title + year;
-        modalDetails.innerHTML = `<p>${desc}</p>`;
-        
-        let realStreamId = fallbackId; 
-        if (detail) {
-            if (detail.subject_id) realStreamId = detail.subject_id;
-            else if (detail.stream_id) realStreamId = detail.stream_id;
-            else if (detail.streamId) realStreamId = detail.streamId;
-            else if (detail.id) realStreamId = detail.id;
-            else if (detail.episodes && detail.episodes.length > 0 && detail.episodes[0].id) {
-                realStreamId = detail.episodes[0].id;
-            }
-        }
-
-        playBtn.style.display = 'inline-block';
-        playBtn.onclick = () => playStream(realStreamId, slug);
-    }
-
-    async function playStream(subjectId, slug) {
-        playBtn.innerText = "⏳ Finding stream...";
-        playBtn.disabled = true;
-        errorFallback.style.display = 'none';
-
-        const streamData = await fetchAPI(`/api/stream/${subjectId}?detail_path=${slug}`);
-        
-        if (streamData) {
-            let streamUrl = null;
-
-            if (streamData.sources && Array.isArray(streamData.sources) && streamData.sources.length > 0) {
-                const bestSource = streamData.sources[streamData.sources.length - 1];
-                streamUrl = bestSource.url;
-            } else {
-                streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
-            }
-
-            if (streamUrl) {
-                currentVideoUrl = streamUrl;
-                playBtn.style.display = 'none';
-                videoPlayer.style.display = 'block';
+        /**
+         * Core Fetch Function using Vercel Serverless Function Proxy
+         */
+                /**
+         * Core Fetch Function using Vercel Serverless Function Proxy
+         */
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
                 
-                // POINT DIRECTLY TO THE VPS TO BYPASS VERCEL TIMEOUTS
-                const proxyUrl = `http://pterodactyl.namelesstech.space:25566/api/play?url=${encodeURIComponent(streamUrl)}`;
+                if (!response.ok) {
+                    // Log the exact payload from our upgraded proxy
+                    const errData = await response.json();
+                    console.error("🚨 Server Error Details:", errData);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
-                videoPlayer.innerHTML = `<source src="${proxyUrl}" type="video/mp4">`;
-                videoPlayer.load();
-                videoPlayer.play().catch(e => {
-                    console.error("Autoplay Blocked:", e);
-                });
-            } else {
-                alert("No valid stream URL found in the API response.");
+                return await response.json();
+            } catch (error) {
+                console.error("API Fetch Error:", error);
+                return null;
             }
-        } else {
-            alert("Failed to fetch the stream from the server.");
         }
 
-        playBtn.innerText = "▶ Play Stream";
-        playBtn.disabled = false;
-    }
 
-    function extractArray(data) {
-        if (Array.isArray(data)) return data;
-        if (data && data.sections) {
-            const combined = [];
-            data.sections.forEach(s => { if (s.items) combined.push(...s.items); });
-            return combined;
+        /**
+         * Load Trending / Home Data
+         */
+        async function loadHome() {
+            contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
+            searchInput.value = ''; // clear search
+            
+            const data = await fetchAPI('/home/trending');
+            
+            const items = extractArray(data);
+            renderGrid(items, "🔥 Trending Now");
         }
-        if (data && data.results && Array.isArray(data.results)) return data.results;
-        if (data && data.data && Array.isArray(data.data)) return data.data;
-        if (data && data.items && Array.isArray(data.items)) return data.items;
-        return [];
-    }
-</script>
 
+        /**
+         * Load Search Results
+         */
+        async function fetchSearch(query) {
+            contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
+            const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
+            
+            const items = extractArray(data);
+            renderGrid(items, `Search Results: "${query}"`);
+        }
+
+        /**
+         * Render Graphic Grid (Changes DOM based on API data)
+         */
+        function renderGrid(items, sectionTitle) {
+            if (!items || items.length === 0) {
+                contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
+                return;
+            }
+
+            let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
+            
+            items.forEach(item => {
+                const title = item.title || item.name || 'Unknown Title';
+                const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
+                const slug = item.slug || item.id;
+                const id = item.id || item.slug;
+
+                html += `
+                    <div class="card" onclick="openDetails('${slug}', '${id}')">
+                        <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
+                        <div class="card-info">
+                            <h3>${title}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
+
+        /**
+         * Fetch Detailed Meta Data and Open Modal
+         */
+        async function openDetails(slug, id) {
+            modal.classList.add('active');
+            modalTitle.innerText = "Loading details...";
+            modalDetails.innerHTML = "";
+            playBtn.style.display = 'none';
+            videoPlayer.style.display = 'none';
+
+            const detail = await fetchAPI(`/detail/${slug}`);
+            
+            if (!detail) {
+                modalTitle.innerText = "Error loading details";
+                return;
+            }
+
+            const title = detail.title || detail.name || 'Title';
+            const desc = detail.description || detail.synopsis || detail.plot || 'No description available.';
+            const year = detail.year || detail.release_date || '';
+
+            modalTitle.innerText = title + (year ? ` (${year})` : '');
+            modalDetails.innerHTML = `<p>${desc}</p>`;
+            
+            playBtn.style.display = 'inline-block';
+            playBtn.onclick = () => playStream(id, slug);
+        }
+
+        /**
+         * Fetch Raw Stream URL & Play
+         */
+        async function playStream(id, slug) {
+    playBtn.innerText = "⏳ Finding stream...";
+    playBtn.disabled = true;
+
+    // This calls `/api/proxy?path=/api/stream/{id}?detail_path={slug}`
+    const streamData = await fetchAPI(`/api/stream/${id}?detail_path=${slug}`);
+    
+    if (streamData) {
+        let streamUrl = null;
+
+        // Navigate into the 'sources' array returned by the backend
+        if (streamData.sources && streamData.sources.length > 0) {
+            // Select the highest resolution available (usually the last item)
+            streamUrl = streamData.sources[streamData.sources.length - 1].url;
+        }
+
+        if (streamUrl) {
+    playBtn.style.display = 'none';
+    videoPlayer.style.display = 'block';
+    
+    // Route the raw CDN URL through your VPS proxy with the proper port
+    const vpsUrl = `http://pterodactyl.namelesstech.space:25566/api/play?url=${encodeURIComponent(streamUrl)}`;
+    
+    videoPlayer.src = vpsUrl;
+    videoPlayer.play();
+}
+ else {
+            alert("No valid stream URL found in the API response.");
+        }
+    } else {
+        alert("Failed to fetch the stream from the server.");
+    }
+
+    playBtn.innerText = "▶ Play Stream";
+    playBtn.disabled = false;
+}
+
+
+        /**
+         * Helper: normalizes API data into a predictable array
+         */
+        function extractArray(data) {
+            if (Array.isArray(data)) return data;
+            if (data && data.results && Array.isArray(data.results)) return data.results;
+            if (data && data.data && Array.isArray(data.data)) return data.data;
+            if (data && data.items && Array.isArray(data.items)) return data.items;
+            return [];
+        }
+    </script>
 </body>
 </html>
