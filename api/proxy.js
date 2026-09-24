@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
-    // Extract everything after "?path="
-    const pathIndex = req.url.indexOf('?path=');
+    // Vercel automatically extracts and decodes query parameters into req.query
+    const { path } = req.query;
     
-    if (pathIndex === -1) {
+    if (!path) {
         return res.status(400).json({ error: "Missing API path parameter" });
     }
 
-    // This grabs the exact endpoint (e.g., "/home/trending" or "/api/stream/1?detail_path=movie")
-    const apiPath = req.url.substring(pathIndex + 6);
-    const targetUrl = `http://pterodactyl.namelesstech.space:25566${apiPath}`;
+    // Construct the target URL safely
+    const targetUrl = `http://pterodactyl.namelesstech.space:25566${path}`;
 
     try {
         const response = await fetch(targetUrl);
@@ -19,11 +18,11 @@ export default async function handler(req, res) {
 
         const data = await response.json();
         
-        // Return the data to the frontend
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.status(200).json(data);
         
     } catch (error) {
+        // If the fetch fails entirely (e.g., port blocked), it catches here
         res.status(500).json({ error: 'Failed to fetch from backend', details: error.message });
     }
 }
