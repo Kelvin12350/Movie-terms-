@@ -359,18 +359,19 @@
             }
 
             playBtn.style.display = 'inline-block';
-            playBtn.onclick = () => playStream(realStreamId);
+            // Pass BOTH the numeric ID and the text slug to playStream
+            playBtn.onclick = () => playStream(realStreamId, slug);
         }
 
         /**
          * Fetch Raw Stream URL & Play
          */
-        async function playStream(subjectId) {
+        async function playStream(subjectId, slug) {
             playBtn.innerText = "⏳ Finding stream...";
             playBtn.disabled = true;
 
-            // Strict routing matching the Stream Engine docs (/api/stream/{subject_id})
-            const streamData = await fetchAPI(`/api/stream/${subjectId}`);
+            // Strict routing applying BOTH the ID and the detail_path query the server demanded
+            const streamData = await fetchAPI(`/api/stream/${subjectId}?detail_path=${slug}`);
             
             if (streamData) {
                 const streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
