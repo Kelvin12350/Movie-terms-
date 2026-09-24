@@ -347,7 +347,6 @@
             modalTitle.innerText = title + (year ? ` (${year})` : '');
             modalDetails.innerHTML = `<p>${desc}</p>`;
             
-            // Look for subject_id in the detail payload to match the Stream Engine API
             let realStreamId = fallbackId; 
             
             if (detail.subject_id) realStreamId = detail.subject_id;
@@ -359,7 +358,6 @@
             }
 
             playBtn.style.display = 'inline-block';
-            // Pass BOTH the numeric ID and the text slug to playStream
             playBtn.onclick = () => playStream(realStreamId, slug);
         }
 
@@ -370,11 +368,21 @@
             playBtn.innerText = "⏳ Finding stream...";
             playBtn.disabled = true;
 
-            // Strict routing applying BOTH the ID and the detail_path query the server demanded
             const streamData = await fetchAPI(`/api/stream/${subjectId}?detail_path=${slug}`);
             
             if (streamData) {
-                const streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
+                let streamUrl = null;
+
+                // FIX: Check if the API returned an array of resolutions inside 'sources'
+                if (streamData.sources && Array.isArray(streamData.sources) && streamData.sources.length > 0) {
+                    // Grab the last item in the array (usually the highest resolution like 480p or 1080p)
+                    const bestSource = streamData.sources[streamData.sources.length - 1];
+                    streamUrl = bestSource.url;
+                } 
+                // Fallback for older formats
+                else {
+                    streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
+                }
 
                 if (streamUrl) {
                     playBtn.style.display = 'none';
@@ -385,7 +393,7 @@
                     alert("No valid stream URL found in the API response.");
                 }
             } else {
-                alert("Failed to fetch the stream from the server. Check browser console for proxy payload errors.");
+                alert("Failed to fetch the stream from the server. Check browser console for errors.");
             }
 
             playBtn.innerText = "▶ Play Stream";
