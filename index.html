@@ -251,15 +251,11 @@
         /**
          * Core Fetch Function using Vercel Serverless Function Proxy
          */
-                /**
-         * Core Fetch Function using Vercel Serverless Function Proxy
-         */
         async function fetchAPI(endpoint) {
             try {
                 const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
                 
                 if (!response.ok) {
-                    // Log the exact payload from our upgraded proxy
                     const errData = await response.json();
                     console.error("🚨 Server Error Details:", errData);
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -272,13 +268,12 @@
             }
         }
 
-
         /**
          * Load Trending / Home Data
          */
         async function loadHome() {
             contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
-            searchInput.value = ''; // clear search
+            searchInput.value = ''; 
             
             const data = await fetchAPI('/home/trending');
             
@@ -312,7 +307,7 @@
                 const title = item.title || item.name || 'Unknown Title';
                 const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
                 const slug = item.slug || item.id;
-                const id = item.id || item.slug;
+                const id = item.subject_id || item.id || item.slug;
 
                 html += `
                     <div class="card" onclick="openDetails('${slug}', '${id}')">
@@ -331,7 +326,7 @@
         /**
          * Fetch Detailed Meta Data and Open Modal
          */
-        async function openDetails(slug, id) {
+        async function openDetails(slug, fallbackId) {
             modal.classList.add('active');
             modalTitle.innerText = "Loading details...";
             modalDetails.innerHTML = "";
@@ -352,19 +347,30 @@
             modalTitle.innerText = title + (year ? ` (${year})` : '');
             modalDetails.innerHTML = `<p>${desc}</p>`;
             
+            // Look for subject_id in the detail payload to match the Stream Engine API
+            let realStreamId = fallbackId; 
+            
+            if (detail.subject_id) realStreamId = detail.subject_id;
+            else if (detail.stream_id) realStreamId = detail.stream_id;
+            else if (detail.streamId) realStreamId = detail.streamId;
+            else if (detail.id) realStreamId = detail.id;
+            else if (detail.episodes && detail.episodes.length > 0 && detail.episodes[0].id) {
+                realStreamId = detail.episodes[0].id;
+            }
+
             playBtn.style.display = 'inline-block';
-            playBtn.onclick = () => playStream(id, slug);
+            playBtn.onclick = () => playStream(realStreamId);
         }
 
         /**
          * Fetch Raw Stream URL & Play
          */
-        async function playStream(id, slug) {
+        async function playStream(subjectId) {
             playBtn.innerText = "⏳ Finding stream...";
             playBtn.disabled = true;
 
-            // This calls `/api/proxy?path=/api/stream/{id}?detail_path={slug}`
-            const streamData = await fetchAPI(`/api/stream/${id}?detail_path=${slug}`);
+            // Strict routing matching the Stream Engine docs (/api/stream/{subject_id})
+            const streamData = await fetchAPI(`/api/stream/${subjectId}`);
             
             if (streamData) {
                 const streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
@@ -378,7 +384,7 @@
                     alert("No valid stream URL found in the API response.");
                 }
             } else {
-                alert("Failed to fetch the stream from the server.");
+                alert("Failed to fetch the stream from the server. Check browser console for proxy payload errors.");
             }
 
             playBtn.innerText = "▶ Play Stream";
