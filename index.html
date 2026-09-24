@@ -256,11 +256,15 @@
          */
         async function fetchAPI(endpoint) {
             try {
-                // encodeURIComponent is REQUIRED here so the '?' and '=' in your endpoints
-                // don't corrupt the Vercel proxy URL structure.
                 const response = await fetch(`/api/proxy?path=${encodeURIComponent(endpoint)}`);
                 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    // Log the exact payload from our upgraded proxy
+                    const errData = await response.json();
+                    console.error("🚨 Server Error Details:", errData);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 return await response.json();
             } catch (error) {
                 console.error("API Fetch Error:", error);
