@@ -301,32 +301,35 @@
          * Render Graphic Grid (Changes DOM based on API data)
          */
         function renderGrid(items, sectionTitle) {
-            if (!items || items.length === 0) {
-                contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
-                return;
-            }
+    if (!items || items.length === 0) {
+        contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
+        return;
+    }
 
-            let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
-            
-            items.forEach(item => {
-                const title = item.title || item.name || 'Unknown Title';
-                const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
-                const slug = item.slug || item.id;
-                const id = item.id || item.slug;
+    let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
+    
+    items.forEach(item => {
+        const title = item.title || item.name || 'Unknown Title';
+        const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
+        
+        // FIX: Look for subject_id (what your backend sends) before falling back
+        const slug = item.slug || item.detailPath || item.id;
+        const id = item.subject_id || item.id || item.slug;
 
-                html += `
-                    <div class="card" onclick="openDetails('${slug}', '${id}')">
-                        <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
-                        <div class="card-info">
-                            <h3>${title}</h3>
-                        </div>
-                    </div>
-                `;
-            });
+        html += `
+            <div class="card" onclick="openDetails('${slug}', '${id}')">
+                <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
+                <div class="card-info">
+                    <h3>${title}</h3>
+                </div>
+            </div>
+        `;
+    });
 
-            html += `</div>`;
-            contentArea.innerHTML = html;
-        }
+    html += `</div>`;
+    contentArea.innerHTML = html;
+}
+
 
         /**
          * Fetch Detailed Meta Data and Open Modal
