@@ -1,206 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MovieBox Player</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background-color: #0b0f19; color: #f3f4f6; }
-    .aspect-poster { aspect-ratio: 2 / 3; }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col font-sans">
-
-  <header class="sticky top-0 z-30 bg-[#0b0f19]/90 backdrop-blur border-b border-gray-800 px-4 py-3">
-    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row gap-3 items-center justify-between">
-      <h1 class="text-xl font-bold tracking-wider text-red-500 uppercase cursor-pointer" onclick="loadDefault()">
-        Movie<span class="text-white">Box</span>
-      </h1>
-      <form id="search-form" class="w-full sm:w-80 flex items-center">
-        <input id="search-input" type="text" placeholder="Search movies, series..." class="w-full bg-gray-900 border border-gray-700 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 text-white placeholder-gray-400" required />
-        <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-r-lg text-sm font-semibold transition">Search</button>
-      </form>
-    </div>
-  </header>
-
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
-    <div id="status-container" class="text-center py-8 hidden">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-      <p id="status-text" class="text-sm text-gray-400 mt-2">Loading...</p>
-    </div>
-    <div id="error-banner" class="hidden mb-4 bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg text-sm"></div>
-    <div id="movie-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-  </main>
-
-  <div id="player-modal" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-4xl bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl relative">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-        <div class="truncate pr-4">
-          <h2 id="modal-title" class="font-semibold text-white truncate text-base">Playing Video</h2>
-          <span id="stream-status" class="text-xs text-yellow-400">Resolving stream link...</span>
-        </div>
-        <button onclick="closePlayer()" class="text-gray-400 hover:text-white p-1 text-xl font-bold">✕</button>
-      </div>
-
-      <div class="relative bg-black w-full aspect-video flex items-center justify-center">
-        <div id="stream-loader" class="absolute flex flex-col items-center gap-2">
-          <div class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent"></div>
-          <span class="text-xs text-gray-400">Fetching stream...</span>
-        </div>
-        <video id="video-element" class="w-full h-full hidden" controls playsinline autoplay></video>
-      </div>
-
-      <div id="quality-bar" class="p-3 bg-gray-950 flex items-center gap-2 flex-wrap border-t border-gray-800">
-        <span class="text-xs text-gray-400 font-medium">Quality:</span>
-        <div id="quality-buttons" class="flex gap-2"></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const movieGrid = document.getElementById("movie-grid");
-    const statusContainer = document.getElementById("status-container");
-    const statusText = document.getElementById("status-text");
-    const searchForm = document.getElementById("search-form");
-    const searchInput = document.getElementById("search-input");
-    const playerModal = document.getElementById("player-modal");
-    const modalTitle = document.getElementById("modal-title");
-    const streamStatus = document.getElementById("stream-status");
-    const streamLoader = document.getElementById("stream-loader");
-    const videoElement = document.getElementById("video-element");
-    const qualityButtons = document.getElementById("quality-buttons");
-    const errorBanner = document.getElementById("error-banner");
-
-    let currentStreams = [];
-
-    async function searchMovies(query) {
-      showStatus(`Searching for "${query}"...`);
-      movieGrid.innerHTML = "";
-      errorBanner.classList.add("hidden");
-
-      try {
-        const res = await fetch('/api/search', {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ keyword: query, page: 1 })
-        });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        const data = await res.json();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nameless Streamer</title>
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --card-bg: #1c1c24;
+            --primary: #e50914;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+        }
         
-        hideStatus();
-        renderCards(data.items || []);
-      } catch (err) {
-        showStatus(`Failed to search: ${err.message}`);
-      }
-    }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
 
-    function renderCards(items) {
-      if (!items.length) {
-        showStatus("No movies found.");
-        return;
-      }
-      movieGrid.innerHTML = items.map(item => `
-        <div onclick="openStream('${item.subjectId}', '${escapeHtml(item.title)}')" class="group bg-gray-900 border border-gray-800 hover:border-red-500 rounded-lg overflow-hidden cursor-pointer transition transform hover:-translate-y-1 shadow-md flex flex-col">
-          <div class="relative w-full aspect-poster bg-gray-800 overflow-hidden">
-            <img src="${item.poster || ''}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/300x450/1f2937/9ca3af?text=No+Poster'" />
-          </div>
-          <div class="p-2.5 flex-1 flex flex-col justify-between">
-            <h3 class="font-semibold text-sm line-clamp-1 group-hover:text-red-400 text-gray-100">${escapeHtml(item.title)}</h3>
-          </div>
+        /* --- Header & Navigation --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-container input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background: #333;
+            color: white;
+            outline: none;
+            width: 250px;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .search-container button:hover {
+            background: #f40612;
+        }
+
+        /* --- Main Content & Grids --- */
+        main {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background-color: #333;
+        }
+
+        .card-info {
+            padding: 15px;
+        }
+
+        .card-info h3 {
+            margin: 0;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Modal (Details & Player) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 900px;
+            border-radius: 10px;
+            padding: 30px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        
+        .close-btn:hover { color: white; }
+
+        .play-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #videoPlayer {
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 10px;
+            background: #000;
+            display: none;
+        }
+
+        /* Loader */
+        .loader {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 onclick="loadHome()">Nameless Stream</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search for movies, TV...">
+            <button id="searchBtn">Search</button>
         </div>
-      `).join("");
-    }
+    </header>
 
-    async function openStream(subjectId, title) {
-      modalTitle.textContent = title;
-      streamStatus.textContent = "Resolving stream URLs...";
-      streamLoader.classList.remove("hidden");
-      
-      videoElement.classList.add("hidden");
-      errorBanner.classList.add("hidden");
-      videoElement.pause();
-      videoElement.src = "";
-      
-      qualityButtons.innerHTML = "";
-      playerModal.classList.remove("hidden");
+    <main>
+        <div id="contentArea">
+            <!-- Dynamic grids will be injected here -->
+        </div>
+    </main>
 
-      try {
-        const res = await fetch(`/api/stream?id=${subjectId}&se=0&ep=0`);
-        if (!res.ok) throw new Error(`Stream Error (${res.status})`);
-        const data = await res.json();
+    <!-- Details and Player Modal -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2 id="modalTitle">Loading...</h2>
+            <div id="modalDetails" style="color: var(--text-muted); line-height: 1.6;"></div>
+            <button id="playBtn" class="play-btn" style="display: none;">▶ Play Stream</button>
+            <video id="videoPlayer" controls></video>
+        </div>
+    </div>
 
-        if (!data.streams || !data.streams.length) throw new Error("No playable streams available.");
+    <script>
+        // DOM Elements
+        const contentArea = document.getElementById('contentArea');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        
+        // Modal Elements
+        const modal = document.getElementById('movieModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDetails = document.getElementById('modalDetails');
+        const playBtn = document.getElementById('playBtn');
+        const videoPlayer = document.getElementById('videoPlayer');
 
-        currentStreams = data.streams;
-        renderQualityButtons(currentStreams);
-        selectQuality(0);
-      } catch (err) {
-        streamStatus.textContent = `Error: ${err.message}`;
-        streamLoader.classList.add("hidden");
-      }
-    }
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHome();
+        });
 
-    function renderQualityButtons(streams) {
-      qualityButtons.innerHTML = streams.map((stream, idx) => `
-        <button onclick="selectQuality(${idx})" id="btn-quality-${idx}" class="px-2.5 py-1 text-xs rounded border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200">
-          ${stream.quality || stream.resolution + 'p'}
-        </button>
-      `).join("");
-    }
+        // Search listener
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) fetchSearch(query);
+        });
 
-    function selectQuality(index) {
-      const stream = currentStreams[index];
-      if (!stream) return;
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBtn.click();
+        });
 
-      document.querySelectorAll("#quality-buttons button").forEach((b, i) => {
-        b.className = i === index 
-          ? "px-2.5 py-1 text-xs rounded border border-red-500 bg-red-600 font-bold text-white"
-          : "px-2.5 py-1 text-xs rounded border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200";
-      });
+        // Close Modal Listener
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            videoPlayer.pause();
+            videoPlayer.style.display = 'none';
+            videoPlayer.src = '';
+        });
 
-      streamStatus.textContent = `Playing ${stream.quality || stream.resolution + 'p'}`;
-      
-      videoElement.pause();
-      videoElement.src = "";
-      videoElement.classList.add("hidden");
+        /**
+         * Core Fetch Function using Vercel Serverless Function Proxy
+         */
+        async function fetchAPI(endpoint) {
+            try {
+                // We send the desired endpoint path to our Vercel proxy API
+                const response = await fetch(`/api/proxy?path=${endpoint}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error("API Fetch Error:", error);
+                return null;
+            }
+        }
 
-      // Load native video
-      videoElement.src = stream.url;
-      videoElement.classList.remove("hidden");
-      streamLoader.classList.add("hidden");
-      videoElement.play().catch(() => console.log("Press play manually."));
-    }
+        /**
+         * Load Trending / Home Data
+         */
+        async function loadHome() {
+            contentArea.innerHTML = '<div class="loader">Loading Trending Now...</div>';
+            searchInput.value = ''; // clear search
+            
+            const data = await fetchAPI('/home/trending');
+            
+            const items = extractArray(data);
+            renderGrid(items, "🔥 Trending Now");
+        }
 
-    function closePlayer() {
-      playerModal.classList.add("hidden");
-      videoElement.pause();
-      videoElement.src = "";
-    }
+        /**
+         * Load Search Results
+         */
+        async function fetchSearch(query) {
+            contentArea.innerHTML = `<div class="loader">Searching for "${query}"...</div>`;
+            const data = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
+            
+            const items = extractArray(data);
+            renderGrid(items, `Search Results: "${query}"`);
+        }
 
-    function showStatus(msg) {
-      statusContainer.classList.remove("hidden");
-      statusText.textContent = msg;
-    }
+        /**
+         * Render Graphic Grid (Changes DOM based on API data)
+         */
+        function renderGrid(items, sectionTitle) {
+            if (!items || items.length === 0) {
+                contentArea.innerHTML = `<h2 class="section-title">${sectionTitle}</h2><p style="color:var(--text-muted)">No items found.</p>`;
+                return;
+            }
 
-    function hideStatus() { statusContainer.classList.add("hidden"); }
+            let html = `<h2 class="section-title">${sectionTitle}</h2><div class="grid">`;
+            
+            items.forEach(item => {
+                const title = item.title || item.name || 'Unknown Title';
+                const poster = item.poster || item.image || item.cover || 'https://via.placeholder.com/300x450?text=No+Poster';
+                const slug = item.slug || item.id;
+                const id = item.id || item.slug;
 
-    function escapeHtml(str) {
-      return (str || '').replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m]));
-    }
+                html += `
+                    <div class="card" onclick="openDetails('${slug}', '${id}')">
+                        <img src="${poster}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
+                        <div class="card-info">
+                            <h3>${title}</h3>
+                        </div>
+                    </div>
+                `;
+            });
 
-    function loadDefault() {
-      searchInput.value = "Avatar";
-      searchMovies("Avatar");
-    }
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
 
-    searchForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const val = searchInput.value.trim();
-      if (val) searchMovies(val);
-    });
+        /**
+         * Fetch Detailed Meta Data and Open Modal
+         */
+        async function openDetails(slug, id) {
+            modal.classList.add('active');
+            modalTitle.innerText = "Loading details...";
+            modalDetails.innerHTML = "";
+            playBtn.style.display = 'none';
+            videoPlayer.style.display = 'none';
 
-    loadDefault();
-  </script>
+            const detail = await fetchAPI(`/detail/${slug}`);
+            
+            if (!detail) {
+                modalTitle.innerText = "Error loading details";
+                return;
+            }
+
+            const title = detail.title || detail.name || 'Title';
+            const desc = detail.description || detail.synopsis || detail.plot || 'No description available.';
+            const year = detail.year || detail.release_date || '';
+
+            modalTitle.innerText = title + (year ? ` (${year})` : '');
+            modalDetails.innerHTML = `<p>${desc}</p>`;
+            
+            playBtn.style.display = 'inline-block';
+            playBtn.onclick = () => playStream(id, slug);
+        }
+
+        /**
+         * Fetch Raw Stream URL & Play
+         */
+        async function playStream(id, slug) {
+            playBtn.innerText = "⏳ Finding stream...";
+            playBtn.disabled = true;
+
+            // This calls `/api/proxy?path=/api/stream/{id}?detail_path={slug}`
+            const streamData = await fetchAPI(`/api/stream/${id}?detail_path=${slug}`);
+            
+            if (streamData) {
+                const streamUrl = streamData.url || streamData.stream_url || streamData.link || (typeof streamData === 'string' ? streamData : null);
+
+                if (streamUrl) {
+                    playBtn.style.display = 'none';
+                    videoPlayer.style.display = 'block';
+                    videoPlayer.src = streamUrl;
+                    videoPlayer.play();
+                } else {
+                    alert("No valid stream URL found in the API response.");
+                }
+            } else {
+                alert("Failed to fetch the stream from the server.");
+            }
+
+            playBtn.innerText = "▶ Play Stream";
+            playBtn.disabled = false;
+        }
+
+        /**
+         * Helper: normalizes API data into a predictable array
+         */
+        function extractArray(data) {
+            if (Array.isArray(data)) return data;
+            if (data && data.results && Array.isArray(data.results)) return data.results;
+            if (data && data.data && Array.isArray(data.data)) return data.data;
+            if (data && data.items && Array.isArray(data.items)) return data.items;
+            return [];
+        }
+    </script>
 </body>
 </html>
