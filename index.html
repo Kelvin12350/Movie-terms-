@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Moviebox</title>
+  <title>MovieBox</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -76,7 +76,7 @@
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
-      <!-- Video Player -->
+      <!-- Video Player Frame -->
       <div class="w-full bg-black aspect-video relative flex items-center justify-center">
         <video id="videoPlayer" controls class="w-full h-full" playsinline preload="metadata">
           Your browser does not support the video tag.
@@ -86,14 +86,14 @@
         </div>
       </div>
 
-      <!-- Detail / Quality Picker -->
+      <!-- Controls & Metadata -->
       <div class="p-6 space-y-5 custom-scrollbar max-h-[45vh] overflow-y-auto">
         <div>
           <h3 id="modalTitle" class="text-xl font-bold">Title</h3>
           <p id="modalMeta" class="text-xs text-gray-400 mt-1"></p>
         </div>
 
-        <!-- TV Controls -->
+        <!-- TV Show Episode Selectors -->
         <div id="tvControls" class="hidden grid grid-cols-2 gap-3 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
           <div>
             <label class="text-xs font-semibold text-gray-400 block mb-1">Season</label>
@@ -105,7 +105,7 @@
           </div>
         </div>
 
-        <!-- Quality Buttons -->
+        <!-- Quality Pills -->
         <div>
           <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Available Qualities</label>
           <div id="qualityPills" class="flex flex-wrap gap-2"></div>
@@ -126,9 +126,9 @@
   </div>
 
   <script>
-    // Proxy through Vercel rewrites to http://app.brevo.host:2569
     const BASE_API = '/proxy-api';
-    const STREAM_PROXY = '/proxy-api/dl';
+    const STREAM_PROXY = '/proxy-api/stream';
+    const DL_PROXY = '/proxy-api/dl';
 
     let currentItem = null;
     let fullDetails = null;
@@ -141,6 +141,7 @@
     const playerSpinner = document.getElementById('playerSpinner');
     const qualityPills = document.getElementById('qualityPills');
     const downloadBtn = document.getElementById('downloadBtn');
+    const tvControls = document.getElementById('tvControls');
 
     window.addEventListener('DOMContentLoaded', () => {
       loadTrending();
@@ -194,7 +195,7 @@
         card.onclick = () => openDetails(item);
 
         const cover = item.cover || 'https://via.placeholder.com/300x450?text=No+Cover';
-        const isTv = item.type === 'tv' || (item.detailPath && item.detailPath.includes('tv'));
+        const isTv = item.type === 'tv';
 
         card.innerHTML = `
           <div class="aspect-[2/3] w-full overflow-hidden relative">
@@ -214,79 +215,79 @@
     }
 
     async function openDetails(item) {
-      currentItem = item;
+      currentItem = { ...item };
       playerModal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
 
       document.getElementById('modalTitle').innerText = item.title;
-      document.getElementById('modalMeta').innerText = `${item.type?.toUpperCase() || 'TITLE'} • ${item.genre || ''}`;
-      
-      const isTv = item.type === 'tv';
-      const tvControls = document.getElementById('tvControls');
-      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Resolving streams...</span>';
-
-      if (isTv) {
-        tvControls.classList.remove('hidden');
-        await loadTvStructure(item.detailPath);
-      } else {
-        tvControls.classList.add('hidden');
-        await loadMovieStream(item.detailPath);
-      }
-    }
-
-    async function loadMovieStream(detailPath) {
+      document.getElementById('modalMeta').innerText = 'Loading details...';
+      tvControls.classList.add('hidden');
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Checking streams...</span>';
       setPlayerLoading(true);
+
       try {
-        const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
-        const data = await res.json();
-        
-        if (data.qualities && data.qualities.length > 0) {
-          renderQualities(data.qualities, data.title);
+        // Step 1: Query /api/details to get the authoritative media type
+        const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(item.detailPath)}`);
+        fullDetails = await res.json();
+
+        const trueType = fullDetails.type || item.type || 'movie';
+        currentItem.type = trueType;
+        document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
+        document.getElementById('modalMeta').innerText = `${trueType.toUpperCase()} • ${fullDetails.genre || item.genre || ''}`;
+
+        // Step 2: Route based on verified type
+        if (trueType === 'tv' && fullDetails.seasons && fullDetails.seasons.length > 0) {
+          tvControls.classList.remove('hidden');
+          setupTvSeasons(fullDetails.seasons);
+        } else if (trueType === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">Stream limit hit or unavailable. Retry shortly.</span>`;
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
         }
       } catch (err) {
-        console.error(err);
-        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to fetch movie stream.</span>`;
+        console.error('Error fetching details:', err);
+        // Fallback
+        if (item.type === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+        } else {
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
+        }
       } finally {
         setPlayerLoading(false);
       }
     }
 
-    async function loadTvStructure(detailPath) {
-      try {
-        const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(detailPath)}`);
-        fullDetails = await res.json();
+    function setupTvSeasons(seasons) {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '';
+      seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.season;
+        opt.innerText = `Season ${s.season}`;
+        seasonSelect.appendChild(opt);
+      });
+      onSeasonChange();
+    }
 
-        const seasonSelect = document.getElementById('seasonSelect');
-        seasonSelect.innerHTML = '';
-
-        if (fullDetails.seasons && fullDetails.seasons.length > 0) {
-          fullDetails.seasons.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.season;
-            opt.innerText = `Season ${s.season}`;
-            seasonSelect.appendChild(opt);
-          });
-          onSeasonChange();
-        } else {
-          seasonSelect.innerHTML = '<option value="1">Season 1</option>';
-          populateEpisodes(1, 24);
-          fetchEpisodeStream();
-        }
-      } catch (err) {
-        console.error(err);
-      }
+    function setupFallbackSeasons() {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+      populateEpisodes(24);
+      fetchEpisodeStream();
     }
 
     function onSeasonChange() {
       const seasonNum = parseInt(document.getElementById('seasonSelect').value);
       const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
-      populateEpisodes(seasonNum, seasonData ? seasonData.maxEp : 24);
+      populateEpisodes(seasonData ? seasonData.maxEp : 24);
       fetchEpisodeStream();
     }
 
-    function populateEpisodes(season, maxEp) {
+    function populateEpisodes(maxEp) {
       const epSelect = document.getElementById('episodeSelect');
       epSelect.innerHTML = '';
       for (let i = 1; i <= maxEp; i++) {
@@ -297,19 +298,56 @@
       }
     }
 
+    async function loadMovieStream(detailPath) {
+      setPlayerLoading(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
+        const data = await res.json();
+        
+        // Auto-healing: If backend says it's a TV show, switch automatically
+        if (data.error && (data.error.includes('/api/tv') || data.error.includes('TV show'))) {
+          console.warn('Backend redirected to TV:', detailPath);
+          currentItem.type = 'tv';
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+          return;
+        }
+
+        if (data.qualities && data.qualities.length > 0) {
+          renderQualities(data.qualities, data.title || currentItem.title);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream limit reached. Please retry in 2 minutes.'}</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to fetch movie stream.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
     async function fetchEpisodeStream() {
       setPlayerLoading(true);
-      const season = document.getElementById('seasonSelect').value;
-      const episode = document.getElementById('episodeSelect').value;
+      const season = document.getElementById('seasonSelect').value || 1;
+      const episode = document.getElementById('episodeSelect').value || 1;
 
       try {
         const res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}`);
         const data = await res.json();
 
+        // Auto-healing: If backend says it's a movie, switch automatically
+        if (data.error && (data.error.includes('/api/movie') || data.error.includes('subject is a movie'))) {
+          console.warn('Backend redirected to Movie:', currentItem.detailPath);
+          currentItem.type = 'movie';
+          tvControls.classList.add('hidden');
+          document.getElementById('modalMeta').innerText = `MOVIE • ${currentItem.genre || ''}`;
+          return await loadMovieStream(currentItem.detailPath);
+        }
+
         if (data.qualities && data.qualities.length > 0) {
           renderQualities(data.qualities, `${currentItem.title}_S${season}E${episode}`);
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No stream files found for this episode.</span>`;
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'No stream files found for this episode.'}</span>`;
         }
       } catch (err) {
         console.error(err);
@@ -358,17 +396,19 @@
         targetBtn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
       }
 
-      // Stream URL: without 'name' so it plays inline
-      const proxiedPlayUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}`;
-      
-      // Download URL: with 'name' to trigger download dialog with clean filename
-      const fileName = `${baseTitle}_${qualityObj.resolution}p.mp4`;
-      const proxiedDownloadUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}&name=${encodeURIComponent(fileName)}`;
+      const dp = encodeURIComponent(currentItem.detailPath || '');
+      const rawUrl = encodeURIComponent(qualityObj.url);
+      const cleanName = encodeURIComponent(`${baseTitle}_${qualityObj.resolution}p.mp4`);
 
-      videoPlayer.src = proxiedPlayUrl;
+      // 1. In-browser playback via /stream
+      const playUrl = `${STREAM_PROXY}?url=${rawUrl}&dp=${dp}`;
+      videoPlayer.src = playUrl;
+      videoPlayer.load();
       videoPlayer.play().catch(() => {});
 
-      downloadBtn.href = proxiedDownloadUrl;
+      // 2. Direct download via /dl
+      const downloadUrl = `${DL_PROXY}?url=${rawUrl}&name=${cleanName}&dp=${dp}`;
+      downloadBtn.href = downloadUrl;
     }
 
     function closeModal() {
