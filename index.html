@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Moviebox Stream & Download</title>
+  <title>Moviebox</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -19,17 +19,17 @@
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3 cursor-pointer" onclick="loadTrending()">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-bold text-xl shadow-lg shadow-rose-900/40">
-          <i class="fa-solid fa-play"></i>
+          <i class="fa-solid fa-play text-white"></i>
         </div>
         <span class="text-xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">MovieBox</span>
       </div>
 
-      <!-- Search Input -->
+      <!-- Search Bar -->
       <form id="searchForm" class="w-full sm:w-96 flex relative">
         <input 
           id="searchInput"
           type="text" 
-          placeholder="Search movies, anime, TV shows..." 
+          placeholder="Search movies, TV shows..." 
           class="w-full bg-gray-900/90 text-sm rounded-xl pl-10 pr-24 py-2.5 border border-gray-700 focus:outline-none focus:border-rose-500 transition"
         >
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
@@ -43,7 +43,7 @@
     </div>
   </header>
 
-  <!-- Main Content -->
+  <!-- Main Container -->
   <main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8">
     <div class="flex items-center justify-between mb-6">
       <h2 id="sectionTitle" class="text-xl font-bold tracking-wide flex items-center gap-2">
@@ -53,22 +53,22 @@
     </div>
 
     <!-- Media Grid -->
-    <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
-      <!-- Injected via JavaScript -->
-    </div>
+    <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6"></div>
 
+    <!-- Loader -->
     <div id="loader" class="hidden flex justify-center items-center py-24">
       <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-rose-500"></div>
     </div>
 
+    <!-- Empty State -->
     <div id="emptyState" class="hidden text-center py-20 text-gray-400">
       <i class="fa-solid fa-film text-4xl mb-3 block"></i>
-      No results found. Try another query.
+      No titles found. Try searching for something else.
     </div>
   </main>
 
   <!-- Player & Download Modal -->
-  <div id="playerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+  <div id="playerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
     <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl relative flex flex-col">
       
       <!-- Close Button -->
@@ -76,7 +76,7 @@
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
-      <!-- Video Player Frame -->
+      <!-- Video Player -->
       <div class="w-full bg-black aspect-video relative flex items-center justify-center">
         <video id="videoPlayer" controls class="w-full h-full" playsinline preload="metadata">
           Your browser does not support the video tag.
@@ -86,14 +86,14 @@
         </div>
       </div>
 
-      <!-- Controls & Metadata -->
+      <!-- Detail / Quality Picker -->
       <div class="p-6 space-y-5 custom-scrollbar max-h-[45vh] overflow-y-auto">
         <div>
           <h3 id="modalTitle" class="text-xl font-bold">Title</h3>
-          <p id="modalMeta" class="text-xs text-gray-400 mt-1">Release Info</p>
+          <p id="modalMeta" class="text-xs text-gray-400 mt-1"></p>
         </div>
 
-        <!-- TV Show Episode Selectors -->
+        <!-- TV Controls -->
         <div id="tvControls" class="hidden grid grid-cols-2 gap-3 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
           <div>
             <label class="text-xs font-semibold text-gray-400 block mb-1">Season</label>
@@ -105,12 +105,10 @@
           </div>
         </div>
 
-        <!-- Available Qualities -->
+        <!-- Quality Buttons -->
         <div>
           <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Available Qualities</label>
-          <div id="qualityPills" class="flex flex-wrap gap-2">
-            <!-- Quality buttons injected here -->
-          </div>
+          <div id="qualityPills" class="flex flex-wrap gap-2"></div>
         </div>
 
         <!-- Actions -->
@@ -122,24 +120,18 @@
             <i class="fa-regular fa-copy"></i> Copy Stream URL
           </button>
         </div>
-
-        <p id="rateLimitWarning" class="text-[11px] text-amber-500/80 bg-amber-950/20 p-2.5 rounded-lg border border-amber-900/40">
-          <i class="fa-solid fa-circle-info"></i> Notice: Video streams expire after a few hours. The upstream API enforces a brief rate-limit between direct quality queries.
-        </p>
       </div>
 
     </div>
   </div>
 
   <script>
-        // Configuration
+    // Proxy through Vercel rewrites to http://app.brevo.host:2569
     const BASE_API = '/proxy-api';
-    const STREAM_PROXY = '/api/stream';
+    const STREAM_PROXY = '/proxy-api/dl';
 
     let currentItem = null;
     let fullDetails = null;
-    let currentStreams = [];
-    let selectedStream = null;
 
     const grid = document.getElementById('grid');
     const loader = document.getElementById('loader');
@@ -169,14 +161,13 @@
         renderGrid(data.results || data);
       } catch (err) {
         console.error(err);
-        alert('Failed to connect to API server at ' + BASE_API);
       } finally {
         showLoader(false);
       }
     }
 
     async function searchMovies(query) {
-      document.getElementById('sectionTitle').innerText = `Search Results: "${query}"`;
+      document.getElementById('sectionTitle').innerText = `Search: "${query}"`;
       showLoader(true);
       try {
         const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=20`);
@@ -228,11 +219,11 @@
       document.body.style.overflow = 'hidden';
 
       document.getElementById('modalTitle').innerText = item.title;
-      document.getElementById('modalMeta').innerText = `${item.type?.toUpperCase() || 'VIDEO'} • ${item.genre || ''}`;
+      document.getElementById('modalMeta').innerText = `${item.type?.toUpperCase() || 'TITLE'} • ${item.genre || ''}`;
       
       const isTv = item.type === 'tv';
       const tvControls = document.getElementById('tvControls');
-      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Loading stream links...</span>';
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Resolving streams...</span>';
 
       if (isTv) {
         tvControls.classList.remove('hidden');
@@ -250,14 +241,13 @@
         const data = await res.json();
         
         if (data.qualities && data.qualities.length > 0) {
-          currentStreams = data.qualities;
-          renderQualities(currentStreams, data.title);
+          renderQualities(data.qualities, data.title);
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No free streams found or rate limit hit. Try again in 2 minutes.</span>`;
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">Stream limit hit or unavailable. Retry shortly.</span>`;
         }
       } catch (err) {
         console.error(err);
-        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Error fetching movie streams.</span>`;
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to fetch movie stream.</span>`;
       } finally {
         setPlayerLoading(false);
       }
@@ -280,7 +270,6 @@
           });
           onSeasonChange();
         } else {
-          // Default fallback
           seasonSelect.innerHTML = '<option value="1">Season 1</option>';
           populateEpisodes(1, 24);
           fetchEpisodeStream();
@@ -293,8 +282,7 @@
     function onSeasonChange() {
       const seasonNum = parseInt(document.getElementById('seasonSelect').value);
       const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
-      const maxEp = seasonData ? seasonData.maxEp : 24;
-      populateEpisodes(seasonNum, maxEp);
+      populateEpisodes(seasonNum, seasonData ? seasonData.maxEp : 24);
       fetchEpisodeStream();
     }
 
@@ -319,14 +307,13 @@
         const data = await res.json();
 
         if (data.qualities && data.qualities.length > 0) {
-          currentStreams = data.qualities;
-          renderQualities(currentStreams, `${currentItem.title}_S${season}E${episode}`);
+          renderQualities(data.qualities, `${currentItem.title}_S${season}E${episode}`);
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No stream files available for this episode.</span>`;
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No stream files found for this episode.</span>`;
         }
       } catch (err) {
         console.error(err);
-        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Error fetching episode streams.</span>`;
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to load episode stream.</span>`;
       } finally {
         setPlayerLoading(false);
       }
@@ -334,8 +321,9 @@
 
     function renderQualities(qualities, baseTitle) {
       qualityPills.innerHTML = '';
-      
-      qualities.forEach((q, idx) => {
+      let defaultChosen = false;
+
+      qualities.forEach((q) => {
         const btn = document.createElement('button');
         const isVip = q.vipLocked;
         btn.disabled = isVip;
@@ -355,17 +343,14 @@
         btn.onclick = () => selectStreamQuality(q, baseTitle, btn);
         qualityPills.appendChild(btn);
 
-        // Auto-select first unlocked quality
-        if (idx === 0 && !isVip) {
+        if (!defaultChosen && !isVip) {
           selectStreamQuality(q, baseTitle, btn);
+          defaultChosen = true;
         }
       });
     }
 
     function selectStreamQuality(qualityObj, baseTitle, targetBtn) {
-      selectedStream = qualityObj;
-
-      // Update button active styling
       Array.from(qualityPills.children).forEach(el => {
         el.classList.remove('bg-rose-600', 'border-rose-500', 'text-white');
       });
@@ -373,14 +358,15 @@
         targetBtn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
       }
 
-      // Route through our local proxy endpoint to fulfill Referer headers
+      // Stream URL: without 'name' so it plays inline
       const proxiedPlayUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}`;
-      const proxiedDownloadUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}&name=${encodeURIComponent(baseTitle + '_' + qualityObj.resolution + 'p')}&download=1`;
+      
+      // Download URL: with 'name' to trigger download dialog with clean filename
+      const fileName = `${baseTitle}_${qualityObj.resolution}p.mp4`;
+      const proxiedDownloadUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}&name=${encodeURIComponent(fileName)}`;
 
       videoPlayer.src = proxiedPlayUrl;
-      videoPlayer.play().catch(() => {
-        // Autoplay may be blocked by browser policy without user gesture
-      });
+      videoPlayer.play().catch(() => {});
 
       downloadBtn.href = proxiedDownloadUrl;
     }
@@ -396,7 +382,7 @@
     function copyStreamLink() {
       if (videoPlayer.src) {
         navigator.clipboard.writeText(videoPlayer.src);
-        alert('Proxied stream link copied to clipboard!');
+        alert('Stream URL copied to clipboard!');
       }
     }
 
