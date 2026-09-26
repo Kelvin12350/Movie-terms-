@@ -10,36 +10,62 @@
     body { background-color: #0b0f19; color: #f3f4f6; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
 
   <!-- Header -->
-  <header class="sticky top-0 z-30 bg-[#111827]/90 backdrop-blur border-b border-gray-800 px-4 lg:px-8 py-4">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3 cursor-pointer" onclick="loadTrending()">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-bold text-xl shadow-lg shadow-rose-900/40">
-          <i class="fa-solid fa-play text-white"></i>
+  <header class="sticky top-0 z-30 bg-[#111827]/95 backdrop-blur border-b border-gray-800 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col gap-3">
+      
+      <!-- Top Row: Logo & Search -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-3 cursor-pointer self-start sm:self-auto" onclick="switchTab('home')">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-rose-900/40">
+            <i class="fa-solid fa-play text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">MovieBox</span>
         </div>
-        <span class="text-xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">MovieBox</span>
+
+        <!-- Search Bar -->
+        <form id="searchForm" class="w-full sm:w-96 flex relative">
+          <input 
+            id="searchInput"
+            type="text" 
+            placeholder="Search movies, anime, K-drama..." 
+            class="w-full bg-gray-900 text-sm rounded-xl pl-10 pr-24 py-2 border border-gray-700 focus:outline-none focus:border-rose-500 transition"
+          >
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+          <button 
+            type="submit" 
+            class="absolute right-1 top-1 bottom-1 px-4 bg-rose-600 hover:bg-rose-700 text-xs font-semibold rounded-lg transition"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
-      <!-- Search Bar -->
-      <form id="searchForm" class="w-full sm:w-96 flex relative">
-        <input 
-          id="searchInput"
-          type="text" 
-          placeholder="Search movies, TV shows..." 
-          class="w-full bg-gray-900/90 text-sm rounded-xl pl-10 pr-24 py-2.5 border border-gray-700 focus:outline-none focus:border-rose-500 transition"
-        >
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
-        <button 
-          type="submit" 
-          class="absolute right-1 top-1 bottom-1 px-4 bg-rose-600 hover:bg-rose-700 text-xs font-semibold rounded-lg transition"
-        >
-          Search
+      <!-- Navigation Bar -->
+      <nav class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1 pb-1">
+        <button id="nav-home" onclick="switchTab('home')" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-rose-600 text-white transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-fire text-amber-300"></i> Home
         </button>
-      </form>
+        <button id="nav-anime" onclick="switchTab('anime')" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-gray-900 hover:bg-gray-800 text-gray-300 transition flex items-center gap-1.5 border border-gray-800">
+          <i class="fa-solid fa-bolt text-indigo-400"></i> Anime
+        </button>
+        <button id="nav-kdrama" onclick="switchTab('kdrama')" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-gray-900 hover:bg-gray-800 text-gray-300 transition flex items-center gap-1.5 border border-gray-800">
+          <i class="fa-solid fa-heart text-pink-400"></i> K-Drama
+        </button>
+        <button id="nav-movies" onclick="switchTab('movies')" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-gray-900 hover:bg-gray-800 text-gray-300 transition flex items-center gap-1.5 border border-gray-800">
+          <i class="fa-solid fa-film text-emerald-400"></i> Movies
+        </button>
+        <button id="nav-series" onclick="switchTab('series')" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-gray-900 hover:bg-gray-800 text-gray-300 transition flex items-center gap-1.5 border border-gray-800">
+          <i class="fa-solid fa-tv text-cyan-400"></i> TV Series
+        </button>
+      </nav>
+
     </div>
   </header>
 
@@ -49,7 +75,7 @@
       <h2 id="sectionTitle" class="text-xl font-bold tracking-wide flex items-center gap-2">
         <i class="fa-solid fa-fire text-amber-500"></i> Trending Now
       </h2>
-      <button onclick="loadTrending()" class="text-xs text-gray-400 hover:text-white transition">Reset</button>
+      <button onclick="switchTab('home')" class="text-xs text-gray-400 hover:text-white transition">Reset</button>
     </div>
 
     <!-- Media Grid -->
@@ -143,25 +169,87 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const tvControls = document.getElementById('tvControls');
 
+    // Safe array parser to avoid TypeError: items.forEach is not a function
+    function extractArray(data) {
+      if (Array.isArray(data)) return data;
+      if (!data || typeof data !== 'object') return [];
+      const knownKeys = ['results', 'items', 'trending', 'list', 'data', 'subjects'];
+      for (const k of knownKeys) {
+        if (Array.isArray(data[k])) return data[k];
+      }
+      for (const k in data) {
+        if (Array.isArray(data[k])) return data[k];
+      }
+      return [];
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       loadTrending();
 
       document.getElementById('searchForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const query = document.getElementById('searchInput').value.trim();
-        if (query) searchMovies(query);
+        if (query) {
+          clearNavActive();
+          searchMovies(query);
+        }
       });
     });
+
+    // Navigation Tab Controller
+    function switchTab(tab) {
+      clearNavActive();
+      const activeBtn = document.getElementById(`nav-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-gray-900', 'text-gray-300', 'border-gray-800');
+        activeBtn.classList.add('bg-rose-600', 'text-white');
+      }
+
+      if (tab === 'home') {
+        loadTrending();
+      } else if (tab === 'anime') {
+        loadCategory('anime', '<i class="fa-solid fa-bolt text-indigo-400"></i> Popular Anime');
+      } else if (tab === 'kdrama') {
+        loadCategory('korean drama', '<i class="fa-solid fa-heart text-pink-400"></i> K-Drama Series & Movies');
+      } else if (tab === 'movies') {
+        loadCategory('2024 movie', '<i class="fa-solid fa-film text-emerald-400"></i> Popular Movies');
+      } else if (tab === 'series') {
+        loadCategory('series', '<i class="fa-solid fa-tv text-cyan-400"></i> Top TV Series');
+      }
+    }
+
+    function clearNavActive() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-rose-600', 'text-white');
+        btn.classList.add('bg-gray-900', 'text-gray-300', 'border-gray-800');
+      });
+    }
 
     async function loadTrending() {
       document.getElementById('sectionTitle').innerHTML = '<i class="fa-solid fa-fire text-amber-500"></i> Trending Now';
       showLoader(true);
       try {
-        const res = await fetch(`${BASE_API}/api/trending?limit=20`);
+        const res = await fetch(`${BASE_API}/api/trending?limit=24`);
         const data = await res.json();
-        renderGrid(data.results || data);
+        renderGrid(extractArray(data));
       } catch (err) {
-        console.error(err);
+        console.error('loadTrending error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function loadCategory(query, titleHtml) {
+      document.getElementById('sectionTitle').innerHTML = titleHtml;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24`);
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('loadCategory error:', err);
+        renderGrid([]);
       } finally {
         showLoader(false);
       }
@@ -171,11 +259,12 @@
       document.getElementById('sectionTitle').innerText = `Search: "${query}"`;
       showLoader(true);
       try {
-        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=20`);
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24`);
         const data = await res.json();
-        renderGrid(data.results || []);
+        renderGrid(extractArray(data));
       } catch (err) {
-        console.error(err);
+        console.error('searchMovies error:', err);
+        renderGrid([]);
       } finally {
         showLoader(false);
       }
@@ -183,7 +272,7 @@
 
     function renderGrid(items) {
       grid.innerHTML = '';
-      if (!items || items.length === 0) {
+      if (!Array.isArray(items) || items.length === 0) {
         emptyState.classList.remove('hidden');
         return;
       }
@@ -226,7 +315,6 @@
       setPlayerLoading(true);
 
       try {
-        // Step 1: Query /api/details to get the authoritative media type
         const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(item.detailPath)}`);
         fullDetails = await res.json();
 
@@ -235,7 +323,6 @@
         document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
         document.getElementById('modalMeta').innerText = `${trueType.toUpperCase()} • ${fullDetails.genre || item.genre || ''}`;
 
-        // Step 2: Route based on verified type
         if (trueType === 'tv' && fullDetails.seasons && fullDetails.seasons.length > 0) {
           tvControls.classList.remove('hidden');
           setupTvSeasons(fullDetails.seasons);
@@ -248,7 +335,6 @@
         }
       } catch (err) {
         console.error('Error fetching details:', err);
-        // Fallback
         if (item.type === 'tv') {
           tvControls.classList.remove('hidden');
           setupFallbackSeasons();
@@ -304,9 +390,8 @@
         const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
         const data = await res.json();
         
-        // Auto-healing: If backend says it's a TV show, switch automatically
+        // Auto-heal: If backend says it is a TV show
         if (data.error && (data.error.includes('/api/tv') || data.error.includes('TV show'))) {
-          console.warn('Backend redirected to TV:', detailPath);
           currentItem.type = 'tv';
           tvControls.classList.remove('hidden');
           setupFallbackSeasons();
@@ -316,7 +401,7 @@
         if (data.qualities && data.qualities.length > 0) {
           renderQualities(data.qualities, data.title || currentItem.title);
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream limit reached. Please retry in 2 minutes.'}</span>`;
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream limit hit. Retry in 2 minutes.'}</span>`;
         }
       } catch (err) {
         console.error(err);
@@ -335,9 +420,8 @@
         const res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}`);
         const data = await res.json();
 
-        // Auto-healing: If backend says it's a movie, switch automatically
+        // Auto-heal: If backend says it is a movie
         if (data.error && (data.error.includes('/api/movie') || data.error.includes('subject is a movie'))) {
-          console.warn('Backend redirected to Movie:', currentItem.detailPath);
           currentItem.type = 'movie';
           tvControls.classList.add('hidden');
           document.getElementById('modalMeta').innerText = `MOVIE • ${currentItem.genre || ''}`;
@@ -400,7 +484,7 @@
       const rawUrl = encodeURIComponent(qualityObj.url);
       const cleanName = encodeURIComponent(`${baseTitle}_${qualityObj.resolution}p.mp4`);
 
-      // 1. In-browser playback via /stream
+      // 1. Play inline via /stream
       const playUrl = `${STREAM_PROXY}?url=${rawUrl}&dp=${dp}`;
       videoPlayer.src = playUrl;
       videoPlayer.load();
