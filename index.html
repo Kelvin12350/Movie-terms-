@@ -1,538 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shopflow - Temu Deals & Global Direct Bargains</title>
-  
-  <!-- Tailwind CSS CDN -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moviebox Stream & Download</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            temu: {
-              orange: '#fb7701',
-              darkorange: '#e06500',
-              red: '#e11d48',
-              yellow: '#f59e0b',
-              badge: '#fff3eb',
-              cardbg: '#ffffff'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f6f6f6; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body { background-color: #0b0f19; color: #f3f4f6; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
   </style>
 </head>
-<body class="text-zinc-900 antialiased pb-20">
+<body class="min-h-screen flex flex-col font-sans">
 
-  <!-- TOP TEMU-STYLE BANNER -->
-  <div class="bg-gradient-to-r from-orange-600 via-temu-orange to-amber-500 text-white text-xs font-bold py-2 px-3 text-center flex items-center justify-center space-x-2 shadow-sm">
-    <span>⚡ TEMU DIRECT CLEARANCE: UP TO 90% OFF</span>
-    <span class="bg-black/30 px-2 py-0.5 rounded text-[11px] font-mono" id="deal-timer">02:44:18</span>
-    <span class="hidden md:inline">• Global Doorstep Delivery</span>
-  </div>
+  <!-- Header -->
+  <header class="sticky top-0 z-30 bg-[#111827]/90 backdrop-blur border-b border-gray-800 px-4 lg:px-8 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="loadTrending()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-bold text-xl shadow-lg shadow-rose-900/40">
+          <i class="fa-solid fa-play"></i>
+        </div>
+        <span class="text-xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">MovieBox</span>
+      </div>
 
-  <!-- NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-white border-b border-zinc-200/80 shadow-sm">
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-3">
-      
-      <!-- Brand Logo -->
-      <a href="#" class="flex items-center space-x-1 shrink-0">
-        <span class="text-2xl md:text-3xl font-black tracking-tighter text-temu-orange">shopflow</span>
-        <span class="w-2.5 h-2.5 rounded-full bg-temu-orange inline-block"></span>
-      </a>
-
-      <!-- Search Bar -->
-      <div class="flex-1 max-w-2xl relative">
+      <!-- Search Input -->
+      <form id="searchForm" class="w-full sm:w-96 flex relative">
         <input 
+          id="searchInput"
           type="text" 
-          id="search-input" 
-          placeholder="Search items, sunglasses, watches, gadgets..."
-          class="w-full bg-zinc-100 text-sm pl-10 pr-24 py-2.5 rounded-full border border-zinc-200 focus:outline-none focus:border-temu-orange focus:bg-white transition"
-          oninput="handleSearch(this.value)"
-        />
-        <svg class="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <button class="absolute right-1 top-1 bottom-1 px-4 bg-temu-orange hover:bg-temu-darkorange text-white rounded-full text-xs font-bold transition">
+          placeholder="Search movies, anime, TV shows..." 
+          class="w-full bg-gray-900/90 text-sm rounded-xl pl-10 pr-24 py-2.5 border border-gray-700 focus:outline-none focus:border-rose-500 transition"
+        >
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+        <button 
+          type="submit" 
+          class="absolute right-1 top-1 bottom-1 px-4 bg-rose-600 hover:bg-rose-700 text-xs font-semibold rounded-lg transition"
+        >
           Search
         </button>
-      </div>
-
-      <!-- Quick Status -->
-      <div class="flex items-center space-x-3 shrink-0">
-        <div class="hidden sm:flex items-center space-x-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-zinc-200 text-zinc-700 bg-zinc-50">
-          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          <span>API Connected</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Category Filters -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center space-x-2 overflow-x-auto hide-scrollbar text-xs font-semibold border-t border-zinc-100">
-      <button onclick="filterCategory('All')" class="cat-pill active px-3.5 py-1.5 rounded-full bg-zinc-900 text-white shrink-0">All Deals</button>
-      <button onclick="filterCategory('Eyewear')" class="cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0">Sunglasses</button>
-      <button onclick="filterCategory('Watches')" class="cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0">Smart Watches</button>
-      <button onclick="filterCategory('Electronics')" class="cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0">Electronics</button>
-      <button onclick="filterCategory('Fashion')" class="cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0">Fashion</button>
-      <button onclick="filterCategory('Home')" class="cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0">Home Goods</button>
+      </form>
     </div>
   </header>
 
-  <!-- MAIN FEED -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-5">
-    
-    <!-- Hero Temu Bar -->
-    <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 md:p-6 mb-6 text-white flex flex-col md:flex-row items-center justify-between shadow-md relative overflow-hidden">
-      <div class="relative z-10 text-center md:text-left mb-3 md:mb-0">
-        <div class="inline-block bg-white/20 text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full mb-2">⚡ Direct Factory Pricing</div>
-        <h1 class="text-xl md:text-3xl font-black tracking-tight">Shop Like a Billionaire. Direct Delivery.</h1>
-        <p class="text-xs text-orange-100 mt-1">Direct global supply chain. All commissions credited in real time.</p>
-      </div>
-      <div class="relative z-10 shrink-0">
-        <button onclick="triggerBackendSync()" class="bg-white text-temu-orange hover:bg-orange-50 font-black px-5 py-2.5 rounded-full text-xs shadow-lg transition flex items-center space-x-2">
-          <span id="sync-spinner" class="hidden animate-spin">🔄</span>
-          <span>⚡ Live Server Sync</span>
-        </button>
-      </div>
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 id="sectionTitle" class="text-xl font-bold tracking-wide flex items-center gap-2">
+        <i class="fa-solid fa-fire text-amber-500"></i> Trending Now
+      </h2>
+      <button onclick="loadTrending()" class="text-xs text-gray-400 hover:text-white transition">Reset</button>
     </div>
 
-    <!-- Product Grid Header -->
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center space-x-2">
-        <h2 class="text-base md:text-lg font-black text-zinc-900">Featured Lightning Deals</h2>
-        <span class="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">HOT</span>
-      </div>
-      <span class="text-xs text-zinc-400 font-medium" id="product-count-label">Loading products...</span>
-    </div>
-
-    <!-- Product Grid -->
-    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+    <!-- Media Grid -->
+    <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
       <!-- Injected via JavaScript -->
+    </div>
+
+    <div id="loader" class="hidden flex justify-center items-center py-24">
+      <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-rose-500"></div>
+    </div>
+
+    <div id="emptyState" class="hidden text-center py-20 text-gray-400">
+      <i class="fa-solid fa-film text-4xl mb-3 block"></i>
+      No results found. Try another query.
     </div>
   </main>
 
-  <!-- TEMU-STYLE PRODUCT DETAIL MODAL -->
-  <div id="detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative flex flex-col md:flex-row overflow-hidden">
+  <!-- Player & Download Modal -->
+  <div id="playerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl relative flex flex-col">
       
       <!-- Close Button -->
-      <button onclick="closeDetailModal()" class="absolute top-3 right-3 z-20 p-2 bg-white/90 hover:bg-zinc-100 rounded-full shadow text-zinc-700">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button onclick="closeModal()" class="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-gray-900/80 hover:bg-gray-800 flex items-center justify-center border border-gray-700 transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
-      <!-- Left: Interactive Multi-Photo Gallery -->
-      <div class="w-full md:w-1/2 p-4 bg-zinc-50 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-100">
-        <div>
-          <!-- Main Selected Preview -->
-          <div class="w-full aspect-square rounded-xl overflow-hidden bg-white border border-zinc-200 relative group">
-            <img id="modal-main-image" src="" alt="Main Preview" class="w-full h-full object-contain p-2 transition duration-300">
-            <span class="absolute top-2 left-2 bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded shadow">FLASH SALE</span>
-          </div>
-
-          <!-- Thumbnails Row -->
-          <div class="mt-3">
-            <div class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Gallery (<span id="modal-image-count">0</span> images)</div>
-            <div id="modal-gallery-strip" class="flex gap-2 overflow-x-auto hide-scrollbar py-1">
-              <!-- Injected Thumbnails -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Trust Badges -->
-        <div class="pt-4 text-[11px] text-zinc-500 space-y-1">
-          <div class="flex items-center space-x-1.5 text-zinc-700 font-semibold">
-            <span>🛡️ Buyer Protection</span>
-            <span class="text-zinc-300">•</span>
-            <span>Free Returns (15 Days)</span>
-          </div>
-          <div class="text-zinc-400 text-[10px]">Cainiao Global Express Fulfillment. Delivered straight to customer.</div>
+      <!-- Video Player Frame -->
+      <div class="w-full bg-black aspect-video relative flex items-center justify-center">
+        <video id="videoPlayer" controls class="w-full h-full" playsinline preload="metadata">
+          Your browser does not support the video tag.
+        </video>
+        <div id="playerSpinner" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center">
+          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-rose-500"></div>
         </div>
       </div>
 
-      <!-- Right: Pricing, Variants & Direct Affiliate Purchase -->
-      <div class="w-full md:w-1/2 p-5 flex flex-col justify-between space-y-4">
+      <!-- Controls & Metadata -->
+      <div class="p-6 space-y-5 custom-scrollbar max-h-[45vh] overflow-y-auto">
         <div>
-          <!-- Title & Badges -->
-          <h3 id="modal-title" class="text-sm md:text-base font-bold text-zinc-900 leading-snug mb-2"></h3>
-          
-          <div class="flex items-center space-x-2 text-xs mb-3">
-            <span class="bg-amber-500 text-white font-extrabold px-1.5 py-0.5 rounded text-[10px] flex items-center">
-              ★ <span id="modal-rating" class="ml-1">4.8</span>
-            </span>
-            <span id="modal-sold-count" class="text-zinc-500 font-medium">1,000+ sold</span>
-            <span class="text-zinc-300">•</span>
-            <span id="modal-store-name" class="text-zinc-500 font-medium truncate">Official Store</span>
-          </div>
+          <h3 id="modalTitle" class="text-xl font-bold">Title</h3>
+          <p id="modalMeta" class="text-xs text-gray-400 mt-1">Release Info</p>
+        </div>
 
-          <!-- Temu Price Box -->
-          <div class="bg-temu-badge border border-orange-200/80 rounded-xl p-3 mb-4">
-            <div class="flex items-baseline space-x-2">
-              <span class="text-2xl md:text-3xl font-black text-temu-orange" id="modal-sale-price">$0.00</span>
-              <span class="text-xs text-zinc-400 line-through" id="modal-orig-price">$0.00</span>
-              <span class="text-xs font-black text-red-600 bg-red-100 px-1.5 py-0.5 rounded ml-auto" id="modal-discount-tag">-70%</span>
-            </div>
-            <div class="text-[11px] text-zinc-600 mt-1 flex items-center space-x-1">
-              <span>⚡ Free shipping threshold eligible</span>
-            </div>
+        <!-- TV Show Episode Selectors -->
+        <div id="tvControls" class="hidden grid grid-cols-2 gap-3 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
+          <div>
+            <label class="text-xs font-semibold text-gray-400 block mb-1">Season</label>
+            <select id="seasonSelect" onchange="onSeasonChange()" class="w-full bg-gray-800 border border-gray-700 text-sm rounded-lg p-2 focus:outline-none"></select>
           </div>
-
-          <!-- Multiple SKU / Variant Picker -->
-          <div class="mb-4">
-            <div class="flex justify-between items-center mb-1.5">
-              <label class="text-xs font-bold text-zinc-800 uppercase tracking-wide">Options & Variants:</label>
-              <span id="selected-variant-label" class="text-xs font-semibold text-temu-orange"></span>
-            </div>
-            <div id="modal-sku-container" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto hide-scrollbar">
-              <!-- Injected SKU options -->
-            </div>
-          </div>
-
-          <!-- Logistics Info -->
-          <div class="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 text-xs space-y-1">
-            <div class="flex justify-between font-semibold text-zinc-700">
-              <span>Delivery Time:</span>
-              <span id="modal-delivery-estimate" class="text-zinc-900 font-bold">5 - 12 Business Days</span>
-            </div>
-            <div class="flex justify-between text-zinc-500 text-[11px]">
-              <span>Country Coverage:</span>
-              <span>Global (US, NG, UK, EU, CA, etc.)</span>
-            </div>
+          <div>
+            <label class="text-xs font-semibold text-gray-400 block mb-1">Episode</label>
+            <select id="episodeSelect" onchange="fetchEpisodeStream()" class="w-full bg-gray-800 border border-gray-700 text-sm rounded-lg p-2 focus:outline-none"></select>
           </div>
         </div>
 
-        <!-- Direct Purchase Flow -->
-        <div class="pt-2">
-          <button 
-            onclick="buyDirectOnAliExpress()" 
-            class="w-full bg-gradient-to-r from-orange-500 to-temu-orange hover:from-orange-600 hover:to-temu-darkorange text-white py-4 rounded-xl font-black text-sm md:text-base shadow-lg shadow-orange-500/30 flex items-center justify-center space-x-2 transition transform active:scale-98"
-          >
-            <span>⚡ BUY NOW ON ALIEXPRESS</span>
-            <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        <!-- Available Qualities -->
+        <div>
+          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Available Qualities</label>
+          <div id="qualityPills" class="flex flex-wrap gap-2">
+            <!-- Quality buttons injected here -->
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-800">
+          <a id="downloadBtn" href="#" target="_blank" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase rounded-lg flex items-center gap-2 shadow-lg transition">
+            <i class="fa-solid fa-download"></i> Download Video
+          </a>
+          <button onclick="copyStreamLink()" class="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-lg flex items-center gap-2 border border-gray-700 transition">
+            <i class="fa-regular fa-copy"></i> Copy Stream URL
           </button>
-          <div class="flex items-center justify-center space-x-2 text-[10px] text-zinc-400 mt-2">
-            <span>🔒 Direct Merchant Checkout</span>
-            <span>•</span>
-            <span>Tracking ID: <span class="font-mono text-zinc-600 font-bold">Default</span></span>
-          </div>
         </div>
+
+        <p id="rateLimitWarning" class="text-[11px] text-amber-500/80 bg-amber-950/20 p-2.5 rounded-lg border border-amber-900/40">
+          <i class="fa-solid fa-circle-info"></i> Notice: Video streams expire after a few hours. The upstream API enforces a brief rate-limit between direct quality queries.
+        </p>
       </div>
+
     </div>
   </div>
 
   <script>
-    const TRACKING_ID = "Default";
+    // Configuration
+    const BASE_API = 'http://app.brevo.host:2569';
+    const STREAM_PROXY = '/api/stream';
 
-    /* Verified AliExpress items with actual multi-image payloads */
-    const LIVE_CATALOG = [
-      {
-        product_id: 4000903675543,
-        category: "Eyewear",
-        subject: "FUQIAN Vintage Square Polarized Sunglasses Men Women Luxury Brand Designer UV400 Shades",
-        sale_price: 3.94,
-        orig_price: 12.99,
-        rating: "4.8",
-        sales_count: "12,890+",
-        store_name: "FUQIAN Eyewear Official",
-        delivery_time: "5-10 Days",
-        image_urls: [
-          "https://ae04.alicdn.com/kf/H551494696f2342edbeee5d2f288f4d1cv.jpg",
-          "https://ae04.alicdn.com/kf/H847c9c1b04614adfa20f042cc4490df6S.jpg",
-          "https://ae04.alicdn.com/kf/H1936d341e4bf4773ace153b527070a07C.jpg",
-          "https://ae04.alicdn.com/kf/Hf0cc14d4cc5741dc91b6dcf90bf5553cu.jpg",
-          "https://ae04.alicdn.com/kf/H80cb5bc712984795a850e9fc3a156d9fV.jpg"
-        ],
-        skus: [
-          { sku_id: "12000027158136202", attr: "Black Green (Polarized)", price: 3.94, img: "https://ae04.alicdn.com/kf/Hba46f8222fdf4440a271134f8ce2ca2aB.jpg" },
-          { sku_id: "12000027158136203", attr: "Glossy All Black", price: 3.94, img: "https://ae04.alicdn.com/kf/H551494696f2342edbeee5d2f288f4d1cv.jpg" },
-          { sku_id: "12000027158136204", attr: "Leopard Brown", price: 4.10, img: "https://ae04.alicdn.com/kf/H847c9c1b04614adfa20f042cc4490df6S.jpg" }
-        ]
-      },
-      {
-        product_id: 1005004638293060,
-        category: "Watches",
-        subject: "LIGE Full Touch Military Smart Watch Men Outdoor IP68 Waterproof Bluetooth Call Sport Wristwatch",
-        sale_price: 13.80,
-        orig_price: 49.00,
-        rating: "4.9",
-        sales_count: "8,400+",
-        store_name: "LIGE Factory Store",
-        delivery_time: "7-12 Days",
-        image_urls: [
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80"
-        ],
-        skus: [
-          { sku_id: "140001920", attr: "Tactical Matte Black", price: 13.80, img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80" },
-          { sku_id: "140001921", attr: "Army Camo Green", price: 14.50, img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&auto=format&fit=crop&q=80" }
-        ]
-      },
-      {
-        product_id: 1005003784285827,
-        category: "Electronics",
-        subject: "TWS Wireless Earbuds Bluetooth 5.3 High Fidelity Stereo Noise Cancelling Gaming Headset",
-        sale_price: 4.88,
-        orig_price: 22.50,
-        rating: "4.7",
-        sales_count: "25,000+",
-        store_name: "Baseus Tech Store",
-        delivery_time: "5-9 Days",
-        image_urls: [
-          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&auto=format&fit=crop&q=80"
-        ],
-        skus: [
-          { sku_id: "1300091", attr: "Ice White", price: 4.88, img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80" },
-          { sku_id: "1300092", attr: "Deep Carbon", price: 4.88, img: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&auto=format&fit=crop&q=80" }
-        ]
-      },
-      {
-        product_id: 1005008453688391,
-        category: "Fashion",
-        subject: "Elegant Flounce Mini Skirts Suits Women Two-Piece Set Casual Chic Summer Streetwear",
-        sale_price: 11.20,
-        orig_price: 38.00,
-        rating: "4.9",
-        sales_count: "3,120+",
-        store_name: "Chic Apparel Direct",
-        delivery_time: "6-11 Days",
-        image_urls: [
-          "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&auto=format&fit=crop&q=80"
-        ],
-        skus: [
-          { sku_id: "170001", attr: "Silvery / M", price: 11.20, img: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80" },
-          { sku_id: "170002", attr: "Silvery / L", price: 11.20, img: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80" }
-        ]
-      },
-      {
-        product_id: 1005007821712176,
-        category: "Home",
-        subject: "Automatic Rechargeable Electric Portable Water Bottle Pump Dispenser for Universal 5 Gallon",
-        sale_price: 4.10,
-        orig_price: 14.50,
-        rating: "4.6",
-        sales_count: "9,700+",
-        store_name: "Smart Home Gadgets",
-        delivery_time: "5-10 Days",
-        image_urls: [
-          "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80"
-        ],
-        skus: [
-          { sku_id: "190001", attr: "USB-C White", price: 4.10, img: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80" },
-          { sku_id: "190002", attr: "USB-C Matte Black", price: 4.30, img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80" }
-        ]
-      }
-    ];
+    let currentItem = null;
+    let fullDetails = null;
+    let currentStreams = [];
+    let selectedStream = null;
 
-    let currentSelectedProduct = null;
-    let currentSelectedSku = null;
+    const grid = document.getElementById('grid');
+    const loader = document.getElementById('loader');
+    const emptyState = document.getElementById('emptyState');
+    const playerModal = document.getElementById('playerModal');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const playerSpinner = document.getElementById('playerSpinner');
+    const qualityPills = document.getElementById('qualityPills');
+    const downloadBtn = document.getElementById('downloadBtn');
 
-    /* Calls your new serverless function: /api/get */
-    async function triggerBackendSync() {
-      const spinner = document.getElementById("sync-spinner");
-      spinner.classList.remove("hidden");
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTrending();
 
+      document.getElementById('searchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) searchMovies(query);
+      });
+    });
+
+    async function loadTrending() {
+      document.getElementById('sectionTitle').innerHTML = '<i class="fa-solid fa-fire text-amber-500"></i> Trending Now';
+      showLoader(true);
       try {
-        const res = await fetch("/api/get?productId=4000903675543");
-        const json = await res.json();
-        spinner.classList.add("hidden");
-
-        if (json && json.result) {
-          alert("Connected to /api/get! Successfully retrieved live response from AliExpress gateway.");
-        } else if (json && json.error_response) {
-          alert(`/api/get reached AliExpress! Response: ${json.error_response.msg || json.error_response.sub_msg}`);
-        } else {
-          alert("Server responded: " + JSON.stringify(json).substring(0, 150) + "...");
-        }
+        const res = await fetch(`${BASE_API}/api/trending?limit=20`);
+        const data = await res.json();
+        renderGrid(data.results || data);
       } catch (err) {
-        spinner.classList.add("hidden");
-        alert("Serverless endpoint `/api/get` error: " + err.message);
+        console.error(err);
+        alert('Failed to connect to API server at ' + BASE_API);
+      } finally {
+        showLoader(false);
       }
     }
 
-    function renderProductGrid(items) {
-      const grid = document.getElementById("product-grid");
-      grid.innerHTML = "";
+    async function searchMovies(query) {
+      document.getElementById('sectionTitle').innerText = `Search Results: "${query}"`;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=20`);
+        const data = await res.json();
+        renderGrid(data.results || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        showLoader(false);
+      }
+    }
 
-      document.getElementById("product-count-label").textContent = `${items.length} items available`;
+    function renderGrid(items) {
+      grid.innerHTML = '';
+      if (!items || items.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
 
-      items.forEach(product => {
-        const discountPercent = Math.round(((product.orig_price - product.sale_price) / product.orig_price) * 100);
-        
-        const card = document.createElement("div");
-        card.className = "bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between border border-zinc-200/90 group";
-        card.onclick = () => openProductModal(product);
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'group bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-rose-500/50 transition cursor-pointer flex flex-col';
+        card.onclick = () => openDetails(item);
+
+        const cover = item.cover || 'https://via.placeholder.com/300x450?text=No+Cover';
+        const isTv = item.type === 'tv' || (item.detailPath && item.detailPath.includes('tv'));
 
         card.innerHTML = `
-          <div>
-            <div class="relative w-full aspect-square bg-zinc-100 overflow-hidden">
-              <img src="${product.image_urls[0]}" alt="${product.subject}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-              <span class="absolute top-2 left-2 bg-temu-orange text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow">⚡ ${discountPercent}% OFF</span>
+          <div class="aspect-[2/3] w-full overflow-hidden relative">
+            <img src="${cover}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" />
+            <div class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isTv ? 'bg-indigo-600' : 'bg-rose-600'} text-white">
+              ${isTv ? 'TV' : 'Movie'}
             </div>
-            <div class="p-2.5">
-              <h4 class="text-xs font-semibold text-zinc-800 line-clamp-2 leading-relaxed mb-2">${product.subject}</h4>
-              <div class="flex items-baseline space-x-1.5 mb-1">
-                <span class="text-sm md:text-base font-black text-temu-orange">$${product.sale_price.toFixed(2)}</span>
-                <span class="text-[11px] text-zinc-400 line-through">$${product.orig_price.toFixed(2)}</span>
-              </div>
-              <div class="text-[10px] text-zinc-500 flex items-center space-x-1">
-                <span>⭐ ${product.rating}</span>
-                <span>•</span>
-                <span>${product.sales_count} sold</span>
-              </div>
-            </div>
+            ${item.imdbRating ? `<div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-star text-[10px]"></i> ${item.imdbRating}</div>` : ''}
           </div>
-          <div class="px-2.5 pb-2.5 pt-0">
-            <span class="block w-full text-center bg-orange-50 text-temu-orange group-hover:bg-temu-orange group-hover:text-white rounded-lg py-1.5 text-xs font-bold transition">
-              View Deal
-            </span>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <h4 class="text-sm font-semibold truncate group-hover:text-rose-400 transition">${item.title}</h4>
+            <p class="text-[11px] text-gray-500 mt-1">${item.releaseDate ? item.releaseDate.split('-')[0] : (item.genre || '')}</p>
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function openProductModal(product) {
-      currentSelectedProduct = product;
-      currentSelectedSku = product.skus[0];
+    async function openDetails(item) {
+      currentItem = item;
+      playerModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
 
-      document.getElementById("modal-title").textContent = product.subject;
-      document.getElementById("modal-rating").textContent = product.rating;
-      document.getElementById("modal-sold-count").textContent = `${product.sales_count} sold`;
-      document.getElementById("modal-store-name").textContent = product.store_name;
-      document.getElementById("modal-delivery-estimate").textContent = product.delivery_time;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalMeta').innerText = `${item.type?.toUpperCase() || 'VIDEO'} • ${item.genre || ''}`;
+      
+      const isTv = item.type === 'tv';
+      const tvControls = document.getElementById('tvControls');
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Loading stream links...</span>';
 
-      updatePriceDisplay(currentSelectedSku.price, product.orig_price);
-
-      document.getElementById("modal-main-image").src = product.image_urls[0];
-      document.getElementById("modal-image-count").textContent = product.image_urls.length;
-
-      // Gallery thumbs
-      const galleryStrip = document.getElementById("modal-gallery-strip");
-      galleryStrip.innerHTML = "";
-      product.image_urls.forEach((url, index) => {
-        const thumb = document.createElement("img");
-        thumb.src = url;
-        thumb.className = `w-12 h-12 rounded-lg border-2 object-cover cursor-pointer shrink-0 transition ${index === 0 ? 'border-temu-orange' : 'border-zinc-200'}`;
-        thumb.onclick = () => {
-          document.getElementById("modal-main-image").src = url;
-          document.querySelectorAll("#modal-gallery-strip img").forEach(el => el.className = el.className.replace('border-temu-orange', 'border-zinc-200'));
-          thumb.className = thumb.className.replace('border-zinc-200', 'border-temu-orange');
-        };
-        galleryStrip.appendChild(thumb);
-      });
-
-      // Variants
-      const skuContainer = document.getElementById("modal-sku-container");
-      skuContainer.innerHTML = "";
-      product.skus.forEach((sku, index) => {
-        const chip = document.createElement("button");
-        chip.className = `px-3 py-1.5 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 ${index === 0 ? 'border-temu-orange bg-orange-50 text-temu-orange' : 'border-zinc-200 text-zinc-700 hover:border-zinc-300'}`;
-        chip.innerHTML = `
-          ${sku.img ? `<img src="${sku.img}" class="w-4 h-4 rounded-full object-cover">` : ''}
-          <span>${sku.attr}</span>
-        `;
-
-        chip.onclick = () => {
-          currentSelectedSku = sku;
-          document.getElementById("selected-variant-label").textContent = sku.attr;
-          if (sku.img) {
-            document.getElementById("modal-main-image").src = sku.img;
-          }
-          updatePriceDisplay(sku.price, product.orig_price);
-          
-          document.querySelectorAll("#modal-sku-container button").forEach(btn => {
-            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-200 text-zinc-700 hover:border-zinc-300 transition flex items-center space-x-1.5";
-          });
-          chip.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-temu-orange bg-orange-50 text-temu-orange transition flex items-center space-x-1.5";
-        };
-
-        skuContainer.appendChild(chip);
-      });
-
-      document.getElementById("selected-variant-label").textContent = currentSelectedSku.attr;
-
-      const modal = document.getElementById("detail-modal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function updatePriceDisplay(salePrice, origPrice) {
-      document.getElementById("modal-sale-price").textContent = `$${salePrice.toFixed(2)}`;
-      document.getElementById("modal-orig-price").textContent = `$${origPrice.toFixed(2)}`;
-      const discount = Math.round(((origPrice - salePrice) / origPrice) * 100);
-      document.getElementById("modal-discount-tag").textContent = `-${discount}%`;
-    }
-
-    function closeDetailModal() {
-      const modal = document.getElementById("detail-modal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
-    function buyDirectOnAliExpress() {
-      if (!currentSelectedProduct) return;
-
-      const pid = currentSelectedProduct.product_id;
-      const skuId = currentSelectedSku ? currentSelectedSku.sku_id : "";
-
-      // Direct affiliate tracked checkout with tracking ID Default
-      const targetCheckoutUrl = `https://www.aliexpress.com/item/${pid}.html?sku_id=${skuId}&aff_fcid=${TRACKING_ID}&aff_fsk=_d7...&algo_pvid=shopflow_${Date.now()}`;
-      window.open(targetCheckoutUrl, "_blank");
-    }
-
-    function handleSearch(query) {
-      const q = query.toLowerCase().trim();
-      const filtered = LIVE_CATALOG.filter(item => 
-        item.subject.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
-      );
-      renderProductGrid(filtered);
-    }
-
-    function filterCategory(cat) {
-      document.querySelectorAll(".cat-pill").forEach(el => {
-        el.className = "cat-pill px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 shrink-0 font-semibold transition";
-      });
-      event.target.className = "cat-pill active px-3.5 py-1.5 rounded-full bg-zinc-900 text-white shrink-0 font-semibold transition";
-
-      if (cat === "All") {
-        renderProductGrid(LIVE_CATALOG);
+      if (isTv) {
+        tvControls.classList.remove('hidden');
+        await loadTvStructure(item.detailPath);
       } else {
-        const filtered = LIVE_CATALOG.filter(item => item.category === cat);
-        renderProductGrid(filtered);
+        tvControls.classList.add('hidden');
+        await loadMovieStream(item.detailPath);
       }
     }
 
-    // Countdown loop
-    setInterval(() => {
-      const now = new Date();
-      const hours = String(23 - now.getHours()).padStart(2, '0');
-      const minutes = String(59 - now.getMinutes()).padStart(2, '0');
-      const seconds = String(59 - now.getSeconds()).padStart(2, '0');
-      document.getElementById("deal-timer").textContent = `${hours}:${minutes}:${seconds}`;
-    }, 1000);
+    async function loadMovieStream(detailPath) {
+      setPlayerLoading(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
+        const data = await res.json();
+        
+        if (data.qualities && data.qualities.length > 0) {
+          currentStreams = data.qualities;
+          renderQualities(currentStreams, data.title);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No free streams found or rate limit hit. Try again in 2 minutes.</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Error fetching movie streams.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      renderProductGrid(LIVE_CATALOG);
-    });
+    async function loadTvStructure(detailPath) {
+      try {
+        const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(detailPath)}`);
+        fullDetails = await res.json();
+
+        const seasonSelect = document.getElementById('seasonSelect');
+        seasonSelect.innerHTML = '';
+
+        if (fullDetails.seasons && fullDetails.seasons.length > 0) {
+          fullDetails.seasons.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.season;
+            opt.innerText = `Season ${s.season}`;
+            seasonSelect.appendChild(opt);
+          });
+          onSeasonChange();
+        } else {
+          // Default fallback
+          seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+          populateEpisodes(1, 24);
+          fetchEpisodeStream();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function onSeasonChange() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value);
+      const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
+      const maxEp = seasonData ? seasonData.maxEp : 24;
+      populateEpisodes(seasonNum, maxEp);
+      fetchEpisodeStream();
+    }
+
+    function populateEpisodes(season, maxEp) {
+      const epSelect = document.getElementById('episodeSelect');
+      epSelect.innerHTML = '';
+      for (let i = 1; i <= maxEp; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Episode ${i}`;
+        epSelect.appendChild(opt);
+      }
+    }
+
+    async function fetchEpisodeStream() {
+      setPlayerLoading(true);
+      const season = document.getElementById('seasonSelect').value;
+      const episode = document.getElementById('episodeSelect').value;
+
+      try {
+        const res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}`);
+        const data = await res.json();
+
+        if (data.qualities && data.qualities.length > 0) {
+          currentStreams = data.qualities;
+          renderQualities(currentStreams, `${currentItem.title}_S${season}E${episode}`);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">No stream files available for this episode.</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Error fetching episode streams.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    function renderQualities(qualities, baseTitle) {
+      qualityPills.innerHTML = '';
+      
+      qualities.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        const isVip = q.vipLocked;
+        btn.disabled = isVip;
+
+        btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+          isVip 
+            ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-800' 
+            : 'bg-gray-800 hover:bg-rose-600 text-gray-200 hover:text-white border border-gray-700'
+        }`;
+
+        btn.innerHTML = `
+          <span>${q.resolution}P</span>
+          ${q.size_mb ? `<span class="text-[10px] text-gray-400">(${q.size_mb} MB)</span>` : ''}
+          ${isVip ? '<i class="fa-solid fa-lock text-[10px]"></i>' : ''}
+        `;
+
+        btn.onclick = () => selectStreamQuality(q, baseTitle, btn);
+        qualityPills.appendChild(btn);
+
+        // Auto-select first unlocked quality
+        if (idx === 0 && !isVip) {
+          selectStreamQuality(q, baseTitle, btn);
+        }
+      });
+    }
+
+    function selectStreamQuality(qualityObj, baseTitle, targetBtn) {
+      selectedStream = qualityObj;
+
+      // Update button active styling
+      Array.from(qualityPills.children).forEach(el => {
+        el.classList.remove('bg-rose-600', 'border-rose-500', 'text-white');
+      });
+      if (targetBtn) {
+        targetBtn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+      }
+
+      // Route through our local proxy endpoint to fulfill Referer headers
+      const proxiedPlayUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}`;
+      const proxiedDownloadUrl = `${STREAM_PROXY}?url=${encodeURIComponent(qualityObj.url)}&name=${encodeURIComponent(baseTitle + '_' + qualityObj.resolution + 'p')}&download=1`;
+
+      videoPlayer.src = proxiedPlayUrl;
+      videoPlayer.play().catch(() => {
+        // Autoplay may be blocked by browser policy without user gesture
+      });
+
+      downloadBtn.href = proxiedDownloadUrl;
+    }
+
+    function closeModal() {
+      videoPlayer.pause();
+      videoPlayer.removeAttribute('src');
+      videoPlayer.load();
+      playerModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function copyStreamLink() {
+      if (videoPlayer.src) {
+        navigator.clipboard.writeText(videoPlayer.src);
+        alert('Proxied stream link copied to clipboard!');
+      }
+    }
+
+    function showLoader(visible) {
+      loader.classList.toggle('hidden', !visible);
+    }
+
+    function setPlayerLoading(visible) {
+      playerSpinner.classList.toggle('hidden', !visible);
+    }
   </script>
 </body>
 </html>
