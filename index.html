@@ -12,6 +12,13 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::cue {
+      background-color: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      font-size: 15px;
+      font-family: sans-serif;
+      text-shadow: 0 1px 2px #000;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
@@ -95,16 +102,16 @@
 
   <!-- Player & Download Modal -->
   <div id="playerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-    <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl relative flex flex-col">
+    <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl relative flex flex-col my-auto">
       
       <!-- Close Button -->
-      <button onclick="closeModal()" class="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-gray-900/80 hover:bg-gray-800 flex items-center justify-center border border-gray-700 transition">
+      <button onclick="closeModal()" class="absolute right-4 top-4 z-20 w-8 h-8 rounded-full bg-gray-900/80 hover:bg-gray-800 flex items-center justify-center border border-gray-700 transition">
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
       <!-- Video Player Frame -->
       <div class="w-full bg-black aspect-video relative flex items-center justify-center">
-        <video id="videoPlayer" controls class="w-full h-full" playsinline preload="metadata">
+        <video id="videoPlayer" controls class="w-full h-full" playsinline preload="metadata" crossorigin="anonymous">
           Your browser does not support the video tag.
         </video>
         <div id="playerSpinner" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -112,11 +119,19 @@
         </div>
       </div>
 
-      <!-- Controls & Metadata -->
-      <div class="p-6 space-y-5 custom-scrollbar max-h-[45vh] overflow-y-auto">
+      <!-- Metadata & Controls -->
+      <div class="p-6 space-y-5 custom-scrollbar max-h-[50vh] overflow-y-auto">
+        
+        <!-- Header Info from /api/details -->
         <div>
-          <h3 id="modalTitle" class="text-xl font-bold">Title</h3>
-          <p id="modalMeta" class="text-xs text-gray-400 mt-1"></p>
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <span id="badgeType" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white">Movie</span>
+            <span id="metaYearDuration" class="text-xs text-gray-400 font-medium"></span>
+            <span id="metaRating" class="text-xs text-amber-400 font-bold flex items-center gap-1"></span>
+          </div>
+          <h3 id="modalTitle" class="text-xl font-bold text-white">Title</h3>
+          <p id="modalSynopsis" class="text-xs text-gray-300 mt-2 leading-relaxed"></p>
+          <div id="modalCast" class="text-[11px] text-gray-400 mt-2"></div>
         </div>
 
         <!-- TV Show Episode Selectors -->
@@ -127,11 +142,29 @@
           </div>
           <div>
             <label class="text-xs font-semibold text-gray-400 block mb-1">Episode</label>
-            <select id="episodeSelect" onchange="fetchEpisodeStream()" class="w-full bg-gray-800 border border-gray-700 text-sm rounded-lg p-2 focus:outline-none"></select>
+            <select id="episodeSelect" onchange="onEpisodeChange()" class="w-full bg-gray-800 border border-gray-700 text-sm rounded-lg p-2 focus:outline-none"></select>
           </div>
         </div>
 
-        <!-- Quality Pills -->
+        <!-- Subtitles Section (/api/subtitles) -->
+        <div class="bg-gray-900/40 p-3.5 rounded-xl border border-gray-800">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-closed-captioning text-rose-500"></i> Subtitles
+            </label>
+            <span id="subStatus" class="text-[11px] text-gray-400">Loading captions...</span>
+          </div>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <select id="subtitleSelect" onchange="onSubtitleSelect()" class="flex-1 bg-gray-800 border border-gray-700 text-xs rounded-lg p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+              <option value="off">Captions: Off</option>
+            </select>
+            <a id="downloadSubBtn" href="#" target="_blank" class="hidden px-3.5 py-2.5 bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 font-semibold rounded-lg border border-gray-700 flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-download text-xs text-rose-400"></i> Download .SRT
+            </a>
+          </div>
+        </div>
+
+        <!-- Available Qualities -->
         <div>
           <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Available Qualities</label>
           <div id="qualityPills" class="flex flex-wrap gap-2"></div>
@@ -146,6 +179,7 @@
             <i class="fa-regular fa-copy"></i> Copy Stream URL
           </button>
         </div>
+
       </div>
 
     </div>
@@ -158,6 +192,8 @@
 
     let currentItem = null;
     let fullDetails = null;
+    let activeCaptions = [];
+    let currentVttBlobUrl = null;
 
     const grid = document.getElementById('grid');
     const loader = document.getElementById('loader');
@@ -168,8 +204,11 @@
     const qualityPills = document.getElementById('qualityPills');
     const downloadBtn = document.getElementById('downloadBtn');
     const tvControls = document.getElementById('tvControls');
+    const subtitleSelect = document.getElementById('subtitleSelect');
+    const downloadSubBtn = document.getElementById('downloadSubBtn');
+    const subStatus = document.getElementById('subStatus');
 
-    // Safe array parser to avoid TypeError: items.forEach is not a function
+    // Safe array extractor to prevent items.forEach crashes
     function extractArray(data) {
       if (Array.isArray(data)) return data;
       if (!data || typeof data !== 'object') return [];
@@ -181,6 +220,14 @@
         if (Array.isArray(data[k])) return data[k];
       }
       return [];
+    }
+
+    // Convert SRT subtitle text into standard WebVTT format
+    function srtToWebVTT(srtText) {
+      let vtt = srtText.replace(/\r\n|\r/g, '\n').trim();
+      // Replace SRT comma timestamp separator (00:00:20,000 -> 00:00:20.000)
+      vtt = vtt.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+      return 'WEBVTT\n\n' + vtt;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -196,7 +243,7 @@
       });
     });
 
-    // Navigation Tab Controller
+    // Navigation Category Tabs
     function switchTab(tab) {
       clearNavActive();
       const activeBtn = document.getElementById(`nav-${tab}`);
@@ -303,26 +350,60 @@
       });
     }
 
+    // Modal Lifecycle & Metadata Resolver
     async function openDetails(item) {
       currentItem = { ...item };
       playerModal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
 
+      // Reset Modal UI
       document.getElementById('modalTitle').innerText = item.title;
-      document.getElementById('modalMeta').innerText = 'Loading details...';
+      document.getElementById('modalSynopsis').innerText = 'Loading synopsis & details...';
+      document.getElementById('modalCast').innerHTML = '';
+      document.getElementById('metaYearDuration').innerText = '';
+      document.getElementById('metaRating').innerHTML = '';
       tvControls.classList.add('hidden');
-      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Checking streams...</span>';
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Resolving stream sources...</span>';
+      resetSubtitles();
       setPlayerLoading(true);
 
       try {
+        // Query /api/details
         const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(item.detailPath)}`);
         fullDetails = await res.json();
 
         const trueType = fullDetails.type || item.type || 'movie';
         currentItem.type = trueType;
-        document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
-        document.getElementById('modalMeta').innerText = `${trueType.toUpperCase()} • ${fullDetails.genre || item.genre || ''}`;
 
+        // Apply Metadata
+        const badgeType = document.getElementById('badgeType');
+        badgeType.innerText = trueType.toUpperCase();
+        badgeType.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white ${trueType === 'tv' ? 'bg-indigo-600' : 'bg-rose-600'}`;
+
+        document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
+        document.getElementById('modalSynopsis').innerText = fullDetails.synopsis || fullDetails.description || 'No overview available for this title.';
+
+        // Release year, duration, country
+        const year = fullDetails.releaseDate ? fullDetails.releaseDate.split('-')[0] : '';
+        const dur = fullDetails.duration ? `${fullDetails.duration} min` : '';
+        const country = fullDetails.country || '';
+        document.getElementById('metaYearDuration').innerText = [year, dur, country, fullDetails.genre].filter(Boolean).join(' • ');
+
+        // IMDB Rating
+        const rating = fullDetails.imdbRatingValue || fullDetails.imdbRating || item.imdbRating;
+        if (rating) {
+          document.getElementById('metaRating').innerHTML = `<i class="fa-solid fa-star"></i> ${rating}`;
+        }
+
+        // Cast List
+        if (fullDetails.cast && fullDetails.cast.length > 0) {
+          const castNames = fullDetails.cast.slice(0, 5).map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
+          if (castNames.length > 0) {
+            document.getElementById('modalCast').innerHTML = `<strong class="text-gray-300">Cast:</strong> ${castNames.join(', ')}`;
+          }
+        }
+
+        // TV vs Movie Flow
         if (trueType === 'tv' && fullDetails.seasons && fullDetails.seasons.length > 0) {
           tvControls.classList.remove('hidden');
           setupTvSeasons(fullDetails.seasons);
@@ -332,15 +413,17 @@
         } else {
           tvControls.classList.add('hidden');
           await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
         }
       } catch (err) {
-        console.error('Error fetching details:', err);
+        console.error('Details fetch error:', err);
         if (item.type === 'tv') {
           tvControls.classList.remove('hidden');
           setupFallbackSeasons();
         } else {
           tvControls.classList.add('hidden');
           await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
         }
       } finally {
         setPlayerLoading(false);
@@ -364,6 +447,7 @@
       seasonSelect.innerHTML = '<option value="1">Season 1</option>';
       populateEpisodes(24);
       fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, 1, 1);
     }
 
     function onSeasonChange() {
@@ -371,6 +455,14 @@
       const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
       populateEpisodes(seasonData ? seasonData.maxEp : 24);
       fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, document.getElementById('episodeSelect').value || 1);
+    }
+
+    function onEpisodeChange() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value) || 1;
+      const epNum = parseInt(document.getElementById('episodeSelect').value) || 1;
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, epNum);
     }
 
     function populateEpisodes(maxEp) {
@@ -384,13 +476,14 @@
       }
     }
 
+    // Media Streams (/api/movie & /api/tv)
     async function loadMovieStream(detailPath) {
       setPlayerLoading(true);
       try {
         const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
         const data = await res.json();
         
-        // Auto-heal: If backend says it is a TV show
+        // Auto-heal if title is actually a TV show
         if (data.error && (data.error.includes('/api/tv') || data.error.includes('TV show'))) {
           currentItem.type = 'tv';
           tvControls.classList.remove('hidden');
@@ -401,7 +494,7 @@
         if (data.qualities && data.qualities.length > 0) {
           renderQualities(data.qualities, data.title || currentItem.title);
         } else {
-          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream limit hit. Retry in 2 minutes.'}</span>`;
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream rate-limit hit. Retry in 2 minutes.'}</span>`;
         }
       } catch (err) {
         console.error(err);
@@ -420,11 +513,10 @@
         const res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}`);
         const data = await res.json();
 
-        // Auto-heal: If backend says it is a movie
+        // Auto-heal if title is actually a movie
         if (data.error && (data.error.includes('/api/movie') || data.error.includes('subject is a movie'))) {
           currentItem.type = 'movie';
           tvControls.classList.add('hidden');
-          document.getElementById('modalMeta').innerText = `MOVIE • ${currentItem.genre || ''}`;
           return await loadMovieStream(currentItem.detailPath);
         }
 
@@ -486,8 +578,14 @@
 
       // 1. Play inline via /stream
       const playUrl = `${STREAM_PROXY}?url=${rawUrl}&dp=${dp}`;
+      const prevTime = videoPlayer.currentTime;
       videoPlayer.src = playUrl;
       videoPlayer.load();
+
+      // Maintain playback time if user changed quality mid-watch
+      if (prevTime > 0) {
+        videoPlayer.currentTime = prevTime;
+      }
       videoPlayer.play().catch(() => {});
 
       // 2. Direct download via /dl
@@ -495,10 +593,127 @@
       downloadBtn.href = downloadUrl;
     }
 
+    // Subtitles Engine (/api/subtitles)
+    async function loadSubtitles(detailPath, season = null, episode = null) {
+      subStatus.innerText = 'Searching captions...';
+      let url = `${BASE_API}/api/subtitles?id=${encodeURIComponent(detailPath)}`;
+      if (season && episode) {
+        url += `&season=${season}&episode=${episode}`;
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        activeCaptions = data.captions || [];
+        populateSubtitles(activeCaptions);
+      } catch (err) {
+        console.error('Subtitle fetch failed:', err);
+        populateSubtitles([]);
+      }
+    }
+
+    function populateSubtitles(captions) {
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+
+      if (!captions || captions.length === 0) {
+        subStatus.innerText = 'No captions available';
+        return;
+      }
+
+      subStatus.innerText = `${captions.length} language${captions.length > 1 ? 's' : ''} available`;
+
+      captions.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `${c.lanName || c.lan || 'Unknown'} (${(c.lan || '').toUpperCase()})`;
+        subtitleSelect.appendChild(opt);
+      });
+    }
+
+    async function onSubtitleSelect() {
+      const selectedVal = subtitleSelect.value;
+      removeActiveTracks();
+
+      if (selectedVal === 'off') {
+        downloadSubBtn.classList.add('hidden');
+        return;
+      }
+
+      const caption = activeCaptions[parseInt(selectedVal)];
+      if (!caption || !caption.url) return;
+
+      // Show download button for chosen .srt
+      downloadSubBtn.href = caption.url;
+      downloadSubBtn.setAttribute('download', `${currentItem.title}_${caption.lanName || caption.lan}.srt`);
+      downloadSubBtn.classList.remove('hidden');
+
+      subStatus.innerText = `Loading ${caption.lanName}...`;
+
+      try {
+        // Fetch SRT text through stream proxy to avoid CORS blocks
+        const proxiedSubUrl = `${STREAM_PROXY}?url=${encodeURIComponent(caption.url)}`;
+        const res = await fetch(proxiedSubUrl);
+        const srtData = await res.text();
+
+        // Convert to WebVTT
+        const vttData = srtToWebVTT(srtData);
+
+        if (currentVttBlobUrl) {
+          URL.revokeObjectURL(currentVttBlobUrl);
+        }
+        const blob = new Blob([vttData], { type: 'text/vtt' });
+        currentVttBlobUrl = URL.createObjectURL(blob);
+
+        // Attach WebVTT track to HTML5 Video
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = caption.lanName || caption.lan;
+        track.srclang = caption.lan || 'en';
+        track.src = currentVttBlobUrl;
+        track.default = true;
+
+        videoPlayer.appendChild(track);
+
+        // Force browser to display subtitle track
+        track.addEventListener('load', () => {
+          for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+            videoPlayer.textTracks[i].mode = 'showing';
+          }
+        });
+
+        subStatus.innerText = `Active: ${caption.lanName || caption.lan}`;
+      } catch (err) {
+        console.error('Failed to parse subtitle track:', err);
+        subStatus.innerText = 'Failed to load track';
+      }
+    }
+
+    function removeActiveTracks() {
+      const oldTracks = videoPlayer.querySelectorAll('track');
+      oldTracks.forEach(t => t.remove());
+      for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+        videoPlayer.textTracks[i].mode = 'disabled';
+      }
+      if (currentVttBlobUrl) {
+        URL.revokeObjectURL(currentVttBlobUrl);
+        currentVttBlobUrl = null;
+      }
+    }
+
+    function resetSubtitles() {
+      removeActiveTracks();
+      activeCaptions = [];
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+      subStatus.innerText = '';
+    }
+
     function closeModal() {
       videoPlayer.pause();
       videoPlayer.removeAttribute('src');
       videoPlayer.load();
+      removeActiveTracks();
       playerModal.classList.add('hidden');
       document.body.style.overflow = 'auto';
     }
