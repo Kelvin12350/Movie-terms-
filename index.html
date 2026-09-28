@@ -1,979 +1,1208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineBase - Watch Movies & TV Shows</title>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineBase API | Developer Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Paystack Inline Script -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            slate: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #f8fafc; color: #0f172a; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     
-    <style>
-        :root {
-            --bg-dark: #141414;
-            --bg-card: #181818;
-            --bg-card-hover: #282828;
-            --accent-red: #E50914;
-            --accent-red-hover: #f40612;
-            --text-main: #FFFFFF;
-            --text-muted: #AAAAAA;
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #141414;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-red);
-        }
-
-        /* Navbar */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 4%;
-            z-index: 1000;
-            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-            transition: background 0.3s ease;
-        }
-        .navbar.scrolled {
-            background: rgba(20, 20, 20, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--accent-red);
-            text-decoration: none;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            list-style: none;
-        }
-        .nav-links a {
-            color: #e5e5e5;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
-        .search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .search-input {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 16px 8px 38px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            outline: none;
-            width: 220px;
-            transition: all 0.3s ease;
-        }
-        .search-input:focus {
-            width: 300px;
-            border-color: var(--accent-red);
-            background: rgba(0,0,0,0.9);
-        }
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            pointer-events: none;
-        }
-
-        /* Hero Section */
-        .hero {
-            position: relative;
-            height: 80vh;
-            min-height: 550px;
-            display: flex;
-            align-items: center;
-            padding: 0 4%;
-            background-size: cover;
-            background-position: center top;
-        }
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(0deg, var(--bg-dark) 0%, rgba(20,20,20,0.4) 50%, rgba(20,20,20,0.8) 100%),
-                        linear-gradient(90deg, var(--bg-dark) 0%, rgba(20,20,20,0.6) 40%, rgba(20,20,20,0) 100%);
-        }
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 650px;
-            margin-top: 60px;
-        }
-        .hero-badge {
-            display: inline-block;
-            background: var(--accent-red);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .hero-title {
-            font-size: 3.2rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 16px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        }
-        .hero-overview {
-            font-size: 1rem;
-            color: #d2d2d2;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-        }
-        .hero-btns {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-        .btn-primary {
-            background-color: var(--accent-red);
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: var(--accent-red-hover);
-            transform: scale(1.03);
-        }
-        .btn-secondary {
-            background-color: rgba(109, 109, 110, 0.7);
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: rgba(109, 109, 110, 0.4);
-            transform: scale(1.03);
-        }
-
-        /* Media Rows */
-        .main-container {
-            position: relative;
-            z-index: 5;
-            margin-top: -60px;
-            padding-bottom: 60px;
-        }
-        .section-row {
-            margin-bottom: 40px;
-            padding: 0 4%;
-        }
-        .row-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .row-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #e5e5e5;
-        }
-
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 16px;
-        }
-        .media-card {
-            position: relative;
-            background: var(--bg-card);
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            aspect-ratio: 2/3;
-        }
-        .media-card:hover {
-            transform: translateY(-6px) scale(1.03);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-            z-index: 10;
-        }
-        .media-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .media-card-info {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 12px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        .media-card:hover .media-card-info {
-            opacity: 1;
-        }
-        .card-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .card-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .badge-rating {
-            color: #46d369;
-            font-weight: 700;
-        }
-
-        /* Modal Overlay */
-        .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 16px;
-            overflow-y: auto;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .modal.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-content {
-            background-color: var(--bg-card);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 900px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            border: 1px solid var(--border-color);
-            transform: translateY(30px);
-            transition: transform 0.3s ease;
-        }
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            font-size: 1.1rem;
-            transition: background 0.2s;
-        }
-        .modal-close:hover {
-            background: var(--accent-red);
-        }
-
-        .modal-header {
-            position: relative;
-            height: 380px;
-            background-size: cover;
-            background-position: center;
-        }
-        .modal-header-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(0deg, var(--bg-card) 0%, rgba(24,24,24,0.3) 60%, rgba(0,0,0,0.6) 100%);
-        }
-        .modal-header-info {
-            position: absolute;
-            bottom: 24px;
-            left: 32px;
-            right: 32px;
-            display: flex;
-            align-items: flex-end;
-            gap: 20px;
-        }
-        .modal-poster {
-            width: 110px;
-            aspect-ratio: 2/3;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .modal-body {
-            padding: 32px;
-        }
-        .modal-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-        .modal-meta-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-        .modal-synopsis {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #cccccc;
-            margin-bottom: 24px;
-        }
-
-        /* Selector Controls for TV Shows */
-        .controls-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-            background: rgba(0,0,0,0.3);
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            flex-wrap: wrap;
-        }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1;
-            min-width: 140px;
-        }
-        .control-group label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-        .custom-select {
-            background: #222;
-            color: white;
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 10px;
-            border-radius: 6px;
-            outline: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        /* Player Section */
-        .player-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-color);
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            outline: none;
-        }
-
-        /* Downloads & Quality Section */
-        .section-subtitle {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .download-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .download-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: white;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .download-btn:hover {
-            background: var(--accent-red);
-            border-color: var(--accent-red);
-            transform: translateY(-2px);
-        }
-        .quality-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        /* Spinner / Loader */
-        .loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            color: var(--accent-red);
-        }
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid var(--accent-red);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .hero-title { font-size: 2rem; }
-            .nav-links { display: none; }
-            .search-input { width: 140px; }
-            .search-input:focus { width: 180px; }
-            .modal-header { height: 260px; }
-            .modal-poster { display: none; }
-            .media-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
-        }
-    </style>
+    /* Code Block Styling */
+    .code-window { background: #0f172a; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    .code-header { background: #1e293b; padding: 0.5rem 1rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; border-bottom: 1px solid #334155; }
+    .code-body { padding: 1rem; color: #e2e8f0; font-size: 0.8125rem; line-height: 1.6; overflow-x: auto; }
+    .syntax-method { color: #818cf8; font-weight: bold; }
+    .syntax-url { color: #a7f3d0; }
+    .syntax-string { color: #fcd34d; }
+    .syntax-comment { color: #64748b; font-style: italic; }
+    
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .loader {
+      border: 3px solid rgba(99, 102, 241, 0.1);
+      border-left-color: #6366f1;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body>
+<body class="h-screen w-full flex flex-col font-sans antialiased selection:bg-brand-100 selection:text-brand-700">
 
-    <!-- Navbar -->
-    <nav class="navbar" id="navbar">
-        <a href="#" class="brand-logo" onclick="loadHomePage()">
-            <i class="fa-solid fa-play-circle"></i> CineBase
-        </a>
-        <ul class="nav-links">
-            <li><a href="#" class="active" onclick="loadHomePage()">Home</a></li>
-            <li><a href="#" onclick="fetchCategory('trending', 'Trending Now')">Trending</a></li>
-            <li><a href="#" onclick="fetchCategory('action', 'Action Blockbusters')">Action</a></li>
-            <li><a href="#" onclick="fetchCategory('anime', 'Anime Series')">Anime</a></li>
-            <li><a href="#" onclick="fetchCategory('korean drama', 'K-Drama Highlights')">K-Drama</a></li>
-        </ul>
-        <form class="search-box" id="searchForm">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search movies, TV..." autocomplete="off">
-        </form>
-    </nav>
-
-    <!-- Hero Featured Section -->
-    <section class="hero" id="heroBanner">
-        <div class="hero-overlay"></div>
-        <div class="hero-content" id="heroContent">
-            <div class="spinner"></div>
+  <!-- ================= AUTHENTICATION VIEW ================= -->
+  <div id="auth-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-50 px-4">
+    <div class="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+    
+    <div class="w-full max-w-md p-8 md:p-10 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-10 fade-in">
+      <div class="text-center mb-8">
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto mb-5 border border-brand-100">
+          <i class="fa-solid fa-code text-brand-600 text-2xl"></i>
         </div>
-    </section>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">CineBase API</h1>
+        <p class="text-sm text-slate-500 mt-2">Sign in to manage your API infrastructure.</p>
+      </div>
 
-    <!-- Main Dynamic Content Container -->
-    <div class="main-container" id="mainContainer">
-        <!-- Rows dynamically injected here -->
-    </div>
+      <div id="auth-error" class="hidden mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 text-center font-medium"></div>
 
-    <!-- Media Description & Video Player Modal -->
-    <div class="modal" id="mediaModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
-            <div id="modalInner">
-                <!-- Modal details dynamically loaded -->
-            </div>
+      <form id="auth-form" class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+          <input type="email" id="email" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-50 transition-all placeholder-slate-400" placeholder="developer@company.com">
         </div>
-    </div>
-
-    <script>
-        // API CONFIGURATION
-        const API_KEY = 'cb_live_5b8529460e4da2229349ddd7d3ae8da527aaa81cdc11f8fa';
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+          <input type="password" id="password" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-50 transition-all placeholder-slate-400" placeholder="••••••••">
+        </div>
         
-        // SAFE ARRAY EXTRACTOR (Handles non-standard JSON responses)
-        function extractArray(data) {
-            if (Array.isArray(data)) return data;
-            if (!data) return [];
-            const keys = ['results', 'items', 'list', 'data', 'catalog'];
-            for (let k of keys) {
-                if (Array.isArray(data[k])) return data[k];
-            }
-            return [];
-        }
+        <button type="submit" id="auth-submit" class="w-full py-3.5 mt-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+          <span>Continue</span>
+        </button>
+      </form>
 
-        // Generic API Fetch Helper (Prevents 405 CORS preflight blocks by avoiding custom headers)
-        async function apiFetch(endpoint) {
-            try {
-                const response = await fetch(endpoint, { method: 'GET' });
-                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                console.error(`Fetch error on ${endpoint}:`, error);
-                return null;
-            }
-        }
+      <p class="text-sm text-slate-500 text-center mt-8 leading-relaxed">
+        By continuing, you agree to our <a href="#" class="text-brand-600 hover:underline">Terms of Service</a>. Account created automatically if new.
+      </p>
+    </div>
+  </div>
 
-        // Navbar scroll effect listener
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
-        });
+  <!-- ================= DASHBOARD VIEW ================= -->
+  <div id="dashboard-view" class="hidden h-screen w-full flex bg-slate-50 relative overflow-hidden">
+    
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
 
-        // Initialize Home Page
-        async function loadHomePage() {
-            const container = document.getElementById('mainContainer');
-            container.innerHTML = `<div class="loader"><div class="spinner"></div></div>`;
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 w-64 border-r border-slate-200 bg-white flex flex-col z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none">
+      <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center border border-brand-100">
+            <i class="fa-solid fa-code text-brand-600 text-sm"></i>
+          </div>
+          <span class="text-base font-bold text-slate-900 tracking-tight">CineBase</span>
+        </div>
+        <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
 
-            // 1. Fetch Featured / Trending Data
-            const trendingRaw = await apiFetch('/api/trending?limit=24');
-            const trendingItems = extractArray(trendingRaw);
+      <div class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2 px-3">Menu</div>
+        
+        <button onclick="switchView('getstarted')" id="nav-getstarted" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-rocket w-4 text-center"></i> Get Started
+        </button>
+        <button onclick="switchView('overview')" id="nav-overview" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-chart-line w-4 text-center"></i> Stats Overview
+        </button>
+        <button onclick="switchView('wallet')" id="nav-wallet" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-wallet w-4 text-center"></i> Billing & Wallet
+        </button>
+        <button onclick="switchView('apikeys')" id="nav-apikeys" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-key w-4 text-center"></i> API Keys
+        </button>
+        <button onclick="switchView('docs')" id="nav-docs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-book w-4 text-center"></i> Documentation
+        </button>
+      </div>
 
-            if (trendingItems.length > 0) {
-                renderHero(trendingItems[0]);
-            }
+      <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
+        <div class="flex items-center gap-3 px-2 py-2">
+          <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm flex-shrink-0">
+            <i class="fa-regular fa-user text-slate-500 text-sm"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p id="user-email" class="text-sm font-semibold text-slate-900 truncate">user@example.com</p>
+            <p class="text-xs text-slate-500 font-medium">Developer Plan</p>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full mt-3 py-2 rounded-lg bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 text-sm font-semibold border border-slate-200 hover:border-red-100 transition-colors shadow-sm">
+          Sign Out
+        </button>
+      </div>
+    </aside>
 
-            container.innerHTML = ''; // Clear loader
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-full">
+      
+      <!-- Top Header -->
+      <header class="h-16 flex items-center justify-between px-4 lg:px-10 border-b border-slate-200 bg-white/80 backdrop-blur z-20 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-900 p-2 -ml-2 rounded-lg hover:bg-slate-100">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <h2 id="header-title" class="text-lg lg:text-xl font-bold text-slate-900 tracking-tight">Overview</h2>
+        </div>
+        <div class="flex items-center gap-3 lg:gap-5">
+          <span class="hidden sm:flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Systems Operational
+          </span>
+          <a href="https://movie-terms.vercel.app/" target="_blank" class="text-xs lg:text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] lg:text-xs"></i> Base URL
+          </a>
+        </div>
+      </header>
 
-            // Render Rows
-            await renderRow('Trending Now', trendingItems);
+      <!-- Scrollable Content Viewport -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10">
+
+        <!-- ================= 0. GET STARTED VIEW ================= -->
+        <div id="view-getstarted" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
+          <div class="mb-10 text-center lg:text-left">
+            <h1 class="text-3xl lg:text-4xl font-black text-slate-900 mb-3 tracking-tight">Welcome to CineBase API</h1>
+            <p class="text-base text-slate-600 leading-relaxed max-w-3xl mx-auto lg:mx-0">
+              Integrate the world's most robust video catalog into your app. CineBase operates on a flexible <strong>Freemium</strong> model designed for developers.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             
-            // Fetch Action
-            const actionRaw = await apiFetch('/api/search?q=action&limit=12');
-            renderRow('Action & Adventure', extractArray(actionRaw));
+            <!-- Free Endpoints Card -->
+            <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col">
+              <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-6 border border-emerald-100">
+                <i class="fa-solid fa-lock-open text-emerald-600 text-xl"></i>
+              </div>
+              <h2 class="text-xl font-bold text-slate-900 mb-2">Free Metadata Data</h2>
+              <p class="text-sm text-slate-600 mb-6 flex-1">
+                You do <strong>not</strong> need an API key to access our vast database of movie details, search, trending lists, and subtitles.
+              </p>
+              <div class="space-y-2 mb-8">
+                <div class="flex items-center gap-2 text-sm text-slate-700 font-medium"><i class="fa-solid fa-check text-emerald-500"></i> Search Catalog</div>
+                <div class="flex items-center gap-2 text-sm text-slate-700 font-medium"><i class="fa-solid fa-check text-emerald-500"></i> Trending & Details</div>
+                <div class="flex items-center gap-2 text-sm text-slate-700 font-medium"><i class="fa-solid fa-check text-emerald-500"></i> TV Episode Matrix</div>
+                <div class="flex items-center gap-2 text-sm text-slate-700 font-medium"><i class="fa-solid fa-check text-emerald-500"></i> Multi-language Subtitles</div>
+              </div>
+              <button onclick="switchView('docs')" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold rounded-xl transition-colors">
+                View Free Endpoints Docs
+              </button>
+            </div>
 
-            // Fetch Anime
-            const animeRaw = await apiFetch('/api/search?q=anime&limit=12');
-            renderRow('Anime Collection', extractArray(animeRaw));
+            <!-- Secured Endpoints Card -->
+            <div class="bg-slate-900 rounded-2xl p-6 lg:p-8 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col">
+              <div class="absolute -right-10 -top-10 opacity-5"><i class="fa-solid fa-shield-halved text-9xl text-white"></i></div>
+              <div class="w-12 h-12 rounded-xl bg-brand-900 flex items-center justify-center mb-6 border border-brand-700 relative z-10">
+                <i class="fa-solid fa-play text-brand-400 text-xl"></i>
+              </div>
+              <h2 class="text-xl font-bold text-white mb-2 relative z-10">Secured Video Proxy</h2>
+              <p class="text-sm text-slate-400 mb-6 flex-1 relative z-10">
+                Streaming high-bandwidth MP4/M3U8 video files and forcing direct file downloads <strong>requires an API Key</strong> passed securely via the URL.
+              </p>
+              <div class="space-y-2 mb-8 relative z-10">
+                <div class="flex items-center gap-2 text-sm text-slate-300 font-medium"><i class="fa-solid fa-key text-brand-500"></i> Inline Video Streaming</div>
+                <div class="flex items-center gap-2 text-sm text-slate-300 font-medium"><i class="fa-solid fa-key text-brand-500"></i> Direct MP4 Downloads</div>
+                <div class="flex items-center gap-2 text-sm text-slate-300 font-medium"><i class="fa-solid fa-key text-brand-500"></i> CORS Bypassing</div>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-3 relative z-10 mt-auto">
+                <button onclick="switchView('apikeys')" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-500/20">
+                  Get API Key
+                </button>
+                <button onclick="switchView('docs')" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">
+                  Read Docs
+                </button>
+              </div>
+            </div>
 
-            // Fetch K-Drama
-            const kdramaRaw = await apiFetch('/api/search?q=korean%20drama&limit=12');
-            renderRow('K-Drama Specials', extractArray(kdramaRaw));
-        }
+          </div>
+        </div>
 
-        // Render Hero Banner
-        function renderHero(item) {
-            const hero = document.getElementById('heroBanner');
-            const content = document.getElementById('heroContent');
-            const itemPath = item.detailPath || item.id || '';
-            const bgImage = item.backdrop || item.poster || item.image || 'https://via.placeholder.com/1200x800';
+        <!-- ================= 1. WALLET / BILLING VIEW ================= -->
+        <div id="view-wallet" class="view-section fade-in max-w-4xl mx-auto hidden pb-20">
+          <div class="mb-8">
+            <h1 class="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Billing & Wallet</h1>
+            <p class="text-sm text-slate-500 mt-1">Manage your Pay-As-You-Go proxy streaming balance.</p>
+          </div>
 
-            hero.style.backgroundImage = `url('${bgImage}')`;
-            content.innerHTML = `
-                <span class="hero-badge">Featured</span>
-                <h1 class="hero-title">${item.title || item.name || 'Untitled'}</h1>
-                <p class="hero-overview">${item.overview || item.synopsis || 'Explore details, watch streams in high definition, or download high-quality media sources directly.'}</p>
-                <div class="hero-btns">
-                    <button class="btn btn-primary" onclick="openMediaModal('${itemPath}')">
-                        <i class="fa-solid fa-play"></i> Stream Now
-                    </button>
-                    <button class="btn btn-secondary" onclick="openMediaModal('${itemPath}')">
-                        <i class="fa-solid fa-circle-info"></i> More Info
-                    </button>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Balance Card -->
+            <div class="bg-slate-900 rounded-2xl p-8 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fa-solid fa-wallet text-9xl text-white"></i></div>
+              <div>
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 relative z-10">Available Balance</h3>
+                <div class="flex items-baseline gap-1 relative z-10">
+                  <span class="text-2xl font-bold text-emerald-400">₦</span>
+                  <span id="wallet-balance" class="text-4xl lg:text-5xl font-black text-white tracking-tight">0.00</span>
                 </div>
-            `;
-        }
-
-        // Render Category Grid/Row
-        function renderRow(title, items) {
-            if (!items || items.length === 0) return;
-
-            const container = document.getElementById('mainContainer');
-            const rowSection = document.createElement('div');
-            rowSection.className = 'section-row';
-
-            let gridHTML = `<div class="row-header"><h2 class="row-title">${title}</h2></div>`;
-            gridHTML += `<div class="media-grid">`;
-
-            items.forEach(item => {
-                const itemPath = item.detailPath || item.id || '';
-                const titleText = item.title || item.name || 'Untitled';
-                const poster = item.poster || item.image || item.backdrop || 'https://via.placeholder.com/300x450?text=No+Poster';
-                const rating = item.vote_average || item.rating || '8.5';
-                const year = item.year || item.release_date?.substring(0,4) || '2024';
-
-                gridHTML += `
-                    <div class="media-card" onclick="openMediaModal('${itemPath}')">
-                        <img src="${poster}" alt="${titleText}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                        <div class="media-card-info">
-                            <div class="card-title">${titleText}</div>
-                            <div class="card-meta">
-                                <span class="badge-rating"><i class="fa-solid fa-star"></i> ${rating}</span>
-                                <span>${year}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            gridHTML += `</div>`;
-            rowSection.innerHTML = gridHTML;
-            container.appendChild(rowSection);
-        }
-
-        // Search Form Submission Handler
-        document.getElementById('searchForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // Stop form submission & POST reloads
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
-
-            fetchCategory(query, `Search Results for "${query}"`);
-        });
-
-        async function fetchCategory(query, displayTitle) {
-            const container = document.getElementById('mainContainer');
-            container.innerHTML = `<div class="loader"><div class="spinner"></div></div>`;
-            window.scrollTo({ top: 400, behavior: 'smooth' });
-
-            const dataRaw = await apiFetch(`/api/search?q=${encodeURIComponent(query)}&limit=24`);
-            const items = extractArray(dataRaw);
-
-            container.innerHTML = '';
-            if (items.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding: 60px; color:#888;">No results found for "${query}".</div>`;
-            } else {
-                renderRow(displayTitle, items);
-            }
-        }
-
-        // OPEN MEDIA MODAL (Description + Stream + Downloads)
-        async function openMediaModal(detailPath) {
-            const modal = document.getElementById('mediaModal');
-            const inner = document.getElementById('modalInner');
-            
-            modal.classList.add('active');
-            inner.innerHTML = `<div class="loader"><div class="spinner"></div></div>`;
-
-            // 1. Fetch Metadata Details
-            const details = await apiFetch(`/api/details?id=${encodeURIComponent(detailPath)}`) || {};
-            
-            const title = details.title || details.name || 'Title Unavailable';
-            const overview = details.overview || details.synopsis || 'No description available for this title.';
-            const backdrop = details.backdrop || details.image || details.poster || 'https://via.placeholder.com/900x400';
-            const poster = details.poster || details.image || 'https://via.placeholder.com/200x300';
-            const rating = details.vote_average || details.rating || 'N/A';
-            const year = details.year || details.release_date || '2024';
-
-            // Modal Shell Layout
-            inner.innerHTML = `
-                <div class="modal-header" style="background-image: url('${backdrop}');">
-                    <div class="modal-header-overlay"></div>
-                    <div class="modal-header-info">
-                        <img src="${poster}" class="modal-poster" alt="Poster">
-                        <div>
-                            <h2 class="modal-title">${title}</h2>
-                            <div class="modal-meta-row">
-                                <span class="badge-rating"><i class="fa-solid fa-star"></i> ${rating}</span>
-                                <span>${year}</span>
-                                <span>CineBase Stream</span>
-                            </div>
-                        </div>
-                    </div>
+              </div>
+              
+              <!-- Quick Top-Up Options -->
+              <div class="mt-8 relative z-10">
+                <div class="flex gap-2">
+                  <button onclick="initiatePaystack(1000)" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">₦1,000</button>
+                  <button onclick="initiatePaystack(5000)" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">₦5,000</button>
+                  <button onclick="initiatePaystack(10000)" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-500/20">₦10,000</button>
                 </div>
-                <div class="modal-body">
-                    <p class="modal-synopsis">${overview}</p>
+              </div>
+            </div>
 
-                    <!-- TV Episode Control Placeholder (if TV) -->
-                    <div id="tvMatrixControls"></div>
-
-                    <!-- Stream Video Player Wrapper -->
-                    <div class="player-wrapper">
-                        <video id="videoPlayer" controls crossorigin="anonymous" poster="${backdrop}">
-                            Your browser does not support HTML5 Video playback.
-                        </video>
-                    </div>
-
-                    <!-- Controls for Subtitles & Streams -->
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label><i class="fa-solid fa-closed-captioning"></i> Subtitles</label>
-                            <select id="subtitleSelect" class="custom-select" onchange="applySubtitle(this.value)">
-                                <option value="">Subtitles Off</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Download Options -->
-                    <div class="section-subtitle"><i class="fa-solid fa-download"></i> Download Qualities</div>
-                    <div class="download-grid" id="downloadGrid">
-                        <div class="spinner"></div>
-                    </div>
+            <!-- Usage Limits Card -->
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider">Current Month Usage</h3>
+                  <span id="tier-badge" class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-100">Free Tier Active</span>
                 </div>
-            `;
+                <div class="flex items-end gap-2 mb-4">
+                  <span id="usage-current" class="text-4xl font-black text-slate-900 tracking-tight">0</span>
+                  <span class="text-sm font-semibold text-slate-400 mb-1">/ 200 free requests</span>
+                </div>
+                
+                <div class="w-full bg-slate-100 rounded-full h-2 mb-2 overflow-hidden">
+                  <div id="usage-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-slate-500">Only <strong>/dl</strong> and <strong>/stream</strong> endpoints count towards usage.</p>
+              </div>
 
-            // 2. Fetch Streams (Handles TV vs Movie Auto-Retry Mechanism)
-            loadStreamsAndSubtitles(detailPath, 1, 1);
-        }
+              <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <h4 class="text-xs font-bold text-slate-900 mb-1">Pay-As-You-Go Rates</h4>
+                <p class="text-xs text-slate-600">After 200 free requests, your wallet is billed exactly <strong>₦50.00 per streaming request</strong>. If your balance drops below ₦50, proxy requests will be blocked with a 402 Error.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ================= 2. OVERVIEW VIEW (REAL STATS) ================= -->
+        <div id="view-overview" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-slate-900">Real-Time Server Load</h3>
+            <button onclick="fetchRealStats()" class="text-xs bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2">
+              <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> Refresh
+            </button>
+          </div>
 
-        // Fetch Stream Sources & Subtitles with Auto-Retry Logic
-        async function loadStreamsAndSubtitles(detailPath, season = 1, episode = 1) {
-            const downloadGrid = document.getElementById('downloadGrid');
-            const player = document.getElementById('videoPlayer');
-            downloadGrid.innerHTML = `<div class="spinner"></div>`;
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Total Proxy Requests</h3>
+              <div class="flex items-end justify-between">
+                <span id="stat-calls" class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">--</span>
+                <span class="text-xs font-semibold text-emerald-600 mb-1 bg-emerald-50 px-2 py-0.5 rounded-md"><i class="fa-solid fa-signal"></i> Live</span>
+              </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Total Bandwidth Used</h3>
+              <div class="flex items-end justify-between">
+                <span id="stat-bw" class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">-- GB</span>
+                <span class="text-xs font-semibold text-brand-600 mb-1 bg-brand-50 px-2 py-0.5 rounded-md"><i class="fa-solid fa-server"></i> Live</span>
+              </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Your Active Keys</h3>
+              <div class="flex items-end gap-3">
+                <span id="active-keys-count" class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">0</span>
+              </div>
+            </div>
+          </div>
 
-            let streamData = null;
-            let isTv = false;
+          <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-8">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Traffic Distribution</h3>
+                <p class="text-sm text-slate-500 mt-1">Mock representation of proxy usage over the last 7 days.</p>
+              </div>
+            </div>
+            <div class="h-48 lg:h-64 w-full border-b border-l border-slate-100 relative">
+              <svg class="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20 L100,100 L0,100 Z" fill="url(#grad)" class="opacity-30"/>
+                <defs>
+                  <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="flex justify-between text-[10px] lg:text-xs font-semibold text-slate-400 mt-4 px-2">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+          </div>
+        </div>
 
-            // Try fetching as Movie endpoint first
-            let movieRes = await apiFetch(`/api/movie?id=${encodeURIComponent(detailPath)}`);
+        <!-- ================= 3. API KEYS VIEW ================= -->
+        <div id="view-apikeys" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div>
+              <h3 class="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">API Keys</h3>
+              <p class="text-sm text-slate-500 mt-1.5">Manage secret keys used for media proxies & downloading.</p>
+            </div>
+            <button onclick="generateNewKey()" class="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-plus"></i> Generate Secret Key
+            </button>
+          </div>
 
-            // Check if error specifies TV requirement (Auto-Retry Mechanism)
-            if (movieRes && movieRes.error && movieRes.error.includes('This subject is a tv')) {
-                isTv = true;
-                streamData = await apiFetch(`/api/tv?id=${encodeURIComponent(detailPath)}&season=${season}&episode=${episode}`);
-            } else {
-                streamData = movieRes;
-            }
-
-            // Render TV Season/Episode matrices if TV Show
-            if (isTv) {
-                renderTvControls(detailPath, season, episode);
-            }
-
-            // Parse Stream Sources & Downloads
-            const streams = extractArray(streamData?.sources || streamData?.qualities || streamData);
+          <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600 min-w-[600px]">
+              <thead class="text-xs font-bold text-slate-500 bg-slate-50 uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th class="px-6 lg:px-8 py-4 lg:py-5">Name / Token</th>
+                  <th class="px-6 lg:px-8 py-4 lg:py-5">Created</th>
+                  <th class="px-6 lg:px-8 py-4 lg:py-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="api-keys-tbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Keys rendered via JS -->
+              </tbody>
+            </table>
             
-            downloadGrid.innerHTML = '';
+            <div id="keys-loader" class="hidden py-12 flex justify-center">
+              <div class="loader border-l-brand-600"></div>
+            </div>
+            
+            <div id="no-keys-msg" class="hidden py-16 text-center text-slate-500">
+              <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                <i class="fa-solid fa-key text-2xl text-slate-300"></i>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 mb-1">No API Keys Found</h4>
+              <p class="text-sm text-slate-500 max-w-sm mx-auto">Generate a key to unlock video streaming and downloading.</p>
+            </div>
+          </div>
+        </div>
 
-            if (streams.length === 0 && !streamData?.url) {
-                downloadGrid.innerHTML = `<p style="color:#aaa; font-size:0.85rem;">No direct media streams found for this selection.</p>`;
-            } else {
-                // If streamData is a single object with a URL
-                const sourcesList = streams.length > 0 ? streams : [{ quality: '1080p Standard', url: streamData.url }];
+        <!-- ================= 4. DOCUMENTATION VIEW ================= -->
+        <div id="view-docs" class="view-section fade-in max-w-6xl mx-auto hidden pb-24">
+          
+          <div class="mb-8 max-w-3xl">
+            <h1 class="text-3xl lg:text-4xl font-black text-slate-900 mb-4 tracking-tight">API Reference</h1>
+            <p class="text-base lg:text-lg text-slate-600 leading-relaxed">
+              Integrate CineBase's robust video infrastructure into your application. Build seamless streaming experiences, access comprehensive metadata, and generate direct proxy downloads.
+            </p>
+          </div>
 
-                // Set Primary Stream to Player via Proxy Endpoint
-                const primaryUrl = sourcesList[0].url || sourcesList[0].file || streamData?.url;
-                if (primaryUrl) {
-                    const proxiedStreamUrl = `/proxy-api/stream?url=${encodeURIComponent(primaryUrl)}&apikey=${API_KEY}`;
-                    player.src = proxiedStreamUrl;
-                }
+          <!-- Quick Start Download -->
+          <div class="mb-12 bg-brand-50 border border-brand-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 class="text-lg font-bold text-brand-900 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-file-code text-brand-600"></i> Download Working Sample Code
+              </h3>
+              <p class="text-sm text-brand-800">
+                Are you confused about where to put your API keys, how to fetch data safely, or how to setup your Vercel routing? Download our complete, single-file HTML working example to see it in action.
+              </p>
+            </div>
+            <!-- Standard HTML Download Link pointing to the root file -->
+            <a href="/cinebase-sample.html" download="cinebase-sample.html" class="whitespace-nowrap px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-600/20 flex items-center gap-2">
+              <i class="fa-solid fa-download"></i> Download Sample App
+            </a>
+          </div>
 
-                // Populate Multi-Quality Download Buttons
-                sourcesList.forEach((srcObj, idx) => {
-                    const rawUrl = srcObj.url || srcObj.file || srcObj;
-                    const qualityName = srcObj.quality || srcObj.label || `Quality ${idx + 1} (1080p/720p)`;
-                    const downloadProxyUrl = `/proxy-api/dl?url=${encodeURIComponent(rawUrl)}&name=${encodeURIComponent('CineBase-Media.mp4')}&apikey=${API_KEY}`;
+          <!-- Base URL -->
+          <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="overflow-hidden">
+              <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Base URL</h2>
+              <code class="text-brand-600 text-sm lg:text-lg font-mono font-bold tracking-wide truncate block">https://movie-terms.vercel.app</code>
+            </div>
+            <button onclick="copyText('https://movie-terms.vercel.app')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+              <i class="fa-regular fa-copy"></i> Copy URL
+            </button>
+          </div>
 
-                    const btn = document.createElement('a');
-                    btn.className = 'download-btn';
-                    btn.href = downloadProxyUrl;
-                    btn.target = '_blank';
-                    btn.innerHTML = `
-                        <span>Download Stream</span>
-                        <span class="quality-badge">${qualityName}</span>
-                    `;
-                    downloadGrid.appendChild(btn);
+          <!-- Vercel.json Routing Guide -->
+          <div class="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> Required Configuration (CORS Bypass)
+            </h3>
+            <p class="text-sm text-amber-800 mb-4">
+              To use this API on your own website, you must route your frontend requests to our Base URL. 
+              <br><br>
+              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to our API. If you use Render, Netlify, or a VPS, you must configure a similar proxy rewrite in your specific environment.
+            </p>
+            <div class="code-window border border-amber-300">
+              <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
+              <div class="code-body !bg-amber-950 !text-amber-50 font-mono text-xs lg:text-[13px]" id="vercelJson">
+{
+  <span class="syntax-string">"rewrites"</span>: [
+    {
+      <span class="syntax-string">"source"</span>: <span class="syntax-string">"/api/:path*"</span>,
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/api/:path*"</span>
+    },
+    {
+      <span class="syntax-string">"source"</span>: <span class="syntax-string">"/proxy-api/:path*"</span>,
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/:path*"</span>
+    }
+  ]
+}</div>
+            </div>
+          </div>
+
+          <!-- Troubleshooting & Error Handling -->
+          <div class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Troubleshooting & Error Handling</h2>
+            
+            <div class="grid grid-cols-1 gap-6">
+              
+              <!-- Error 1: items.forEach -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-bug text-rose-500"></i> Why am I getting "items.forEach is not a function"?
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  The <code class="font-mono text-xs bg-slate-100 px-1 rounded">/api/trending</code> or search request actually succeeded, but the API wraps the array under a non-standard JSON key (e.g., <code class="font-mono text-xs bg-slate-100 px-1 rounded">items</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">result</code>, or <code class="font-mono text-xs bg-slate-100 px-1 rounded">catalog</code>) rather than a standard <code class="font-mono text-xs bg-slate-100 px-1 rounded">data.results</code>. When your script tries to loop through it directly, it crashes.
+                  <br><br><strong>Fix:</strong> Use a safe extractor function to find the array before looping.
+                </p>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Safe Array Extractor (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-method">function</span> extractArray(data) {
+  <span class="syntax-method">if</span> (Array.isArray(data)) <span class="syntax-method">return</span> data;
+  <span class="syntax-method">if</span> (!data) <span class="syntax-method">return</span> [];
+  <span class="syntax-comment">// Find the non-standard key</span>
+  <span class="syntax-method">const</span> keys = [<span class="syntax-string">'results'</span>, <span class="syntax-string">'items'</span>, <span class="syntax-string">'list'</span>, <span class="syntax-string">'data'</span>];
+  <span class="syntax-method">for</span> (<span class="syntax-method">let</span> k <span class="syntax-method">of</span> keys) {
+    <span class="syntax-method">if</span> (Array.isArray(data[k])) <span class="syntax-method">return</span> data[k];
+  }
+  <span class="syntax-method">return</span> [];
+}
+
+<span class="syntax-comment">// Usage: renderGrid(extractArray(apiResponse));</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error 2: This subject is a tv -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-code-branch text-brand-500"></i> TV vs Movie Endpoint Mismatches
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  Sometimes your code will fetch the movie endpoint, but the API will return an exact error: <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">{"error": "This subject is a tv. Use /api/tv with season and episode instead."}</code>. This means your script tried to fetch a TV show using the movie endpoint because the ID didn't explicitly say "tv" in it.
+                  <br><br><strong>Fix:</strong> Add an automatic retry mechanism. If the API says "this is a tv show", instantly catch the error and retry using the TV endpoint with Season 1, Episode 1.
+                </p>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Mechanism (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=${id}`</span>);
+<span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
+
+<span class="syntax-method">if</span> (data.error && data.error.includes(<span class="syntax-string">'This subject is a tv'</span>)) {
+  <span class="syntax-comment">// Instantly Auto-Retry as a TV Show</span>
+  <span class="syntax-method">const</span> tvRes = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=${id}&season=1&episode=1`</span>);
+  <span class="syntax-method">const</span> tvData = <span class="syntax-method">await</span> tvRes.json();
+}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error 3: 405 Method Not Allowed -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-ban text-rose-500"></i> Resolving "405 Method Not Allowed"
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  If you receive a <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">405 Method Not Allowed</code> error, it usually happens because your code sent a complex request or an incorrect method that triggered a block.
+                </p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2 mb-4">
+                  <li><strong>Accidental POST Requests:</strong> If you use an HTML <code class="font-mono text-xs">&lt;form&gt;</code> for your search bar, the browser may accidentally refresh the page and send a <code class="font-mono text-xs">POST</code> request. Always use <code class="font-mono text-xs">e.preventDefault()</code> in JavaScript and explicitly set <code class="font-mono text-xs">method: 'GET'</code> in your fetch call.</li>
+                  <li><strong>CORS Preflight (OPTIONS) Blocks:</strong> Adding custom headers like <code class="font-mono text-xs">{'Accept': 'application/json'}</code> makes your fetch a "complex request." This forces the browser to send an invisible <code class="font-mono text-xs">OPTIONS</code> preflight check to the server. If the server isn't configured to handle it, you get a 405 error. <strong>Keep your headers simple and avoid custom headers unless required.</strong></li>
+                  <li><strong>Missing Authentication:</strong> Double-check that you have included the <code class="font-mono text-xs">?apikey=...</code> parameter on proxy routes, or you might be connecting to the wrong base URL entirely.</li>
+                </ul>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Correct Fetch Usage (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-comment">// 1. Prevent default form submission</span>
+document.getElementById(<span class="syntax-string">'searchForm'</span>).addEventListener(<span class="syntax-string">'submit'</span>, (e) => {
+  e.preventDefault(); <span class="syntax-comment">// Stops the page reload & POST request</span>
+
+  <span class="syntax-comment">// 2. Explicitly use GET and avoid complex custom headers</span>
+  fetch(<span class="syntax-string">'/api/search?q=anime'</span>, {
+    method: <span class="syntax-string">'GET'</span> 
+  })
+  .then(res => res.json());
+});
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Authentication Guide (CRITICAL) -->
+          <div class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Authentication Architecture</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Method 1 -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100">
+                  <i class="fa-solid fa-lock-open text-emerald-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">1. JSON API Data (FREE)</h3>
+                <p class="text-sm text-slate-600 mb-4 flex-1">Metadata endpoints (<code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/search</code>, <code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/details</code>, etc.) are public and completely free. <strong>No headers or API keys are required.</strong></p>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch (Using your local proxy)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class="syntax-string">'GET'</span> })</div>
+                </div>
+              </div>
+
+              <!-- Method 2 -->
+              <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-shield-halved text-6xl text-white"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-brand-900 flex items-center justify-center mb-4 border border-brand-700 relative z-10">
+                  <i class="fa-solid fa-key text-brand-300"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2 relative z-10">2. Media Proxies (SECURED)</h3>
+                <p class="text-sm text-slate-300 mb-4 flex-1 relative z-10">Video players and downloads cannot send custom headers. For proxy endpoints, you <strong>must</strong> append your secret key as a URL parameter.</p>
+                <div class="code-window border border-slate-700">
+                  <div class="code-header !bg-slate-800 !border-slate-700 !text-slate-300"><span>Query Parameter Required</span></div>
+                  <div class="code-body !bg-slate-900 !text-brand-300 text-xs">?apikey=<span class="syntax-string">YOUR_SECRET_KEY</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENDPOINTS -->
+          <div class="space-y-16">
+            <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2">Free Metadata Endpoints</h2>
+
+            <!-- 1. Trending -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Fetch Trending Media</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Returns a curated array of currently trending movies and TV shows.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">Optional</span> Number of items (Default: 24).</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// NO API KEY REQUIRED</span>
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/trending?limit=20'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> trendingData = <span class="syntax-method">await</span> res.json();
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 2. Search Catalog -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Search Categories & Catalog</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Search the database for specific keywords to fetch Categories (Anime, K-Drama, Movies) or specific titles.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">q</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The search term (e.g. "anime", "korean drama", "Inception").</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">Optional</span> Max items (Default: 24).</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// Fetch Anime</span>
+<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=anime'</span>, { method: <span class="syntax-string">'GET'</span> });
+
+<span class="syntax-comment">// Fetch K-Drama</span>
+<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=korean%20drama'</span>, { method: <span class="syntax-string">'GET'</span> });
+
+<span class="syntax-comment">// Fetch Specific Movie</span>
+<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=Deadpool'</span>, { method: <span class="syntax-string">'GET'</span> });
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 3. Get Details -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Get Media Details</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch deep metadata (synopsis, cast, IMDB, genre) using a detailPath.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The <code class="bg-slate-100 px-1 rounded">detailPath</code> from Search/Trending.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// NO API KEY REQUIRED</span>
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/details?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 4. Episode Matrix -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">TV Episode Matrix</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch a structured matrix containing all available seasons and episodes for a TV show.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath for the TV Series.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// NO API KEY REQUIRED</span>
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/episode-matrix?id=/tv/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 5. Subtitles -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Fetch Subtitles</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Retrieve an array of available SRT subtitle tracks in multiple languages.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">season</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Season number.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">episode</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Episode number.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// NO API KEY REQUIRED</span>
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/subtitles?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> subs = <span class="syntax-method">await</span> res.json();
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 6. Movie/TV Streams -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Movie / TV Stream Sources</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch raw M3U8/MP4 URLs. Use <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/movie</code> for movies and <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/tv</code> for series.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">season</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Season number.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">episode</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Episode number.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">// Movie Source Request (NO KEY REQUIRED)</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/movie?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+
+<span class="syntax-comment">// TV Request (NO KEY REQUIRED)</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/tv?id=/tv/123&season=1&episode=1'</span>, { method: <span class="syntax-string">'GET'</span> });
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+            <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2 mt-8">Secured Proxy Endpoints</h2>
+
+            <!-- 7. Video Stream Proxy -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">HTML5 Stream Proxy</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Proxy endpoint to bypass CORS. Embed this directly into an HTML5 <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">&lt;video src="..."&gt;</code> tag.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto mb-4">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Critical</span> Auth Key via URL query.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0 border border-rose-900/30">
+                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">&lt;!-- Notice apikey is passed in the URL string --&gt;</span>
+&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"/proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
+&lt;/<span class="syntax-method">video</span>&gt;
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200">
+
+            <!-- 8. Download Proxy -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Direct Download File</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Forces an attachment download, bypassing browser playback. Link directly via an anchor tag.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto mb-4">
+                  <table class="w-full text-left text-sm min-w-[300px]">
+                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">name</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Output filename (e.g., <code class="font-mono text-xs">movie.mp4</code>).</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Critical</span> Auth Key via URL query.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="code-window mt-2 lg:mt-0 border border-brand-900/30">
+                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
+                <div class="code-body font-mono text-xs lg:text-[13px]">
+<span class="syntax-comment">&lt;!-- Generates a direct file download dialog --&gt;</span>
+&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
+  Download Movie
+&lt;/<span class="syntax-method">a</span>&gt;
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Firebase Integration & App Logic -->
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getDatabase, ref, set, get, child, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    // Provided Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAL68ws8Zzdd4lx30pj0JxKzHBqX2ZLas",
+      authDomain: "tiktok-5ddd5.firebaseapp.com",
+      databaseURL: "https://tiktok-5ddd5-default-rtdb.firebaseio.com",
+      projectId: "tiktok-5ddd5",
+      storageBucket: "tiktok-5ddd5.firebasestorage.app",
+      messagingSenderId: "1056550210315",
+      appId: "1:1056550210315:web:36e697270e8acb7e24f00e",
+      measurementId: "G-JBCKSGHNBE"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+    let isSidebarOpen = false;
+    let billingListener = null;
+
+    // DOM Elements
+    const authView = document.getElementById('auth-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    const authForm = document.getElementById('auth-form');
+    const authError = document.getElementById('auth-error');
+    const authSubmitBtn = document.getElementById('auth-submit');
+    const userEmailEl = document.getElementById('user-email');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    
+    // Auth Listener
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        userEmailEl.innerText = user.email;
+        authView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+        switchView('getstarted');
+        loadApiKeys();
+        fetchRealStats(); // Fetch real stats on load
+        attachBillingListener(); // Listen for live wallet updates
+      } else {
+        currentUser = null;
+        if (billingListener) billingListener();
+        dashboardView.classList.add('hidden');
+        authView.classList.remove('hidden');
+      }
+    });
+
+    // Auth Form Submit (Login / Auto-Signup)
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      authError.classList.add('hidden');
+      authSubmitBtn.innerHTML = '<div class="loader"></div>';
+      authSubmitBtn.disabled = true;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+          try {
+            await createUserWithEmailAndPassword(auth, email, password);
+          } catch (createError) {
+            showAuthError(createError.message);
+          }
+        } else {
+          showAuthError(error.message);
+        }
+      } finally {
+        authSubmitBtn.innerHTML = '<span>Continue</span>';
+        authSubmitBtn.disabled = false;
+      }
+    });
+
+    function showAuthError(msg) {
+      authError.innerText = msg.replace('Firebase:', '').trim();
+      authError.classList.remove('hidden');
+    }
+
+    window.logout = async () => {
+      await signOut(auth);
+    };
+
+    // Mobile Sidebar Toggle
+    window.toggleSidebar = () => {
+      isSidebarOpen = !isSidebarOpen;
+      if (isSidebarOpen) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebarOverlay.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        sidebarOverlay.classList.add('hidden');
+      }
+    };
+
+    window.switchView = (viewId) => {
+      // Auto-close sidebar on mobile when navigating
+      if (window.innerWidth < 1024 && isSidebarOpen) {
+        toggleSidebar();
+      }
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-50', 'text-brand-700', 'bg-white');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+        btn.style.borderLeft = 'none';
+      });
+      const activeBtn = document.getElementById(`nav-${viewId}`);
+      if(activeBtn) {
+        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+        activeBtn.classList.add('bg-brand-50', 'text-brand-700');
+        activeBtn.style.borderLeft = '3px solid #4f46e5';
+      }
+
+      const titles = { 'getstarted': 'Get Started', 'overview': 'System Statistics', 'wallet': 'Billing & Wallet', 'apikeys': 'API Key Management', 'docs': 'API Documentation' };
+      document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
+
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(`view-${viewId}`).classList.remove('hidden');
+      
+      // Auto-refresh stats when opening overview
+      if (viewId === 'overview') {
+        fetchRealStats();
+      }
+    };
+
+    // Fetch REAL Server Stats from Backend Root
+    window.fetchRealStats = async () => {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+      
+      try {
+        const res = await fetch('https://movie-terms.vercel.app/');
+        const data = await res.json();
+        
+        // Calculate totals
+        const sessionServed = data.served || 0;
+        const lifetimeServed = data.lifetime?.served || 0;
+        const totalCalls = sessionServed + lifetimeServed;
+        
+        const sessionBytes = data.bytes || 0;
+        const lifetimeBytes = data.lifetime?.bytes || 0;
+        const totalBytes = sessionBytes + lifetimeBytes;
+        
+        // Convert to GB
+        const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(2);
+        
+        document.getElementById('stat-calls').innerText = totalCalls.toLocaleString();
+        document.getElementById('stat-bw').innerText = gb + ' GB';
+      } catch (err) {
+        console.error('Failed to fetch real stats:', err);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      }
+    };
+
+    // --- Wallet & Billing Logic ---
+    function attachBillingListener() {
+      if (!currentUser) return;
+      const currentMonth = new Date().toISOString().slice(0, 7); // "2026-09"
+      const billingRef = ref(db, `users/${currentUser.uid}/billing`);
+      
+      billingListener = onValue(billingRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        const balance = data.balance || 0;
+        const usage = data[`usage_${currentMonth}`] || 0;
+        
+        // Update UI
+        document.getElementById('wallet-balance').innerText = balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('usage-current').innerText = usage;
+        
+        const usageBar = document.getElementById('usage-bar');
+        const tierBadge = document.getElementById('tier-badge');
+        const percent = Math.min((usage / 200) * 100, 100);
+        usageBar.style.width = `${percent}%`;
+        
+        if (usage >= 200) {
+          usageBar.classList.remove('bg-brand-500');
+          usageBar.classList.add('bg-rose-500');
+          tierBadge.innerText = 'Pay-As-You-Go Active';
+          tierBadge.classList.replace('text-brand-600', 'text-rose-600');
+          tierBadge.classList.replace('bg-brand-50', 'bg-rose-50');
+          tierBadge.classList.replace('border-brand-100', 'border-rose-100');
+        } else {
+          usageBar.classList.add('bg-brand-500');
+          usageBar.classList.remove('bg-rose-500');
+          tierBadge.innerText = 'Free Tier Active';
+          tierBadge.classList.replace('text-rose-600', 'text-brand-600');
+          tierBadge.classList.replace('bg-rose-50', 'bg-brand-50');
+          tierBadge.classList.replace('border-rose-100', 'border-brand-100');
+        }
+      });
+    }
+
+    // Paystack Integration
+    window.initiatePaystack = (amount) => {
+      if (!currentUser) return;
+      
+      const email = currentUser.email;
+      
+      let handler = PaystackPop.setup({
+        key: 'pk_test_58177955af8eb11f31a593884d4566cb71ecf7c1', // Provided Test Key
+        email: email,
+        amount: amount * 100, // Paystack works in kobo (multiply by 100)
+        currency: 'NGN',
+        callback: function(response) {
+          // Verify transaction was successful
+          if (response.status === "success") {
+            // Update the user's balance in Firebase Realtime Database
+            const userBillingRef = ref(db, `users/${currentUser.uid}/billing`);
+            
+            // We fetch the current balance first to add the new amount
+            get(userBillingRef).then((snapshot) => {
+              const currentData = snapshot.val() || {};
+              const currentBalance = currentData.balance || 0;
+              const newBalance = currentBalance + amount;
+              
+              set(ref(db, `users/${currentUser.uid}/billing/balance`), newBalance)
+                .then(() => {
+                  alert(`Payment complete! Reference: ${response.reference}. ₦${amount.toLocaleString()} has been added to your wallet.`);
+                })
+                .catch((err) => {
+                  console.error("Firebase update failed:", err);
+                  alert("Payment successful but wallet update failed. Please contact support with reference: " + response.reference);
                 });
-            }
-
-            // 3. Fetch Subtitles
-            fetchSubtitles(detailPath, season, episode);
-        }
-
-        // Fetch Subtitles Endpoint
-        async function fetchSubtitles(detailPath, season, episode) {
-            const subSelect = document.getElementById('subtitleSelect');
-            subSelect.innerHTML = `<option value="">Subtitles Off</option>`;
-
-            const subUrl = `/api/subtitles?id=${encodeURIComponent(detailPath)}&season=${season}&episode=${episode}`;
-            const subRaw = await apiFetch(subUrl);
-            const subsList = extractArray(subRaw);
-
-            subsList.forEach((sub) => {
-                const opt = document.createElement('option');
-                opt.value = sub.url || sub.file;
-                opt.textContent = sub.language || sub.lang || sub.label || 'Subtitle Track';
-                subSelect.appendChild(opt);
             });
+          }
+        },
+        onClose: function() {
+          console.log("Payment window closed.");
         }
+      });
+      
+      handler.openIframe();
+    };
 
-        // Apply dynamically selected subtitles to HTML5 Video player
-        function applySubtitle(subUrl) {
-            const player = document.getElementById('videoPlayer');
+    window.generateNewKey = async () => {
+      if (!currentUser) return;
+      
+      const rawKey = 'cb_live_' + Array.from(crypto.getRandomValues(new Uint8Array(24)))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      const keyData = {
+        key: rawKey,
+        createdAt: new Date().toISOString(),
+        name: 'Default Project Key'
+      };
+
+      const keysRef = push(ref(db, `users/${currentUser.uid}/apikeys`));
+      await set(keysRef, keyData);
+      
+      loadApiKeys();
+    };
+
+    window.deleteKey = async (keyId) => {
+      if (!currentUser || !confirm("Revoke this API Key? Applications using it will fail immediately.")) return;
+      await remove(ref(db, `users/${currentUser.uid}/apikeys/${keyId}`));
+      loadApiKeys();
+    }
+
+    async function loadApiKeys() {
+      if (!currentUser) return;
+      const tbody = document.getElementById('api-keys-tbody');
+      const loader = document.getElementById('keys-loader');
+      const noKeys = document.getElementById('no-keys-msg');
+      const countEl = document.getElementById('active-keys-count');
+      
+      tbody.innerHTML = '';
+      loader.classList.remove('hidden');
+      noKeys.classList.add('hidden');
+
+      try {
+        const snapshot = await get(child(ref(db), `users/${currentUser.uid}/apikeys`));
+        loader.classList.add('hidden');
+        
+        if (snapshot.exists()) {
+          const keys = snapshot.val();
+          const keyArr = Object.entries(keys);
+          countEl.innerText = keyArr.length;
+
+          keyArr.forEach(([id, data]) => {
+            const date = new Date(data.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            const maskedKey = data.key.substring(0, 12) + '••••••••••••••••';
             
-            // Clear existing tracks
-            const existingTracks = player.querySelectorAll('track');
-            existingTracks.forEach(t => t.remove());
-
-            if (!subUrl) return;
-
-            // Append WebVTT/SRT Track
-            const track = document.createElement('track');
-            track.kind = 'subtitles';
-            track.label = 'Selected Language';
-            track.srclang = 'en';
-            track.src = subUrl;
-            track.default = true;
-
-            player.appendChild(track);
-            player.textTracks[0].mode = 'showing';
-        }
-
-        // Render Season & Episode Selectors for TV Series
-        async function renderTvControls(detailPath, currentSeason, currentEpisode) {
-            const container = document.getElementById('tvMatrixControls');
-            if (container.children.length > 0) return; // Prevent duplicate rendering
-
-            const matrixRaw = await apiFetch(`/api/episode-matrix?id=${encodeURIComponent(detailPath)}`);
-            const matrix = matrixRaw || {};
-
-            let html = `
-                <div class="controls-row">
-                    <div class="control-group">
-                        <label>Season</label>
-                        <select id="seasonPicker" class="custom-select" onchange="onTvChange('${detailPath}')">
-            `;
-
-            // Season options
-            const seasons = matrix.seasons || [1, 2, 3];
-            seasons.forEach(s => {
-                const sNum = typeof s === 'object' ? s.season_number : s;
-                html += `<option value="${sNum}" ${sNum == currentSeason ? 'selected' : ''}>Season ${sNum}</option>`;
-            });
-
-            html += `
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label>Episode</label>
-                        <select id="episodePicker" class="custom-select" onchange="onTvChange('${detailPath}')">
-            `;
-
-            // Default episode items
-            for (let i = 1; i <= 24; i++) {
-                html += `<option value="${i}" ${i == currentEpisode ? 'selected' : ''}>Episode ${i}</option>`;
-            }
-
-            html += `
-                        </select>
-                    </div>
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition-colors group';
+            tr.innerHTML = `
+              <td class="px-6 lg:px-8 py-4 lg:py-5">
+                <div class="font-bold text-slate-900 mb-1.5">${data.name}</div>
+                <div class="flex items-center gap-2">
+                  <code class="text-xs bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 border border-slate-200 font-mono tracking-wide truncate max-w-[150px] sm:max-w-none">${maskedKey}</code>
+                  <button onclick="copyText('${data.key}')" class="text-slate-400 hover:text-brand-600 transition-colors bg-white border border-slate-200 rounded-md p-1.5 shadow-sm" title="Copy full key">
+                    <i class="fa-regular fa-copy text-xs"></i>
+                  </button>
                 </div>
+              </td>
+              <td class="px-6 lg:px-8 py-4 lg:py-5 text-xs sm:text-sm font-medium text-slate-500">${date}</td>
+              <td class="px-6 lg:px-8 py-4 lg:py-5 text-right">
+                <button onclick="deleteKey('${id}')" class="text-slate-400 hover:text-red-500 transition-colors p-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-red-200 hover:bg-red-50">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
             `;
-
-            container.innerHTML = html;
+            tbody.appendChild(tr);
+          });
+        } else {
+          countEl.innerText = '0';
+          noKeys.classList.remove('hidden');
         }
+      } catch (e) {
+        console.error("Error fetching keys", e);
+        loader.classList.add('hidden');
+      }
+    }
 
-        function onTvChange(detailPath) {
-            const season = document.getElementById('seasonPicker').value;
-            const episode = document.getElementById('episodePicker').value;
-            loadStreamsAndSubtitles(detailPath, season, episode);
-        }
-
-        // Close Modal Helper
-        function closeModal() {
-            const modal = document.getElementById('mediaModal');
-            const player = document.getElementById('videoPlayer');
-            if (player) {
-                player.pause();
-                player.src = "";
-            }
-            modal.classList.remove('active');
-            document.getElementById('tvMatrixControls').innerHTML = '';
-        }
-
-        // Close Modal when clicking outside content area
-        window.onclick = function(event) {
-            const modal = document.getElementById('mediaModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        };
-
-        // Initialize application on load
-        window.addEventListener('DOMContentLoaded', loadHomePage);
-    </script>
+    window.copyText = (textOrElementId) => {
+      let textToCopy = textOrElementId;
+      const el = document.getElementById(textOrElementId);
+      if(el) textToCopy = el.innerText;
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("Copied to clipboard!");
+      }).catch(err => console.error('Failed to copy', err));
+    };
+  </script>
 </body>
 </html>
