@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Paystack Inline Script -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -267,9 +269,15 @@
                   <span id="wallet-balance" class="text-4xl lg:text-5xl font-black text-white tracking-tight">0.00</span>
                 </div>
               </div>
-              <button onclick="topUpWallet()" class="mt-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-500/20 relative z-10 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-plus"></i> Top Up Balance
-              </button>
+              
+              <!-- Quick Top-Up Options -->
+              <div class="mt-8 relative z-10">
+                <div class="flex gap-2">
+                  <button onclick="initiatePaystack(1000)" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">₦1,000</button>
+                  <button onclick="initiatePaystack(5000)" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">₦5,000</button>
+                  <button onclick="initiatePaystack(10000)" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-500/20">₦10,000</button>
+                </div>
+              </div>
             </div>
 
             <!-- Usage Limits Card -->
@@ -277,7 +285,7 @@
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider">Current Month Usage</h3>
-                  <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-100">Free Tier Active</span>
+                  <span id="tier-badge" class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-100">Free Tier Active</span>
                 </div>
                 <div class="flex items-end gap-2 mb-4">
                   <span id="usage-current" class="text-4xl font-black text-slate-900 tracking-tight">0</span>
@@ -422,7 +430,7 @@
               <i class="fa-solid fa-triangle-exclamation"></i> Required Vercel Configuration
             </h3>
             <p class="text-sm text-amber-800 mb-4">
-              If you are hosting your frontend application on Vercel and connecting to a VPS backend (like Render, Brevo, etc.), you <strong>must</strong> include a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your frontend's root directory to properly route requests and prevent <code class="font-mono text-red-600">items.forEach is not a function</code> errors.
+              If you are hosting your frontend application on Vercel and connecting to a VPS backend (like Render, Brevo, etc.), you <strong>must</strong> include a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your frontend's root directory. This tells Vercel to route your requests properly (e.g., sending <code class="font-mono text-amber-900 bg-amber-200/50 px-1 rounded">https://movie-terms.vercel.app/api/...</code> directly to your backend at <code class="font-mono text-amber-900 bg-amber-200/50 px-1 rounded">http://app.brevo.host:2569/...</code>). Without this, requests will fail with <code class="font-mono text-red-600">items.forEach is not a function</code> errors.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -456,7 +464,7 @@
                 <p class="text-sm text-slate-600 mb-4 flex-1">Metadata endpoints (<code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/search</code>, <code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/details</code>, etc.) are public and completely free. <strong>No headers or API keys are required.</strong></p>
                 <div class="code-window border border-slate-200">
                   <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch</span></div>
-                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">fetch('<span class="text-brand-600">/api/trending</span>')</div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">fetch('<span class="text-brand-600">https://movie-terms.vercel.app/api/trending</span>')</div>
                 </div>
               </div>
 
@@ -710,7 +718,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
               <div>
                 <div class="flex items-center gap-3 mb-3">
-                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
                   <h3 class="text-lg lg:text-xl font-bold text-slate-900">Direct Download File</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Forces an attachment download, bypassing browser playback. Link directly via an anchor tag.</p>
@@ -727,7 +735,7 @@
                   </table>
                 </div>
               </div>
-              <div class="code-window mt-2 lg:mt-0 border border-emerald-900/30">
+              <div class="code-window mt-2 lg:mt-0 border border-brand-900/30">
                 <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">&lt;!-- Generates a direct file download dialog --&gt;</span>
@@ -923,26 +931,72 @@
         const usage = data[`usage_${currentMonth}`] || 0;
         
         // Update UI
-        document.getElementById('wallet-balance').innerText = balance.toFixed(2);
+        document.getElementById('wallet-balance').innerText = balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('usage-current').innerText = usage;
         
         const usageBar = document.getElementById('usage-bar');
+        const tierBadge = document.getElementById('tier-badge');
         const percent = Math.min((usage / 200) * 100, 100);
         usageBar.style.width = `${percent}%`;
         
-        if (percent >= 100) {
+        if (usage >= 200) {
           usageBar.classList.remove('bg-brand-500');
           usageBar.classList.add('bg-rose-500');
+          tierBadge.innerText = 'Pay-As-You-Go Active';
+          tierBadge.classList.replace('text-brand-600', 'text-rose-600');
+          tierBadge.classList.replace('bg-brand-50', 'bg-rose-50');
+          tierBadge.classList.replace('border-brand-100', 'border-rose-100');
         } else {
           usageBar.classList.add('bg-brand-500');
           usageBar.classList.remove('bg-rose-500');
+          tierBadge.innerText = 'Free Tier Active';
+          tierBadge.classList.replace('text-rose-600', 'text-brand-600');
+          tierBadge.classList.replace('bg-rose-50', 'bg-brand-50');
+          tierBadge.classList.replace('border-rose-100', 'border-brand-100');
         }
       });
     }
 
-    window.topUpWallet = () => {
-      // Placeholder for Paystack/Flutterwave integration
-      alert("Paystack/Flutterwave integration coming soon. For testing, manually set 'balance' in Firebase Database.");
+    // Paystack Integration
+    window.initiatePaystack = (amount) => {
+      if (!currentUser) return;
+      
+      const email = currentUser.email;
+      
+      let handler = PaystackPop.setup({
+        key: 'pk_test_58177955af8eb11f31a593884d4566cb71ecf7c1', // Provided Test Key
+        email: email,
+        amount: amount * 100, // Paystack works in kobo (multiply by 100)
+        currency: 'NGN',
+        callback: function(response) {
+          // Verify transaction was successful
+          if (response.status === "success") {
+            // Update the user's balance in Firebase Realtime Database
+            const userBillingRef = ref(db, `users/${currentUser.uid}/billing`);
+            
+            // We fetch the current balance first to add the new amount
+            get(userBillingRef).then((snapshot) => {
+              const currentData = snapshot.val() || {};
+              const currentBalance = currentData.balance || 0;
+              const newBalance = currentBalance + amount;
+              
+              set(ref(db, `users/${currentUser.uid}/billing/balance`), newBalance)
+                .then(() => {
+                  alert(`Payment complete! Reference: ${response.reference}. ₦${amount.toLocaleString()} has been added to your wallet.`);
+                })
+                .catch((err) => {
+                  console.error("Firebase update failed:", err);
+                  alert("Payment successful but wallet update failed. Please contact support with reference: " + response.reference);
+                });
+            });
+          }
+        },
+        onClose: function() {
+          console.log("Payment window closed.");
+        }
+      });
+      
+      handler.openIframe();
     };
 
     window.generateNewKey = async () => {
