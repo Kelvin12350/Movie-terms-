@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "http://app.brevo.host:2569/api/:path*"
+    },
+    {
       "source": "/proxy-api/:path*",
       "destination": "http://app.brevo.host:2569/:path*"
     }
