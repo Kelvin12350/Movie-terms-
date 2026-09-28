@@ -139,6 +139,9 @@
         <button onclick="switchView('overview')" id="nav-overview" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-chart-line w-4 text-center"></i> Stats Overview
         </button>
+        <button onclick="switchView('wallet')" id="nav-wallet" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-wallet w-4 text-center"></i> Billing & Wallet
+        </button>
         <button onclick="switchView('apikeys')" id="nav-apikeys" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-key w-4 text-center"></i> API Keys
         </button>
@@ -245,9 +248,58 @@
 
           </div>
         </div>
+
+        <!-- ================= 1. WALLET / BILLING VIEW ================= -->
+        <div id="view-wallet" class="view-section fade-in max-w-4xl mx-auto hidden pb-20">
+          <div class="mb-8">
+            <h1 class="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Billing & Wallet</h1>
+            <p class="text-sm text-slate-500 mt-1">Manage your Pay-As-You-Go proxy streaming balance.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Balance Card -->
+            <div class="bg-slate-900 rounded-2xl p-8 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fa-solid fa-wallet text-9xl text-white"></i></div>
+              <div>
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 relative z-10">Available Balance</h3>
+                <div class="flex items-baseline gap-1 relative z-10">
+                  <span class="text-2xl font-bold text-emerald-400">₦</span>
+                  <span id="wallet-balance" class="text-4xl lg:text-5xl font-black text-white tracking-tight">0.00</span>
+                </div>
+              </div>
+              <button onclick="topUpWallet()" class="mt-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-500/20 relative z-10 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus"></i> Top Up Balance
+              </button>
+            </div>
+
+            <!-- Usage Limits Card -->
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider">Current Month Usage</h3>
+                  <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-100">Free Tier Active</span>
+                </div>
+                <div class="flex items-end gap-2 mb-4">
+                  <span id="usage-current" class="text-4xl font-black text-slate-900 tracking-tight">0</span>
+                  <span class="text-sm font-semibold text-slate-400 mb-1">/ 200 free requests</span>
+                </div>
+                
+                <div class="w-full bg-slate-100 rounded-full h-2 mb-2 overflow-hidden">
+                  <div id="usage-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-slate-500">Only <strong>/dl</strong> and <strong>/stream</strong> endpoints count towards usage.</p>
+              </div>
+
+              <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <h4 class="text-xs font-bold text-slate-900 mb-1">Pay-As-You-Go Rates</h4>
+                <p class="text-xs text-slate-600">After 200 free requests, your wallet is billed exactly <strong>₦50.00 per streaming request</strong>. If your balance drops below ₦50, proxy requests will be blocked with a 402 Error.</p>
+              </div>
+            </div>
+          </div>
+        </div>
         
-        <!-- ================= 1. OVERVIEW VIEW (REAL STATS) ================= -->
-        <div id="view-overview" class="view-section fade-in max-w-6xl mx-auto hidden">
+        <!-- ================= 2. OVERVIEW VIEW (REAL STATS) ================= -->
+        <div id="view-overview" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-lg font-bold text-slate-900">Real-Time Server Load</h3>
             <button onclick="fetchRealStats()" class="text-xs bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2">
@@ -303,8 +355,8 @@
           </div>
         </div>
 
-        <!-- ================= 2. API KEYS VIEW ================= -->
-        <div id="view-apikeys" class="view-section fade-in max-w-6xl mx-auto hidden">
+        <!-- ================= 3. API KEYS VIEW ================= -->
+        <div id="view-apikeys" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div>
               <h3 class="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">API Keys</h3>
@@ -343,7 +395,7 @@
           </div>
         </div>
 
-        <!-- ================= 3. DOCUMENTATION VIEW ================= -->
+        <!-- ================= 4. DOCUMENTATION VIEW ================= -->
         <div id="view-docs" class="view-section fade-in max-w-6xl mx-auto hidden pb-24">
           
           <div class="mb-12 max-w-3xl">
@@ -362,6 +414,32 @@
             <button onclick="copyText('https://movie-terms.vercel.app')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
               <i class="fa-regular fa-copy"></i> Copy URL
             </button>
+          </div>
+
+          <!-- Vercel.json Routing Guide -->
+          <div class="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> Required Vercel Configuration
+            </h3>
+            <p class="text-sm text-amber-800 mb-4">
+              If you are hosting your frontend application on Vercel and connecting to a VPS backend (like Render, Brevo, etc.), you <strong>must</strong> include a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your frontend's root directory to properly route requests and prevent <code class="font-mono text-red-600">items.forEach is not a function</code> errors.
+            </p>
+            <div class="code-window border border-amber-300">
+              <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
+              <div class="code-body !bg-amber-950 !text-amber-50 font-mono text-xs lg:text-[13px]" id="vercelJson">
+{
+  <span class="syntax-string">"rewrites"</span>: [
+    {
+      <span class="syntax-string">"source"</span>: <span class="syntax-string">"/api/:path*"</span>,
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"http://app.brevo.host:2569/api/:path*"</span>
+    },
+    {
+      <span class="syntax-string">"source"</span>: <span class="syntax-string">"/proxy-api/:path*"</span>,
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"http://app.brevo.host:2569/:path*"</span>
+    }
+  ]
+}</div>
+            </div>
           </div>
 
           <!-- Authentication Guide (CRITICAL) -->
@@ -488,7 +566,7 @@
                 <div class="code-header"><span>JavaScript (Fetch)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/details?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/details?id=/movie/123'</span>);
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -519,7 +597,7 @@
                 <div class="code-header"><span>JavaScript (Fetch)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/episode-matrix?id=/tv/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/episode-matrix?id=/tv/123'</span>);
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -552,7 +630,7 @@
                 <div class="code-header"><span>JavaScript (Fetch)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/subtitles?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/subtitles?id=/movie/123'</span>);
 <span class="syntax-method">const</span> subs = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -585,10 +663,10 @@
                 <div class="code-header"><span>JavaScript (Fetch)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie Source Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/movie?id=/movie/123'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/movie?id=/movie/123'</span>);
 
 <span class="syntax-comment">// TV Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/tv?id=/tv/123&season=1&episode=1'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/tv?id=/tv/123&season=1&episode=1'</span>);
                 </div>
               </div>
             </div>
@@ -620,7 +698,7 @@
                 <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">&lt;!-- Notice apikey is passed in the URL string --&gt;</span>
-&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">".../proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
+&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
 &lt;/<span class="syntax-method">video</span>&gt;
                 </div>
               </div>
@@ -632,7 +710,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
               <div>
                 <div class="flex items-center gap-3 mb-3">
-                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
                   <h3 class="text-lg lg:text-xl font-bold text-slate-900">Direct Download File</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Forces an attachment download, bypassing browser playback. Link directly via an anchor tag.</p>
@@ -649,11 +727,11 @@
                   </table>
                 </div>
               </div>
-              <div class="code-window mt-2 lg:mt-0 border border-brand-900/30">
+              <div class="code-window mt-2 lg:mt-0 border border-emerald-900/30">
                 <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">&lt;!-- Generates a direct file download dialog --&gt;</span>
-&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">".../proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
+&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
   Download Movie
 &lt;/<span class="syntax-method">a</span>&gt;
                 </div>
@@ -672,7 +750,7 @@
     // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, set, get, child, push, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, set, get, child, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     // Provided Firebase Config
     const firebaseConfig = {
@@ -693,6 +771,7 @@
 
     let currentUser = null;
     let isSidebarOpen = false;
+    let billingListener = null;
 
     // DOM Elements
     const authView = document.getElementById('auth-view');
@@ -714,8 +793,10 @@
         switchView('getstarted');
         loadApiKeys();
         fetchRealStats(); // Fetch real stats on load
+        attachBillingListener(); // Listen for live wallet updates
       } else {
         currentUser = null;
+        if (billingListener) billingListener();
         dashboardView.classList.add('hidden');
         authView.classList.remove('hidden');
       }
@@ -788,7 +869,7 @@
         activeBtn.style.borderLeft = '3px solid #4f46e5';
       }
 
-      const titles = { 'getstarted': 'Get Started', 'overview': 'System Statistics', 'apikeys': 'API Key Management', 'docs': 'API Documentation' };
+      const titles = { 'getstarted': 'Get Started', 'overview': 'System Statistics', 'wallet': 'Billing & Wallet', 'apikeys': 'API Key Management', 'docs': 'API Documentation' };
       document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
 
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -828,6 +909,40 @@
       } finally {
         if (refreshIcon) refreshIcon.classList.remove('animate-spin');
       }
+    };
+
+    // --- Wallet & Billing Logic ---
+    function attachBillingListener() {
+      if (!currentUser) return;
+      const currentMonth = new Date().toISOString().slice(0, 7); // "2026-09"
+      const billingRef = ref(db, `users/${currentUser.uid}/billing`);
+      
+      billingListener = onValue(billingRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        const balance = data.balance || 0;
+        const usage = data[`usage_${currentMonth}`] || 0;
+        
+        // Update UI
+        document.getElementById('wallet-balance').innerText = balance.toFixed(2);
+        document.getElementById('usage-current').innerText = usage;
+        
+        const usageBar = document.getElementById('usage-bar');
+        const percent = Math.min((usage / 200) * 100, 100);
+        usageBar.style.width = `${percent}%`;
+        
+        if (percent >= 100) {
+          usageBar.classList.remove('bg-brand-500');
+          usageBar.classList.add('bg-rose-500');
+        } else {
+          usageBar.classList.add('bg-brand-500');
+          usageBar.classList.remove('bg-rose-500');
+        }
+      });
+    }
+
+    window.topUpWallet = () => {
+      // Placeholder for Paystack/Flutterwave integration
+      alert("Paystack/Flutterwave integration coming soon. For testing, manually set 'balance' in Firebase Database.");
     };
 
     window.generateNewKey = async () => {
