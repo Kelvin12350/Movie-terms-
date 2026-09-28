@@ -432,7 +432,7 @@
             <p class="text-sm text-amber-800 mb-4">
               To use this API on your own website, you must route your frontend requests to our Base URL to prevent <code class="font-mono text-red-600">items.forEach is not a function</code> errors caused by strict CORS blocking. 
               <br><br>
-              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">https://movie-terms.vercel.app</code>.
+              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to our API. If you use Render, Netlify, or a VPS, you must configure a similar proxy rewrite in your specific environment.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -465,8 +465,8 @@
                 <h3 class="text-lg font-bold text-slate-900 mb-2">1. JSON API Data (FREE)</h3>
                 <p class="text-sm text-slate-600 mb-4 flex-1">Metadata endpoints (<code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/search</code>, <code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/details</code>, etc.) are public and completely free. <strong>No headers or API keys are required.</strong></p>
                 <div class="code-window border border-slate-200">
-                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch</span></div>
-                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">fetch('<span class="text-brand-600">https://movie-terms.vercel.app/api/trending</span>')</div>
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch (Using your local proxy)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">fetch('<span class="text-brand-600">/api/trending</span>')</div>
                 </div>
               </div>
 
@@ -510,10 +510,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/trending?limit=20'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/trending?limit=20'</span>);
 <span class="syntax-method">const</span> trendingData = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -535,17 +535,17 @@
                       <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">q</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The search term.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">q</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The search term (e.g. "anime", "korean drama", "Inception").</td></tr>
                       <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">Optional</span> Max items (Default: 24).</td></tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/search?q=Inception'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=anime'</span>);
 <span class="syntax-method">const</span> results = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -573,10 +573,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/details?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/details?id=/movie/123'</span>);
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -604,10 +604,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/episode-matrix?id=/tv/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/episode-matrix?id=/tv/123'</span>);
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -637,10 +637,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/subtitles?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/subtitles?id=/movie/123'</span>);
 <span class="syntax-method">const</span> subs = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -670,13 +670,13 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
-                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie Source Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/movie?id=/movie/123'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/movie?id=/movie/123'</span>);
 
 <span class="syntax-comment">// TV Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/tv?id=/tv/123&season=1&episode=1'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/tv?id=/tv/123&season=1&episode=1'</span>);
                 </div>
               </div>
             </div>
@@ -705,10 +705,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0 border border-rose-900/30">
-                <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
+                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">&lt;!-- Notice apikey is passed in the URL string --&gt;</span>
-&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
+&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"/proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
 &lt;/<span class="syntax-method">video</span>&gt;
                 </div>
               </div>
@@ -738,10 +738,10 @@
                 </div>
               </div>
               <div class="code-window mt-2 lg:mt-0 border border-brand-900/30">
-                <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
+                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">&lt;!-- Generates a direct file download dialog --&gt;</span>
-&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
+&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
   Download Movie
 &lt;/<span class="syntax-method">a</span>&gt;
                 </div>
@@ -750,6 +750,7 @@
 
           </div>
         </div>
+
 
       </div>
     </main>
