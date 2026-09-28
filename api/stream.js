@@ -1,19 +1,44 @@
 import http from 'node:http';
 import { Readable } from 'node:stream';
 
+// In production, you would fetch/validate these from your Firebase Database
+const VALID_API_KEYS = ['cb_live_YOUR_GENERATED_KEY_HERE'];
+
 // Inside your request handler in server.js:
 const reqUrl = new URL(req.url, `http://${req.headers.host}`);
 
 if (reqUrl.pathname === '/dl') {
-  // CORS
+  // CORS Setup
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
 
+  // Preflight requests pass immediately
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     return res.end();
   }
+
+  // ==========================================
+  // API KEY VALIDATION (Via Query Parameter)
+  // ==========================================
+  const apiKey = reqUrl.searchParams.get('apikey');
+
+  if (!apiKey) {
+    res.statusCode = 401; // Unauthorized
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ 
+      error: 'Missing API key. Provide it in the URL (e.g., &apikey=YOUR_KEY).' 
+    }));
+  }
+
+  // Verify the key against your active keys list
+  if (!VALID_API_KEYS.includes(apiKey)) {
+    res.statusCode = 403; // Forbidden
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Invalid or revoked API key.' }));
+  }
+  // ==========================================
 
   const targetUrl = reqUrl.searchParams.get('url');
   const fileName = reqUrl.searchParams.get('name');
