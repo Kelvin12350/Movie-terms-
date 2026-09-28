@@ -6,14 +6,14 @@
   <title>CineBase API | Developer Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            mono: ['Fira Code', 'monospace'],
+            mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
             brand: {
@@ -23,6 +23,7 @@
               500: '#6366f1',
               600: '#4f46e5',
               700: '#4338ca',
+              900: '#312e81',
             },
             slate: {
               50: '#f8fafc',
@@ -48,10 +49,15 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     
-    /* Elegant Code Block */
-    .code-block { background: #0f172a; color: #f8fafc; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    /* Code Block Styling */
+    .code-window { background: #0f172a; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    .code-header { background: #1e293b; padding: 0.5rem 1rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; border-bottom: 1px solid #334155; }
+    .code-body { padding: 1rem; color: #e2e8f0; font-size: 0.8125rem; line-height: 1.6; overflow-x: auto; }
+    .syntax-method { color: #818cf8; font-weight: bold; }
+    .syntax-url { color: #a7f3d0; }
+    .syntax-string { color: #fcd34d; }
+    .syntax-comment { color: #64748b; font-style: italic; }
     
-    /* Animations */
     .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     
@@ -99,7 +105,7 @@
       </form>
 
       <p class="text-sm text-slate-500 text-center mt-8 leading-relaxed">
-        By continuing, you agree to our <a href="#" class="text-brand-600 hover:underline">Terms of Service</a>. If an account doesn't exist, it will be created.
+        By continuing, you agree to our <a href="#" class="text-brand-600 hover:underline">Terms of Service</a>. Account created automatically if new.
       </p>
     </div>
   </div>
@@ -200,7 +206,6 @@
               </div>
             </div>
             <div class="h-64 w-full border-b border-l border-slate-100 relative">
-              <!-- Mock Chart Lines -->
               <svg class="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                 <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
                 <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20 L100,100 L0,100 Z" fill="url(#grad)" class="opacity-30"/>
@@ -259,268 +264,230 @@
         </div>
 
         <!-- ================= 3. DOCUMENTATION VIEW ================= -->
-        <div id="view-docs" class="view-section fade-in max-w-4xl mx-auto hidden pb-20">
+        <div id="view-docs" class="view-section fade-in max-w-6xl mx-auto hidden pb-24">
           
-          <div class="mb-12">
+          <div class="mb-12 max-w-3xl">
             <h1 class="text-4xl font-black text-slate-900 mb-4 tracking-tight">API Reference</h1>
-            <p class="text-base text-slate-600 leading-relaxed">
-              Welcome to the full CineBase Video API documentation. Our endpoints provide seamless access to everything from trending catalogs and media metadata to direct video streaming proxies, downloads, and subtitles.
+            <p class="text-lg text-slate-600 leading-relaxed">
+              Integrate CineBase's robust video infrastructure into your application. Build seamless streaming experiences, access comprehensive metadata, and generate direct proxy downloads.
             </p>
           </div>
 
           <!-- Base URL -->
-          <div class="mb-14">
-            <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-6">Base URL & Authentication</h2>
-            <div class="code-block rounded-xl p-5 flex items-center justify-between">
-              <code class="text-brand-400 text-sm font-mono tracking-wide">https://movie-terms.vercel.app</code>
-              <button onclick="copyText('https://movie-terms.vercel.app')" class="text-slate-400 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg" title="Copy base URL">
-                <i class="fa-regular fa-copy"></i>
-              </button>
+          <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Base URL</h2>
+              <code class="text-brand-600 text-lg font-mono font-bold tracking-wide">https://movie-terms.vercel.app</code>
             </div>
+            <button onclick="copyText('https://movie-terms.vercel.app')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2">
+              <i class="fa-regular fa-copy"></i> Copy URL
+            </button>
+          </div>
+
+          <!-- Authentication Guide (CRITICAL) -->
+          <div class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Authentication</h2>
             
-            <p class="text-sm text-slate-600 mt-4 leading-relaxed">
-              All API requests must be made over HTTPS. For standard JSON catalog requests (like <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200 font-mono text-xs">/api/search</code> or <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200 font-mono text-xs">/api/details</code>), pass your generated API key in the headers as <code class="bg-slate-100 px-2 py-1 rounded-md text-slate-800 border border-slate-200 font-mono text-xs">Authorization: Bearer YOUR_KEY</code>.
-            </p>
-            
-            <div class="mt-4 p-4 bg-brand-50 border border-brand-100 rounded-xl">
-              <p class="text-sm text-brand-800 font-medium flex items-start gap-2">
-                <i class="fa-solid fa-circle-info mt-1 text-brand-600"></i>
-                <span><strong class="font-bold text-brand-900">Important Proxy Authentication:</strong> For direct media and HTML5-player endpoints (<code class="font-mono text-xs font-bold">/proxy-api/stream</code> and <code class="font-mono text-xs font-bold">/proxy-api/dl</code>), browsers strip custom headers. You <strong>must</strong> pass your API key as a URL query parameter instead: <code class="bg-white px-1.5 py-0.5 rounded border border-brand-200 font-mono text-xs text-brand-900 shadow-sm">?apikey=YOUR_KEY</code>.</span>
-              </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Method 1 -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center mb-4 border border-brand-100">
+                  <i class="fa-solid fa-code text-brand-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">1. JSON API Requests</h3>
+                <p class="text-sm text-slate-600 mb-4">For metadata endpoints (<code class="font-mono text-xs text-brand-600">/api/search</code>, <code class="font-mono text-xs text-brand-600">/api/details</code>, etc.), authenticate via the <strong class="text-slate-900">Authorization</strong> header.</p>
+                <div class="code-window">
+                  <div class="code-header"><span>Headers</span></div>
+                  <div class="code-body"><span class="text-slate-400">Authorization:</span> <span class="syntax-string">Bearer YOUR_API_KEY</span></div>
+                </div>
+              </div>
+
+              <!-- Method 2 -->
+              <div class="bg-brand-900 rounded-2xl p-6 border border-brand-700 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-shield-halved text-6xl text-white"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-brand-800 flex items-center justify-center mb-4 border border-brand-600 relative z-10">
+                  <i class="fa-solid fa-link text-brand-300"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2 relative z-10">2. Media Proxy & Downloads</h3>
+                <p class="text-sm text-brand-200 mb-4 relative z-10">HTML5 Video players and <code class="font-mono text-xs bg-brand-800 px-1 rounded">&lt;a&gt;</code> download tags cannot send custom headers. You <strong>must</strong> append the key as a URL query parameter.</p>
+                <div class="code-window border border-brand-700">
+                  <div class="code-header !bg-brand-950 !border-brand-800"><span>Query Parameter</span></div>
+                  <div class="code-body !text-brand-300">?apikey=<span class="syntax-string">YOUR_API_KEY</span></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Endpoints List -->
+          <!-- ENDPOINTS -->
           <div class="space-y-16">
-            
-            <!-- Trending -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Fetch Trending Media</h3>
+            <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2">Endpoints</h2>
+
+            <!-- 1. Search Catalog -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-xl font-bold text-slate-900">Search Catalog</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Search the database for movies, anime, or K-Dramas.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">q</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> The search term.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-xs uppercase mr-2">Optional</span> Max items (Default: 24).</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <p class="text-sm text-slate-600 mb-5">Returns a list of currently trending movies and TV shows across the platform.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/trending?limit=24
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">limit</code> 
-                    <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. Integer.</span> Default 24. Number of items to return.</span>
-                  </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch)</span> <button onclick="copyText('fetchSearch')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
+                <div class="code-body font-mono" id="fetchSearch">
+<span class="syntax-method">const</span> response = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/search?q=Inception'</span>, {
+  method: <span class="syntax-string">'GET'</span>,
+  headers: {
+    <span class="syntax-string">'Authorization'</span>: <span class="syntax-string">'Bearer cb_live_YOUR_KEY'</span>
+  }
+});
+<span class="syntax-method">const</span> data = <span class="syntax-method">await</span> response.json();
                 </div>
               </div>
             </div>
 
-            <!-- Search -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Search Catalog</h3>
+            <hr class="border-slate-200">
+
+            <!-- 2. Get Details -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-xl font-bold text-slate-900">Get Media Details</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch deep metadata (synopsis, cast, IMDB, TV seasons) using a detailPath.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> The <code class="bg-slate-100 px-1 rounded">detailPath</code> from Search/Trending.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <p class="text-sm text-slate-600 mb-5">Query the database for specific movies, anime, or K-Dramas.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/search?q={query}&limit=24
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">q</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The search term (e.g., "Inception").</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">limit</code> 
-                    <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. Integer.</span> Default 24. Max results to fetch.</span>
-                  </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-body font-mono">
+<span class="syntax-method">const</span> response = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'https://movie-terms.vercel.app/api/details?id=/movie/123'</span>, {
+  headers: { <span class="syntax-string">'Authorization'</span>: <span class="syntax-string">'Bearer cb_live_YOUR_KEY'</span> }
+});
                 </div>
               </div>
             </div>
 
-            <!-- Details -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Get Media Details</h3>
+            <hr class="border-slate-200">
+
+            <!-- 3. Movie/TV Streams -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-xl font-bold text-slate-900">Movie / TV Stream Sources</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch raw M3U8/MP4 URLs. Use <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/movie</code> for movies and <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/tv</code> for series.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> Media detailPath.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">season</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-xs uppercase mr-2">TV Only</span> Season number.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">episode</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-xs uppercase mr-2">TV Only</span> Episode number.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <p class="text-sm text-slate-600 mb-5">Fetch deep metadata including synopsis, cast, IMDB ratings, duration, and TV season structures.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/details?id={detailPath}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">id</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The <code class="bg-slate-100 px-1 py-0.5 rounded text-xs border border-slate-200">detailPath</code> obtained from Search or Trending endpoints.</span>
-                  </div>
+              <div class="code-window mt-2 lg:mt-0">
+                <div class="code-header"><span>JavaScript (Fetch)</span></div>
+                <div class="code-body font-mono">
+<span class="syntax-comment">// Movie Example</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/movie?id=/movie/123'</span>, {
+  headers: { <span class="syntax-string">'Authorization'</span>: <span class="syntax-string">'Bearer YOUR_KEY'</span> }
+});
+
+<span class="syntax-comment">// TV Example</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'.../api/tv?id=/tv/123&season=1&episode=4'</span>, {
+  headers: { <span class="syntax-string">'Authorization'</span>: <span class="syntax-string">'Bearer YOUR_KEY'</span> }
+});
                 </div>
               </div>
             </div>
 
-            <!-- Streaming / Movie -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Movie Streaming Sources</h3>
+            <hr class="border-slate-200">
+
+            <!-- 4. Video Stream Proxy -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-xl font-bold text-slate-900">HTML5 Stream Proxy</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Proxy endpoint to bypass CORS. Embed this directly into a <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">&lt;video src="..."&gt;</code> tag.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-xs uppercase mr-2">Critical</span> Auth Key via URL.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <p class="text-sm text-slate-600 mb-5">Retrieve direct MP4/M3U8 URLs, quality options, and sizes for a specific movie.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/movie?id={detailPath}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">id</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The movie detailPath.</span>
-                  </div>
+              <div class="code-window mt-2 lg:mt-0 border border-rose-900/30">
+                <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
+                <div class="code-body font-mono">
+<span class="syntax-comment">&lt;!-- Notice apikey is passed in the URL --&gt;</span>
+&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/stream?url=ENCODED_URL&apikey=cb_live_YOUR_KEY"</span>&gt;
+&lt;/<span class="syntax-method">video</span>&gt;
                 </div>
               </div>
             </div>
 
-            <!-- Streaming / TV -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">TV Episode Streaming Sources</h3>
-              </div>
-              <p class="text-sm text-slate-600 mb-5">Retrieve direct streaming URLs for a specific season and episode of a TV series.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/tv?id={detailPath}&season={s}&episode={e}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">id</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The series detailPath.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">season</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. Integer.</span> Season number.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">episode</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. Integer.</span> Episode number.</span>
-                  </div>
+            <hr class="border-slate-200">
+
+            <!-- 5. Download Proxy -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-xl font-bold text-slate-900">Direct Download File</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">Forces a file attachment download, bypassing browser playback. Link directly via an anchor tag.</p>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">name</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-xs uppercase mr-2">Required</span> Output filename (e.g., <code class="font-mono text-xs">movie.mp4</code>).</td></tr>
+                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-xs uppercase mr-2">Critical</span> Auth Key via URL.</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-
-            <!-- Stream Proxy -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Stream Video Proxy (CORS Bypass)</h3>
-              </div>
-              <p class="text-sm text-slate-600 mb-5">Internal proxy to securely stream video chunks or fetch subtitle text tracks directly into HTML5 players while bypassing browser CORS blocks.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-rose-400 font-bold">GET</span> /proxy-api/stream?url={url}&dp={dp}&apikey={YOUR_KEY}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">url</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. URL.</span> The encoded raw media or SRT URL from the streaming endpoints.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">dp</code> 
-                    <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. String.</span> The detailPath of the media, used for internal routing.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">apikey</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> Your secret API key.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Download Video -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Download Media File</h3>
-              </div>
-              <p class="text-sm text-slate-600 mb-5">Proxy endpoint to force a direct file download (attachment) of media files, bypassing browser playback rules and CORS restrictions.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-emerald-400 font-bold">GET</span> /proxy-api/dl?url={url}&name={name}&dp={dp}&apikey={YOUR_KEY}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">url</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. URL.</span> The encoded raw media URL.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">name</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The desired output filename for the user's device (e.g., <code class="bg-slate-100 px-1 py-0.5 rounded text-xs border border-slate-200">movie_720p.mp4</code>).</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">dp</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The detailPath of the media.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">apikey</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> Your secret API key.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Subtitles -->
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold font-mono tracking-wide">GET</span>
-                <h3 class="text-xl font-bold text-slate-900">Fetch Subtitles</h3>
-              </div>
-              <p class="text-sm text-slate-600 mb-5">Retrieve available SRT subtitle tracks in multiple languages for a specific movie or episode.</p>
-              
-              <div class="code-block rounded-t-xl p-5">
-                <code class="text-sm font-mono text-slate-300">
-                  <span class="text-brand-400 font-bold">GET</span> /api/subtitles?id={detailPath}&season={s}&episode={e}
-                </code>
-              </div>
-              <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Query Parameters</h4>
-                <div class="text-sm text-slate-600 flex flex-col gap-3">
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">id</code> 
-                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The detailPath of the media.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
-                    <code class="text-slate-900 font-bold font-mono w-24">season</code> 
-                    <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. Integer.</span> Required only if the media is a TV show.</span>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
-                    <code class="text-slate-900 font-bold font-mono w-24">episode</code> 
-                    <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. Integer.</span> Required only if the media is a TV show.</span>
-                  </div>
+              <div class="code-window mt-2 lg:mt-0 border border-emerald-900/30">
+                <div class="code-header !bg-slate-900"><span>HTML Usage</span></div>
+                <div class="code-body font-mono">
+<span class="syntax-comment">&lt;!-- Generates a direct file download --&gt;</span>
+&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=cb_live_YOUR_KEY"</span>&gt;
+  Download MP4
+&lt;/<span class="syntax-method">a</span>&gt;
                 </div>
               </div>
             </div>
@@ -589,7 +556,7 @@
       const password = document.getElementById('password').value;
       
       authError.classList.add('hidden');
-      authSubmitBtn.innerHTML = '<div class="loader"></div> Processing...';
+      authSubmitBtn.innerHTML = '<div class="loader"></div>';
       authSubmitBtn.disabled = true;
 
       try {
@@ -615,16 +582,13 @@
       authError.classList.remove('hidden');
     }
 
-    // Logout
     window.logout = async () => {
       await signOut(auth);
     };
 
-    // View Routing
     window.switchView = (viewId) => {
-      // Update sidebar active states
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-brand-50', 'text-brand-700', 'border-l-2', 'border-brand-600', 'bg-white');
+        btn.classList.remove('bg-brand-50', 'text-brand-700', 'bg-white');
         btn.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
         btn.style.borderLeft = 'none';
       });
@@ -635,16 +599,13 @@
         activeBtn.style.borderLeft = '3px solid #4f46e5';
       }
 
-      // Update Header Title
       const titles = { 'overview': 'Overview Dashboard', 'apikeys': 'API Key Management', 'docs': 'API Documentation' };
       document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
 
-      // Show/Hide Sections
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(`view-${viewId}`).classList.remove('hidden');
     };
 
-    // API Key Logic
     window.generateNewKey = async () => {
       if (!currentUser) return;
       
@@ -691,7 +652,6 @@
 
           keyArr.forEach(([id, data]) => {
             const date = new Date(data.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-            // Mask key for display
             const maskedKey = data.key.substring(0, 12) + '••••••••••••••••';
             
             const tr = document.createElement('tr');
@@ -725,11 +685,12 @@
       }
     }
 
-    // Utility: Copy to Clipboard
-    window.copyText = (text) => {
-      navigator.clipboard.writeText(text).then(() => {
-        // Visual feedback could go here
-      }).catch(err => console.error('Failed to copy', err));
+    window.copyText = (textOrElementId) => {
+      let textToCopy = textOrElementId;
+      const el = document.getElementById(textOrElementId);
+      if(el) textToCopy = el.innerText;
+      
+      navigator.clipboard.writeText(textToCopy).catch(err => console.error('Failed to copy', err));
     };
   </script>
 </body>
