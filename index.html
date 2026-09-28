@@ -430,7 +430,7 @@
               <i class="fa-solid fa-triangle-exclamation"></i> Required Configuration (CORS Bypass)
             </h3>
             <p class="text-sm text-amber-800 mb-4">
-              To use this API on your own website, you must route your frontend requests to our Base URL to prevent <code class="font-mono text-red-600">items.forEach is not a function</code> errors caused by strict CORS blocking. 
+              To use this API on your own website, you must route your frontend requests to our Base URL. 
               <br><br>
               <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to our API. If you use Render, Netlify, or a VPS, you must configure a similar proxy rewrite in your specific environment.
             </p>
@@ -452,6 +452,65 @@
             </div>
           </div>
 
+          <!-- Troubleshooting & Error Handling -->
+          <div class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Troubleshooting & Error Handling</h2>
+            
+            <div class="grid grid-cols-1 gap-6">
+              <!-- Error 1: items.forEach -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-bug text-rose-500"></i> Why am I getting "items.forEach is not a function"?
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  The <code class="font-mono text-xs bg-slate-100 px-1 rounded">/api/trending</code> or search request actually succeeded, but the API wraps the array under a non-standard JSON key (e.g., <code class="font-mono text-xs bg-slate-100 px-1 rounded">items</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">result</code>, or <code class="font-mono text-xs bg-slate-100 px-1 rounded">catalog</code>) rather than a standard <code class="font-mono text-xs bg-slate-100 px-1 rounded">data.results</code>. When your script tries to loop through it directly, it crashes.
+                  <br><br><strong>Fix:</strong> Use a safe extractor function to find the array before looping.
+                </p>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Safe Array Extractor (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-method">function</span> extractArray(data) {
+  <span class="syntax-method">if</span> (Array.isArray(data)) <span class="syntax-method">return</span> data;
+  <span class="syntax-method">if</span> (!data) <span class="syntax-method">return</span> [];
+  <span class="syntax-comment">// Find the non-standard key</span>
+  <span class="syntax-method">const</span> keys = [<span class="syntax-string">'results'</span>, <span class="syntax-string">'items'</span>, <span class="syntax-string">'list'</span>, <span class="syntax-string">'data'</span>];
+  <span class="syntax-method">for</span> (<span class="syntax-method">let</span> k <span class="syntax-method">of</span> keys) {
+    <span class="syntax-method">if</span> (Array.isArray(data[k])) <span class="syntax-method">return</span> data[k];
+  }
+  <span class="syntax-method">return</span> [];
+}
+
+<span class="syntax-comment">// Usage: renderGrid(extractArray(apiResponse));</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error 2: This subject is a tv -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-code-branch text-brand-500"></i> TV vs Movie Endpoint Mismatches
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  Sometimes your code will fetch the movie endpoint, but the API will return an exact error: <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">{"error": "This subject is a tv. Use /api/tv with season and episode instead."}</code>. This means your script tried to fetch a TV show using the movie endpoint because the ID didn't explicitly say "tv" in it.
+                  <br><br><strong>Fix:</strong> Add an automatic retry mechanism. If the API says "this is a tv show", instantly catch the error and retry using the TV endpoint with Season 1, Episode 1.
+                </p>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Mechanism (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=${id}`</span>);
+<span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
+
+<span class="syntax-method">if</span> (data.error && data.error.includes(<span class="syntax-string">'This subject is a tv'</span>)) {
+  <span class="syntax-comment">// Instantly Auto-Retry as a TV Show</span>
+  <span class="syntax-method">const</span> tvRes = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=${id}&season=1&episode=1`</span>);
+  <span class="syntax-method">const</span> tvData = <span class="syntax-method">await</span> tvRes.json();
+}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Authentication Guide (CRITICAL) -->
           <div class="mb-16">
             <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Authentication Architecture</h2>
@@ -466,7 +525,8 @@
                 <p class="text-sm text-slate-600 mb-4 flex-1">Metadata endpoints (<code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/search</code>, <code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/details</code>, etc.) are public and completely free. <strong>No headers or API keys are required.</strong></p>
                 <div class="code-window border border-slate-200">
                   <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch (Using your local proxy)</span></div>
-                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">fetch('<span class="text-brand-600">/api/trending</span>')</div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class="syntax-string">'GET'</span> })</div>
                 </div>
               </div>
 
@@ -513,7 +573,7 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/trending?limit=20'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/trending?limit=20'</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> trendingData = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -526,9 +586,9 @@
               <div>
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Search Catalog</h3>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Search Categories & Catalog</h3>
                 </div>
-                <p class="text-sm text-slate-600 mb-6">Search the database for specific movies, anime, or K-Dramas.</p>
+                <p class="text-sm text-slate-600 mb-6">Search the database for specific keywords to fetch Categories (Anime, K-Drama, Movies) or specific titles.</p>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
                   <table class="w-full text-left text-sm min-w-[300px]">
                     <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
@@ -544,9 +604,14 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=anime'</span>);
-<span class="syntax-method">const</span> results = <span class="syntax-method">await</span> res.json();
+<span class="syntax-comment">// Fetch Anime</span>
+<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=anime'</span>, { method: <span class="syntax-string">'GET'</span> });
+
+<span class="syntax-comment">// Fetch K-Drama</span>
+<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=korean%20drama'</span>, { method: <span class="syntax-string">'GET'</span> });
+
+<span class="syntax-comment">// Fetch Specific Movie</span>
+<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=Deadpool'</span>, { method: <span class="syntax-string">'GET'</span> });
                 </div>
               </div>
             </div>
@@ -576,7 +641,7 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/details?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/details?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -607,7 +672,7 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/episode-matrix?id=/tv/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/episode-matrix?id=/tv/123'</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -640,7 +705,7 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/subtitles?id=/movie/123'</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/subtitles?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> subs = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -673,10 +738,10 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie Source Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/movie?id=/movie/123'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/movie?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
 
 <span class="syntax-comment">// TV Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/tv?id=/tv/123&season=1&episode=1'</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/tv?id=/tv/123&season=1&episode=1'</span>, { method: <span class="syntax-string">'GET'</span> });
                 </div>
               </div>
             </div>
