@@ -427,10 +427,12 @@
           <!-- Vercel.json Routing Guide -->
           <div class="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
             <h3 class="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation"></i> Required Vercel Configuration
+              <i class="fa-solid fa-triangle-exclamation"></i> Required Configuration (CORS Bypass)
             </h3>
             <p class="text-sm text-amber-800 mb-4">
-              If you are hosting your frontend application on Vercel and connecting to a VPS backend (like Render, Brevo, etc.), you <strong>must</strong> include a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your frontend's root directory. This tells Vercel to route your requests properly (e.g., sending <code class="font-mono text-amber-900 bg-amber-200/50 px-1 rounded">https://movie-terms.vercel.app/api/...</code> directly to your backend at <code class="font-mono text-amber-900 bg-amber-200/50 px-1 rounded">http://app.brevo.host:2569/...</code>). Without this, requests will fail with <code class="font-mono text-red-600">items.forEach is not a function</code> errors.
+              To use this API on your own website, you must route your frontend requests to our Base URL to prevent <code class="font-mono text-red-600">items.forEach is not a function</code> errors caused by strict CORS blocking. 
+              <br><br>
+              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">https://movie-terms.vercel.app</code>.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -439,11 +441,11 @@
   <span class="syntax-string">"rewrites"</span>: [
     {
       <span class="syntax-string">"source"</span>: <span class="syntax-string">"/api/:path*"</span>,
-      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"http://app.brevo.host:2569/api/:path*"</span>
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/api/:path*"</span>
     },
     {
       <span class="syntax-string">"source"</span>: <span class="syntax-string">"/proxy-api/:path*"</span>,
-      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"http://app.brevo.host:2569/:path*"</span>
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/:path*"</span>
     }
   ]
 }</div>
