@@ -457,6 +457,7 @@
             <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Troubleshooting & Error Handling</h2>
             
             <div class="grid grid-cols-1 gap-6">
+              
               <!-- Error 1: items.forEach -->
               <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
                 <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
@@ -508,6 +509,37 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Error 3: 405 Method Not Allowed -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-ban text-rose-500"></i> Resolving "405 Method Not Allowed"
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  If you receive a <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">405 Method Not Allowed</code> error, it usually happens because your code sent a complex request or an incorrect method that triggered a block.
+                </p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2 mb-4">
+                  <li><strong>Accidental POST Requests:</strong> If you use an HTML <code class="font-mono text-xs">&lt;form&gt;</code> for your search bar, the browser may accidentally refresh the page and send a <code class="font-mono text-xs">POST</code> request. Always use <code class="font-mono text-xs">e.preventDefault()</code> in JavaScript and explicitly set <code class="font-mono text-xs">method: 'GET'</code> in your fetch call.</li>
+                  <li><strong>CORS Preflight (OPTIONS) Blocks:</strong> Adding custom headers like <code class="font-mono text-xs">{'Accept': 'application/json'}</code> makes your fetch a "complex request." This forces the browser to send an invisible <code class="font-mono text-xs">OPTIONS</code> preflight check to the server. If the server isn't configured to handle it, you get a 405 error. <strong>Keep your headers simple and avoid custom headers unless required.</strong></li>
+                  <li><strong>Missing Authentication:</strong> Double-check that you have included the <code class="font-mono text-xs">?apikey=...</code> parameter on proxy routes, or you might be connecting to the wrong base URL entirely.</li>
+                </ul>
+                <div class="code-window border border-slate-200">
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Correct Fetch Usage (JavaScript)</span></div>
+                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
+<span class="syntax-comment">// 1. Prevent default form submission</span>
+document.getElementById(<span class="syntax-string">'searchForm'</span>).addEventListener(<span class="syntax-string">'submit'</span>, (e) => {
+  e.preventDefault(); <span class="syntax-comment">// Stops the page reload & POST request</span>
+
+  <span class="syntax-comment">// 2. Explicitly use GET and avoid complex custom headers</span>
+  fetch(<span class="syntax-string">'/api/search?q=anime'</span>, {
+    method: <span class="syntax-string">'GET'</span> 
+  })
+  .then(res => res.json());
+});
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -815,6 +847,7 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
 
           </div>
         </div>
+
 
 
       </div>
