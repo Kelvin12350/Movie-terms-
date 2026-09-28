@@ -277,7 +277,17 @@
                 <i class="fa-regular fa-copy"></i>
               </button>
             </div>
-            <p class="text-sm text-slate-600 mt-4">All API requests must be made over HTTPS. Pass your generated API key in the headers as <code class="bg-slate-100 px-2 py-1 rounded-md text-slate-800 border border-slate-200 font-mono text-xs">Authorization: Bearer YOUR_KEY</code>.</p>
+            
+            <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+              All API requests must be made over HTTPS. For standard JSON catalog requests (like <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200 font-mono text-xs">/api/search</code> or <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200 font-mono text-xs">/api/details</code>), pass your generated API key in the headers as <code class="bg-slate-100 px-2 py-1 rounded-md text-slate-800 border border-slate-200 font-mono text-xs">Authorization: Bearer YOUR_KEY</code>.
+            </p>
+            
+            <div class="mt-4 p-4 bg-brand-50 border border-brand-100 rounded-xl">
+              <p class="text-sm text-brand-800 font-medium flex items-start gap-2">
+                <i class="fa-solid fa-circle-info mt-1 text-brand-600"></i>
+                <span><strong class="font-bold text-brand-900">Important Proxy Authentication:</strong> For direct media and HTML5-player endpoints (<code class="font-mono text-xs font-bold">/proxy-api/stream</code> and <code class="font-mono text-xs font-bold">/proxy-api/dl</code>), browsers strip custom headers. You <strong>must</strong> pass your API key as a URL query parameter instead: <code class="bg-white px-1.5 py-0.5 rounded border border-brand-200 font-mono text-xs text-brand-900 shadow-sm">?apikey=YOUR_KEY</code>.</span>
+              </p>
+            </div>
           </div>
 
           <!-- Endpoints List -->
@@ -425,7 +435,7 @@
               
               <div class="code-block rounded-t-xl p-5">
                 <code class="text-sm font-mono text-slate-300">
-                  <span class="text-rose-400 font-bold">GET</span> /proxy-api/stream?url={url}&dp={dp}
+                  <span class="text-rose-400 font-bold">GET</span> /proxy-api/stream?url={url}&dp={dp}&apikey={YOUR_KEY}
                 </code>
               </div>
               <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
@@ -435,9 +445,13 @@
                     <code class="text-slate-900 font-bold font-mono w-24">url</code> 
                     <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. URL.</span> The encoded raw media or SRT URL from the streaming endpoints.</span>
                   </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
+                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
                     <code class="text-slate-900 font-bold font-mono w-24">dp</code> 
                     <span class="flex-1"><span class="text-slate-400 italic mr-2">Optional. String.</span> The detailPath of the media, used for internal routing.</span>
+                  </div>
+                  <div class="flex flex-col sm:flex-row sm:gap-6">
+                    <code class="text-slate-900 font-bold font-mono w-24">apikey</code> 
+                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> Your secret API key.</span>
                   </div>
                 </div>
               </div>
@@ -453,7 +467,7 @@
               
               <div class="code-block rounded-t-xl p-5">
                 <code class="text-sm font-mono text-slate-300">
-                  <span class="text-emerald-400 font-bold">GET</span> /proxy-api/dl?url={url}&name={name}&dp={dp}
+                  <span class="text-emerald-400 font-bold">GET</span> /proxy-api/dl?url={url}&name={name}&dp={dp}&apikey={YOUR_KEY}
                 </code>
               </div>
               <div class="bg-white rounded-b-xl p-6 border-x border-b border-slate-200 shadow-sm">
@@ -467,9 +481,13 @@
                     <code class="text-slate-900 font-bold font-mono w-24">name</code> 
                     <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The desired output filename for the user's device (e.g., <code class="bg-slate-100 px-1 py-0.5 rounded text-xs border border-slate-200">movie_720p.mp4</code>).</span>
                   </div>
-                  <div class="flex flex-col sm:flex-row sm:gap-6">
+                  <div class="flex flex-col sm:flex-row sm:gap-6 border-b border-slate-100 pb-3">
                     <code class="text-slate-900 font-bold font-mono w-24">dp</code> 
                     <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> The detailPath of the media.</span>
+                  </div>
+                  <div class="flex flex-col sm:flex-row sm:gap-6">
+                    <code class="text-slate-900 font-bold font-mono w-24">apikey</code> 
+                    <span class="flex-1"><span class="text-brand-600 font-semibold mr-2">Required. String.</span> Your secret API key.</span>
                   </div>
                 </div>
               </div>
