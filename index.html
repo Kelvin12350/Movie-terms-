@@ -50,6 +50,15 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::cue {
+      background-color: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      font-size: 15px;
+      font-family: sans-serif;
+      text-shadow: 0 1px 2px #000;
+    }
     
     /* Code Block Styling */
     .code-window { background: #0f172a; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
@@ -153,6 +162,11 @@
         <button onclick="switchView('docs')" id="nav-docs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-book w-4 text-center"></i> Documentation
         </button>
+        
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6 px-3">MovieBox App</div>
+        <button onclick="switchView('moviebox')" id="nav-moviebox" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-dashed border-slate-300">
+          <i class="fa-solid fa-play w-4 text-center text-rose-500"></i> Open Movie App
+        </button>
       </div>
 
       <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
@@ -193,7 +207,7 @@
       </header>
 
       <!-- Scrollable Content Viewport -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10">
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10 relative">
 
         <!-- ================= 0. GET STARTED VIEW ================= -->
         <div id="view-getstarted" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
@@ -482,7 +496,7 @@
           <div class="mb-8 max-w-3xl">
             <h1 class="text-3xl lg:text-4xl font-black text-slate-900 mb-4 tracking-tight">API Reference</h1>
             <p class="text-base lg:text-lg text-slate-600 leading-relaxed">
-              Integrate CineBase's robust video infrastructure into your application. Build seamless streaming experiences, access comprehensive metadata, and generate direct proxy downloads.
+              Integrate CineBase's robust video infrastructure into your application. Follow this guide exactly to bypass strict browser CORS policies and build seamless streaming experiences.
             </p>
           </div>
 
@@ -493,35 +507,27 @@
                 <i class="fa-solid fa-file-code text-brand-600"></i> Download Working Sample Code
               </h3>
               <p class="text-sm text-brand-800">
-                Are you confused about where to put your API keys, how to fetch data safely, or how to setup your Vercel routing? Download our complete, single-file HTML working example to see it in action.
+                Want to see exactly how to implement the endpoints, Vercel routing, and API Keys? Download our complete, single-file HTML working example.
               </p>
             </div>
-            <!-- Standard HTML Download Link pointing to the root file -->
-            <a href="/cinebase-sample.html" download="cinebase-sample.html" class="whitespace-nowrap px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-600/20 flex items-center gap-2">
+            <!-- Auto-Generates Sample HTML File -->
+            <a href="#" onclick="downloadSampleApp(); return false;" class="whitespace-nowrap px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-600/20 flex items-center gap-2">
               <i class="fa-solid fa-download"></i> Download Sample App
             </a>
           </div>
 
-          <!-- Base URL -->
-          <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="overflow-hidden">
-              <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Base URL</h2>
-              <code class="text-brand-600 text-sm lg:text-lg font-mono font-bold tracking-wide truncate block">https://movie-terms.vercel.app</code>
-            </div>
-            <button onclick="copyText('https://movie-terms.vercel.app')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
-              <i class="fa-regular fa-copy"></i> Copy URL
-            </button>
-          </div>
-
-          <!-- Vercel.json Routing Guide -->
+          <!-- STEP 1: Routing Setup (CRITICAL) -->
           <div class="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
-            <h3 class="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation"></i> Required Configuration (CORS Bypass)
-            </h3>
-            <p class="text-sm text-amber-800 mb-4">
-              To use this API on your own website, you must route your frontend requests to our Base URL. 
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center border border-amber-300">
+                <span class="text-amber-800 font-bold">1</span>
+              </div>
+              <h3 class="text-xl font-bold text-amber-900">Required Configuration (CORS Bypass)</h3>
+            </div>
+            <p class="text-sm text-amber-800 mb-4 leading-relaxed">
+              If you call our API directly from your frontend code, the browser will block it with a <strong>405 Method Not Allowed</strong> or CORS error. You must route your requests through your own domain.
               <br><br>
-              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1 rounded">vercel.json</code> file in your root folder and add the code below. This tells your website to proxy your <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls directly to our API. If you use Render, Netlify, or a VPS, you must configure a similar proxy rewrite in your specific environment.
+              <strong>If you use Vercel:</strong> Create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers. If you use Render or a VPS, configure an equivalent proxy rewrite in your web server.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -541,127 +547,76 @@
             </div>
           </div>
 
+          <!-- STEP 2: Global Configuration -->
+          <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+             <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-300">
+                <span class="text-slate-700 font-bold">2</span>
+              </div>
+              <h3 class="text-xl font-bold text-slate-900">Frontend Global Setup</h3>
+            </div>
+            <p class="text-sm text-slate-600 mb-6">Define these exact constants at the top of your JavaScript file. This ensures all your requests use the secure local proxy paths defined in your <code class="font-mono text-xs bg-slate-100 px-1 rounded">vercel.json</code>.</p>
+            
+            <div class="code-window border border-slate-200">
+              <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>JavaScript Constants</span></div>
+              <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs lg:text-[13px]">
+<span class="syntax-method">const</span> API_KEY = <span class="syntax-string">'cb_live_YOUR_SECRET_KEY'</span>;
+<span class="syntax-method">const</span> BASE_API = <span class="syntax-string">''</span>; <span class="syntax-comment">// Empty string ensures requests hit your local /api proxy</span>
+<span class="syntax-method">const</span> STREAM_PROXY = <span class="syntax-string">'/proxy-api/stream'</span>;
+<span class="syntax-method">const</span> DL_PROXY = <span class="syntax-string">'/proxy-api/dl'</span>;
+              </div>
+            </div>
+          </div>
+
           <!-- Troubleshooting & Error Handling -->
           <div class="mb-16">
-            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Troubleshooting & Error Handling</h2>
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Troubleshooting & Edge Cases</h2>
             
-            <div class="grid grid-cols-1 gap-6">
-              
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Error 1: items.forEach -->
               <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-bug text-rose-500"></i> Why am I getting "items.forEach is not a function"?
+                <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-bug text-rose-500"></i> "items.forEach is not a function"
                 </h3>
                 <p class="text-sm text-slate-600 mb-4">
-                  The <code class="font-mono text-xs bg-slate-100 px-1 rounded">/api/trending</code> or search request actually succeeded, but the API wraps the array under a non-standard JSON key (e.g., <code class="font-mono text-xs bg-slate-100 px-1 rounded">items</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">result</code>, or <code class="font-mono text-xs bg-slate-100 px-1 rounded">catalog</code>) rather than a standard <code class="font-mono text-xs bg-slate-100 px-1 rounded">data.results</code>. When your script tries to loop through it directly, it crashes.
-                  <br><br><strong>Fix:</strong> Use a safe extractor function to find the array before looping.
+                  The API wraps metadata arrays under variable non-standard keys (like <code class="font-mono text-[10px] bg-slate-100 px-1 rounded">items</code> or <code class="font-mono text-[10px] bg-slate-100 px-1 rounded">list</code>). Looping blindly will crash your app. Use this safe extractor:
                 </p>
                 <div class="code-window border border-slate-200">
-                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Safe Array Extractor (JavaScript)</span></div>
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Safe Array Extractor</span></div>
                   <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
 <span class="syntax-method">function</span> extractArray(data) {
   <span class="syntax-method">if</span> (Array.isArray(data)) <span class="syntax-method">return</span> data;
   <span class="syntax-method">if</span> (!data) <span class="syntax-method">return</span> [];
-  <span class="syntax-comment">// Find the non-standard key</span>
   <span class="syntax-method">const</span> keys = [<span class="syntax-string">'results'</span>, <span class="syntax-string">'items'</span>, <span class="syntax-string">'list'</span>, <span class="syntax-string">'data'</span>];
   <span class="syntax-method">for</span> (<span class="syntax-method">let</span> k <span class="syntax-method">of</span> keys) {
     <span class="syntax-method">if</span> (Array.isArray(data[k])) <span class="syntax-method">return</span> data[k];
   }
   <span class="syntax-method">return</span> [];
 }
-
-<span class="syntax-comment">// Usage: renderGrid(extractArray(apiResponse));</span>
                   </div>
                 </div>
               </div>
 
               <!-- Error 2: This subject is a tv -->
               <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-code-branch text-brand-500"></i> TV vs Movie Endpoint Mismatches
+                <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-code-branch text-brand-500"></i> "This subject is a tv" Error
                 </h3>
                 <p class="text-sm text-slate-600 mb-4">
-                  Sometimes your code will fetch the movie endpoint, but the API will return an exact error: <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">{"error": "This subject is a tv. Use /api/tv with season and episode instead."}</code>. This means your script tried to fetch a TV show using the movie endpoint because the ID didn't explicitly say "tv" in it.
-                  <br><br><strong>Fix:</strong> Add an automatic retry mechanism. If the API says "this is a tv show", instantly catch the error and retry using the TV endpoint with Season 1, Episode 1.
+                  If you fetch the movie endpoint but the ID belongs to a TV show, the API rejects it. Catch the error and auto-retry as a TV series.
                 </p>
                 <div class="code-window border border-slate-200">
-                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Mechanism (JavaScript)</span></div>
+                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Logic</span></div>
                   <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=${id}`</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=\${id}`</span>);
 <span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
 
 <span class="syntax-method">if</span> (data.error && data.error.includes(<span class="syntax-string">'This subject is a tv'</span>)) {
-  <span class="syntax-comment">// Instantly Auto-Retry as a TV Show</span>
-  <span class="syntax-method">const</span> tvRes = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=${id}&season=1&episode=1`</span>);
+  <span class="syntax-comment">// Auto-Heal: Switch to TV endpoint</span>
+  <span class="syntax-method">const</span> tvRes = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=\${id}&season=1&episode=1`</span>);
   <span class="syntax-method">const</span> tvData = <span class="syntax-method">await</span> tvRes.json();
 }
                   </div>
-                </div>
-              </div>
-
-              <!-- Error 3: 405 Method Not Allowed -->
-              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                  <i class="fa-solid fa-ban text-rose-500"></i> Resolving "405 Method Not Allowed"
-                </h3>
-                <p class="text-sm text-slate-600 mb-4">
-                  If you receive a <code class="font-mono text-xs bg-rose-50 text-rose-600 px-1 rounded">405 Method Not Allowed</code> error, it usually happens because your code sent a complex request or an incorrect method that triggered a block.
-                </p>
-                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2 mb-4">
-                  <li><strong>Accidental POST Requests:</strong> If you use an HTML <code class="font-mono text-xs">&lt;form&gt;</code> for your search bar, the browser may accidentally refresh the page and send a <code class="font-mono text-xs">POST</code> request. Always use <code class="font-mono text-xs">e.preventDefault()</code> in JavaScript and explicitly set <code class="font-mono text-xs">method: 'GET'</code> in your fetch call.</li>
-                  <li><strong>CORS Preflight (OPTIONS) Blocks:</strong> Adding custom headers like <code class="font-mono text-xs">{'Accept': 'application/json'}</code> makes your fetch a "complex request." This forces the browser to send an invisible <code class="font-mono text-xs">OPTIONS</code> preflight check to the server. If the server isn't configured to handle it, you get a 405 error. <strong>Keep your headers simple and avoid custom headers unless required.</strong></li>
-                  <li><strong>Missing Authentication:</strong> Double-check that you have included the <code class="font-mono text-xs">?apikey=...</code> parameter on proxy routes, or you might be connecting to the wrong base URL entirely.</li>
-                </ul>
-                <div class="code-window border border-slate-200">
-                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Correct Fetch Usage (JavaScript)</span></div>
-                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
-<span class="syntax-comment">// 1. Prevent default form submission</span>
-document.getElementById(<span class="syntax-string">'searchForm'</span>).addEventListener(<span class="syntax-string">'submit'</span>, (e) => {
-  e.preventDefault(); <span class="syntax-comment">// Stops the page reload & POST request</span>
-
-  <span class="syntax-comment">// 2. Explicitly use GET and avoid complex custom headers</span>
-  fetch(<span class="syntax-string">'/api/search?q=anime'</span>, {
-    method: <span class="syntax-string">'GET'</span> 
-  })
-  .then(res => res.json());
-});
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Authentication Guide (CRITICAL) -->
-          <div class="mb-16">
-            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-2">Authentication Architecture</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Method 1 -->
-              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100">
-                  <i class="fa-solid fa-lock-open text-emerald-600"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-900 mb-2">1. JSON API Data (FREE)</h3>
-                <p class="text-sm text-slate-600 mb-4 flex-1">Metadata endpoints (<code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/search</code>, <code class="font-mono text-xs text-emerald-600 bg-emerald-50 px-1 rounded">/api/details</code>, etc.) are public and completely free. <strong>No headers or API keys are required.</strong></p>
-                <div class="code-window border border-slate-200">
-                  <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Example Fetch (Using your local proxy)</span></div>
-                  <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
-fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class="syntax-string">'GET'</span> })</div>
-                </div>
-              </div>
-
-              <!-- Method 2 -->
-              <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col">
-                <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-shield-halved text-6xl text-white"></i></div>
-                <div class="w-10 h-10 rounded-xl bg-brand-900 flex items-center justify-center mb-4 border border-brand-700 relative z-10">
-                  <i class="fa-solid fa-key text-brand-300"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white mb-2 relative z-10">2. Media Proxies (SECURED)</h3>
-                <p class="text-sm text-slate-300 mb-4 flex-1 relative z-10">Video players and downloads cannot send custom headers. For proxy endpoints, you <strong>must</strong> append your secret key as a URL parameter.</p>
-                <div class="code-window border border-slate-700">
-                  <div class="code-header !bg-slate-800 !border-slate-700 !text-slate-300"><span>Query Parameter Required</span></div>
-                  <div class="code-body !bg-slate-900 !text-brand-300 text-xs">?apikey=<span class="syntax-string">YOUR_SECRET_KEY</span></div>
                 </div>
               </div>
             </div>
@@ -669,33 +624,23 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
 
           <!-- ENDPOINTS -->
           <div class="space-y-16">
-            <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2">Free Metadata Endpoints</h2>
+            <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2">Fetching Free Metadata</h2>
 
             <!-- 1. Trending -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
               <div>
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Fetch Trending Media</h3>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Trending Media</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Returns a curated array of currently trending movies and TV shows.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">Optional</span> Number of items (Default: 24).</td></tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/trending?limit=20'</span>, { method: <span class="syntax-string">'GET'</span> });
-<span class="syntax-method">const</span> trendingData = <span class="syntax-method">await</span> res.json();
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/trending?limit=24`</span>);
+<span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
+<span class="syntax-method">const</span> trendingList = extractArray(data);
                 </div>
               </div>
             </div>
@@ -707,32 +652,21 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
               <div>
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Search Categories & Catalog</h3>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Search Catalog</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Search the database for specific keywords to fetch Categories (Anime, K-Drama, Movies) or specific titles.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">q</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The search term (e.g. "anime", "korean drama", "Inception").</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">limit</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">Optional</span> Max items (Default: 24).</td></tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Fetch Anime</span>
-<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=anime'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=anime&limit=24`</span>);
 
 <span class="syntax-comment">// Fetch K-Drama</span>
-<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=korean%20drama'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=korean%20drama&limit=24`</span>);
 
-<span class="syntax-comment">// Fetch Specific Movie</span>
-<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/search?q=Deadpool'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-comment">// Specific Movie</span>
+<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=Deadpool&limit=24`</span>);
                 </div>
               </div>
             </div>
@@ -744,25 +678,14 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
               <div>
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Get Media Details</h3>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Media Details</h3>
                 </div>
-                <p class="text-sm text-slate-600 mb-6">Fetch deep metadata (synopsis, cast, IMDB, genre) using a detailPath.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> The <code class="bg-slate-100 px-1 rounded">detailPath</code> from Search/Trending.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch deep metadata (synopsis, cast, IMDB, genre) using the <code class="bg-slate-100 px-1 rounded text-xs font-mono">detailPath</code>.</p>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/details?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/details?id=\${encodeURIComponent(detailPath)}`</span>);
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -778,22 +701,11 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
                   <h3 class="text-lg lg:text-xl font-bold text-slate-900">TV Episode Matrix</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Fetch a structured matrix containing all available seasons and episodes for a TV show.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath for the TV Series.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/episode-matrix?id=/tv/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/episode-matrix?id=\${encodeURIComponent(detailPath)}`</span>);
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -809,25 +721,15 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
                   <h3 class="text-lg lg:text-xl font-bold text-slate-900">Fetch Subtitles</h3>
                 </div>
                 <p class="text-sm text-slate-600 mb-6">Retrieve an array of available SRT subtitle tracks in multiple languages.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">season</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Season number.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">episode</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Episode number.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// NO API KEY REQUIRED</span>
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/subtitles?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
-<span class="syntax-method">const</span> subs = <span class="syntax-method">await</span> res.json();
+<span class="syntax-comment">// Movie</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/subtitles?id=\${encodeURIComponent(detailPath)}`</span>);
+
+<span class="syntax-comment">// TV Show</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/subtitles?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>);
                 </div>
               </div>
             </div>
@@ -839,36 +741,25 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
               <div>
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Movie / TV Stream Sources</h3>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Fetch Media Stream URLs</h3>
                 </div>
-                <p class="text-sm text-slate-600 mb-6">Fetch raw M3U8/MP4 URLs. Use <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/movie</code> for movies and <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">/api/tv</code> for series.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">id</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Media detailPath.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">season</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Season number.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">episode</td><td class="px-4 py-3"><span class="text-slate-400 font-semibold text-[10px] lg:text-xs uppercase mr-2">TV Only</span> Episode number.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                <p class="text-sm text-slate-600 mb-6">Fetch raw M3U8/MP4 URLs. You MUST pass these URLs into the Secured Proxy endpoint to stream them.</p>
               </div>
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">// Movie Source Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/movie?id=/movie/123'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-comment">// Movie Source Request</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=\${encodeURIComponent(detailPath)}`</span>);
 
-<span class="syntax-comment">// TV Request (NO KEY REQUIRED)</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">'/api/tv?id=/tv/123&season=1&episode=1'</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-comment">// TV Request</span>
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>);
                 </div>
               </div>
             </div>
 
             <hr class="border-slate-200">
             <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-200 pb-2 mt-8">Secured Proxy Endpoints</h2>
+            <p class="text-sm text-slate-600 mb-10">Using these endpoints deducts usage from your developer wallet.</p>
 
             <!-- 7. Video Stream Proxy -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
@@ -877,25 +768,17 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
                   <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
                   <h3 class="text-lg lg:text-xl font-bold text-slate-900">HTML5 Stream Proxy</h3>
                 </div>
-                <p class="text-sm text-slate-600 mb-6">Proxy endpoint to bypass CORS. Embed this directly into an HTML5 <code class="font-mono text-xs font-bold bg-slate-100 px-1 rounded">&lt;video src="..."&gt;</code> tag.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto mb-4">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Critical</span> Auth Key via URL query.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                <p class="text-sm text-slate-600 mb-6">Generate a direct video stream link to bypass CORS. Embed this securely in an HTML5 video player.</p>
               </div>
               <div class="code-window mt-2 lg:mt-0 border border-rose-900/30">
-                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
+                <div class="code-header !bg-slate-900"><span>JavaScript Player Injection</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">&lt;!-- Notice apikey is passed in the URL string --&gt;</span>
-&lt;<span class="syntax-method">video</span> <span class="syntax-url">controls</span> <span class="syntax-url">src</span>=<span class="syntax-string">"/proxy-api/stream?url=ENCODED_URL&apikey=YOUR_KEY"</span>&gt;
-&lt;/<span class="syntax-method">video</span>&gt;
+<span class="syntax-method">const</span> encodedUrl = encodeURIComponent(rawMediaUrl);
+<span class="syntax-method">const</span> dp = encodeURIComponent(detailPath);
+
+<span class="syntax-comment">// Set the video source dynamically</span>
+videoPlayer.src = <span class="syntax-string">`\${STREAM_PROXY}?url=\${encodedUrl}&dp=\${dp}&apikey=\${API_KEY}`</span>;
+videoPlayer.play();
                 </div>
               </div>
             </div>
@@ -903,38 +786,158 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
             <hr class="border-slate-200">
 
             <!-- 8. Download Proxy -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start mb-20">
               <div>
                 <div class="flex items-center gap-3 mb-3">
-                  <span class="px-2.5 py-1 rounded bg-brand-50 text-brand-700 border border-brand-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
-                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Direct Download File</h3>
+                  <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] lg:text-xs font-bold font-mono tracking-wide">GET</span>
+                  <h3 class="text-lg lg:text-xl font-bold text-slate-900">Direct Download Request</h3>
                 </div>
-                <p class="text-sm text-slate-600 mb-6">Forces an attachment download, bypassing browser playback. Link directly via an anchor tag.</p>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto mb-4">
-                  <table class="w-full text-left text-sm min-w-[300px]">
-                    <thead class="bg-slate-50 text-[10px] lg:text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr><th class="px-4 py-3">Parameter</th><th class="px-4 py-3">Description</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-600">
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">url</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Encoded raw media URL.</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">name</td><td class="px-4 py-3"><span class="text-brand-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Required</span> Output filename (e.g., <code class="font-mono text-xs">movie.mp4</code>).</td></tr>
-                      <tr><td class="px-4 py-3 font-mono text-slate-900 font-bold">apikey</td><td class="px-4 py-3"><span class="text-rose-600 font-semibold text-[10px] lg:text-xs uppercase mr-2">Critical</span> Auth Key via URL query.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                <p class="text-sm text-slate-600 mb-6">Forces an attachment download instead of browser playback. Append the desired filename in the query string.</p>
               </div>
-              <div class="code-window mt-2 lg:mt-0 border border-brand-900/30">
-                <div class="code-header !bg-slate-900"><span>HTML Usage (Using local proxy)</span></div>
+              <div class="code-window mt-2 lg:mt-0 border border-rose-900/30">
+                <div class="code-header !bg-slate-900"><span>JavaScript Download Button</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-comment">&lt;!-- Generates a direct file download dialog --&gt;</span>
-&lt;<span class="syntax-method">a</span> <span class="syntax-url">href</span>=<span class="syntax-string">"/proxy-api/dl?url=ENCODED_URL&name=movie.mp4&apikey=YOUR_KEY"</span>&gt;
-  Download Movie
-&lt;/<span class="syntax-method">a</span>&gt;
+<span class="syntax-method">const</span> encodedUrl = encodeURIComponent(rawMediaUrl);
+<span class="syntax-method">const</span> dp = encodeURIComponent(detailPath);
+<span class="syntax-method">const</span> fileName = encodeURIComponent(<span class="syntax-string">"movie_1080p.mp4"</span>);
+
+<span class="syntax-comment">// Attach to an anchor <a> tag</span>
+downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&name=\${fileName}&dp=\${dp}&apikey=\${API_KEY}`</span>;
                 </div>
               </div>
             </div>
 
           </div>
+          
+          <!-- Embedded Download Script for Sample HTML -->
+          <script>
+            function downloadSampleApp() {
+              const sampleCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CineBase API Working Sample</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; padding: 2rem; max-w: 800px; margin: auto; }
+    .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+    button { background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #4338ca; }
+    video { width: 100%; border-radius: 8px; background: black; margin-top: 1rem; }
+    input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>CineBase API Working Sample</h1>
+  
+  <div class="card">
+    <h3>1. Required vercel.json</h3>
+    <p>Before testing this code locally or on Vercel, ensure you have a <code>vercel.json</code> file in your root folder:</p>
+    <pre>
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://movie-terms.vercel.app/api/:path*"
+    },
+    {
+      "source": "/proxy-api/:path*",
+      "destination": "https://movie-terms.vercel.app/proxy-api/:path*"
+    }
+  ]
+}
+    </pre>
+  </div>
+
+  <div class="card">
+    <h3>2. Test Metadata Fetching</h3>
+    <p style="font-size: 13px; color: #64748b;">(No API key required for these)</p>
+    <br>
+    <button onclick="testTrending()">Test Trending</button>
+    <button onclick="testSearch()" style="background: #0ea5e9; margin-left: 10px;">Test Anime Search</button>
+  </div>
+
+  <div class="card">
+    <h3>3. Test Secure Video Streaming</h3>
+    <input type="text" id="myApiKey" placeholder="cb_live_..." />
+    <br><br>
+    <button onclick="testVideo()" style="background: #e11d48;">Load Video Stream</button>
+    <video id="player" controls playsinline preload="metadata" crossorigin="anonymous"></video>
+  </div>
+
+  <script>
+    // Global Configuration
+    const BASE_API = ''; // Empty string ensures requests route to your local proxy
+    const STREAM_PROXY = '/proxy-api/stream';
+
+    // Safe Array Extractor (Prevents items.forEach errors)
+    function extractArray(data) {
+      if (Array.isArray(data)) return data;
+      if (!data) return [];
+      const keys = ['results', 'items', 'list', 'data'];
+      for (let k of keys) {
+        if (Array.isArray(data[k])) return data[k];
+      }
+      return [];
+    }
+
+    // Fetch API logic
+    async function testTrending() {
+      try {
+        const res = await fetch(\`\${BASE_API}/api/trending?limit=5\`);
+        const data = await res.json();
+        const arr = extractArray(data);
+        console.log("Trending Data:", arr);
+        alert(\`Success! Loaded \${arr.length} trending items. Check browser console.\`);
+      } catch (err) {
+        console.error(err);
+        alert("Fetch failed. Is your vercel.json rewrite setup correctly?");
+      }
+    }
+
+    async function testSearch() {
+      try {
+        const res = await fetch(\`\${BASE_API}/api/search?q=anime&limit=5\`);
+        const data = await res.json();
+        const arr = extractArray(data);
+        console.log("Anime Data:", arr);
+        alert(\`Success! Loaded \${arr.length} anime items. Check browser console.\`);
+      } catch (err) {
+        console.error(err);
+        alert("Fetch failed. Is your vercel.json rewrite setup correctly?");
+      }
+    }
+
+    function testVideo() {
+      const apiKey = document.getElementById('myApiKey').value.trim();
+      if (!apiKey) {
+        alert("Please enter an API key first.");
+        return;
+      }
+      
+      const rawLink = "https://bcdnxw.hakunaymatata.com/resource/cfb526f1203c80b04c54dbd29d3bcf04.mp4?sign=659e7313c48b858bcdf8c84bc41d3ad8&t=1790591704";
+      const encodedUrl = encodeURIComponent(rawLink);
+      const dp = encodeURIComponent('the-boys-c8bx84KzD76');
+      
+      const videoPlayer = document.getElementById('player');
+      videoPlayer.src = \`\${STREAM_PROXY}?url=\${encodedUrl}&dp=\${dp}&apikey=\${apiKey}\`;
+      videoPlayer.play();
+    }
+  <\/script>
+</body>
+</html>`;
+
+              const blob = new Blob([sampleCode], { type: 'text/html' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'cinebase-sample.html';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }
+          </script>
         </div>
 
       </div>
@@ -1071,12 +1074,32 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
         'wallet': 'Billing & Wallet', 
         'apikeys': 'API Key Management', 
         'tester': 'API Sandbox',
-        'docs': 'API Documentation' 
+        'docs': 'API Documentation',
+        'moviebox': 'Movie App View'
       };
-      document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
+      
+      // If going to moviebox, we hide the header since the app has its own
+      if (viewId === 'moviebox') {
+         document.querySelector('header').classList.add('hidden');
+         document.getElementById('header-title').innerText = '';
+      } else {
+         document.querySelector('header').classList.remove('hidden');
+         document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
+      }
 
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(`view-${viewId}`).classList.remove('hidden');
+      
+      // The movie app view is special (it lives in <main> outside the views), we manage its visibility manually
+      const mainMovieAppElements = [document.getElementById('grid'), document.getElementById('searchForm').parentElement.parentElement, document.getElementById('emptyState')];
+      
+      if (viewId === 'moviebox') {
+          mainMovieAppElements.forEach(el => el && el.classList.remove('hidden'));
+          loadTrending(); // Refresh movies
+      } else {
+          mainMovieAppElements.forEach(el => el && el.classList.add('hidden'));
+          const targetView = document.getElementById(`view-${viewId}`);
+          if (targetView) targetView.classList.remove('hidden');
+      }
       
       // Auto-refresh stats when opening overview
       if (viewId === 'overview') {
@@ -1274,16 +1297,6 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
     }
 
     // --- API Tester / Sandbox Logic ---
-    function extractArray(data) {
-      if (Array.isArray(data)) return data;
-      if (!data) return [];
-      const keys = ['results', 'items', 'list', 'data'];
-      for (let k of keys) {
-        if (Array.isArray(data[k])) return data[k];
-      }
-      return [];
-    }
-
     window.executeTestSearch = async () => {
       const query = document.getElementById('test-search-query').value.trim();
       const output = document.getElementById('test-json-output');
@@ -1294,11 +1307,11 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
          return;
       }
       
-      output.innerText = 'Searching...\nFetching from https://movie-terms.vercel.app/api/search...';
+      output.innerText = 'Searching...\nFetching from /api/search...';
       resultsDiv.innerHTML = '';
       
       try {
-        const res = await fetch(`https://movie-terms.vercel.app/api/search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         
         output.innerText = JSON.stringify(data, null, 2);
@@ -1336,7 +1349,7 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
       try {
          // 1. Fetch the raw stream metadata (Free)
          const typeRoute = (item.type === 'tv' || item.detailPath.includes('/tv/')) ? 'tv' : 'movie';
-         let sourceUrl = `https://movie-terms.vercel.app/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}`;
+         let sourceUrl = `/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}`;
          if (typeRoute === 'tv') sourceUrl += '&season=1&episode=1';
          
          const srcRes = await fetch(sourceUrl);
@@ -1355,7 +1368,7 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
          }
          
          // 2. Generate the proxy URL (Secured)
-         const proxyUrl = `https://movie-terms.vercel.app/proxy-api/stream?url=${encodeURIComponent(rawUrl)}&apikey=${apiKey}`;
+         const proxyUrl = `/proxy-api/stream?url=${encodeURIComponent(rawUrl)}&apikey=${apiKey}`;
          
          output.innerText = `// 1. Retrieved raw stream sources for ${item.title}\n\n// 2. Constructed Secure Proxy URL:\n${proxyUrl}\n\n// 3. Ping testing stream headers (Counts as 1 request)...\n`;
          
@@ -1388,6 +1401,543 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
         alert("Copied to clipboard!");
       }).catch(err => console.error('Failed to copy', err));
     };
+    
+    // ======== ORIGINAL MOVIEBOX APP JS ========
+    const BASE_API = ''; // Base path set to empty string to route locally via vercel.json
+    const STREAM_PROXY = '/proxy-api/stream';
+    const DL_PROXY = '/proxy-api/dl';
+
+    // (The extractArray and srtToWebVTT functions are already defined above or below)
+
+    // Convert SRT subtitle text into standard WebVTT format
+    function srtToWebVTT(srtText) {
+      let vtt = srtText.replace(/\r\n|\r/g, '\n').trim();
+      vtt = vtt.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+      return 'WEBVTT\n\n' + vtt;
+    }
+
+    // Navigation Category Tabs (for the embedded app)
+    window.switchTab = function(tab) {
+      clearNavActive();
+      const activeBtn = document.getElementById(`nav-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-gray-900', 'text-gray-300', 'border-gray-800');
+        activeBtn.classList.add('bg-rose-600', 'text-white');
+      }
+
+      if (tab === 'home') {
+        loadTrending();
+      } else if (tab === 'anime') {
+        loadCategory('anime', '<i class="fa-solid fa-bolt text-indigo-400"></i> Popular Anime');
+      } else if (tab === 'kdrama') {
+        loadCategory('korean drama', '<i class="fa-solid fa-heart text-pink-400"></i> K-Drama Series & Movies');
+      } else if (tab === 'movies') {
+        loadCategory('2024 movie', '<i class="fa-solid fa-film text-emerald-400"></i> Popular Movies');
+      } else if (tab === 'series') {
+        loadCategory('series', '<i class="fa-solid fa-tv text-cyan-400"></i> Top TV Series');
+      }
+    };
+
+    function clearNavActive() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-rose-600', 'text-white');
+        btn.classList.add('bg-gray-900', 'text-gray-300', 'border-gray-800');
+      });
+    }
+
+    async function loadTrending() {
+      document.getElementById('sectionTitle').innerHTML = '<i class="fa-solid fa-fire text-amber-500"></i> Trending Now';
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/trending?limit=24`);
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('loadTrending error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function loadCategory(query, titleHtml) {
+      document.getElementById('sectionTitle').innerHTML = titleHtml;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24`);
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('loadCategory error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function searchMovies(query) {
+      document.getElementById('sectionTitle').innerText = `Search: "${query}"`;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24`);
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('searchMovies error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('searchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) {
+          clearNavActive();
+          searchMovies(query);
+        }
+      });
+    });
+
+    function renderGrid(items) {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      if (!Array.isArray(items) || items.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emptyState').classList.add('hidden');
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'group bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-rose-500/50 transition cursor-pointer flex flex-col';
+        card.onclick = () => openDetails(item);
+
+        const cover = item.cover || 'https://via.placeholder.com/300x450?text=No+Cover';
+        const isTv = item.type === 'tv';
+
+        card.innerHTML = `
+          <div class="aspect-[2/3] w-full overflow-hidden relative">
+            <img src="${cover}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" />
+            <div class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isTv ? 'bg-indigo-600' : 'bg-rose-600'} text-white">
+              ${isTv ? 'TV' : 'Movie'}
+            </div>
+            ${item.imdbRating ? `<div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-star text-[10px]"></i> ${item.imdbRating}</div>` : ''}
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <h4 class="text-sm font-semibold truncate group-hover:text-rose-400 transition">${item.title}</h4>
+            <p class="text-[11px] text-gray-500 mt-1">${item.releaseDate ? item.releaseDate.split('-')[0] : (item.genre || '')}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function openDetails(item) {
+      currentItem = { ...item };
+      const playerModal = document.getElementById('playerModal');
+      const tvControls = document.getElementById('tvControls');
+      const qualityPills = document.getElementById('qualityPills');
+      
+      playerModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalSynopsis').innerText = 'Loading synopsis & details...';
+      document.getElementById('modalCast').innerHTML = '';
+      document.getElementById('metaYearDuration').innerText = '';
+      document.getElementById('metaRating').innerHTML = '';
+      tvControls.classList.add('hidden');
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Resolving stream sources...</span>';
+      resetSubtitles();
+      setPlayerLoading(true);
+
+      try {
+        const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(item.detailPath)}`);
+        fullDetails = await res.json();
+
+        const trueType = fullDetails.type || item.type || 'movie';
+        currentItem.type = trueType;
+
+        const badgeType = document.getElementById('badgeType');
+        badgeType.innerText = trueType.toUpperCase();
+        badgeType.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white ${trueType === 'tv' ? 'bg-indigo-600' : 'bg-rose-600'}`;
+
+        document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
+        document.getElementById('modalSynopsis').innerText = fullDetails.synopsis || fullDetails.description || 'No overview available for this title.';
+
+        const year = fullDetails.releaseDate ? fullDetails.releaseDate.split('-')[0] : '';
+        const dur = fullDetails.duration ? `${fullDetails.duration} min` : '';
+        const country = fullDetails.country || '';
+        document.getElementById('metaYearDuration').innerText = [year, dur, country, fullDetails.genre].filter(Boolean).join(' • ');
+
+        const rating = fullDetails.imdbRatingValue || fullDetails.imdbRating || item.imdbRating;
+        if (rating) {
+          document.getElementById('metaRating').innerHTML = `<i class="fa-solid fa-star"></i> ${rating}`;
+        }
+
+        if (fullDetails.cast && fullDetails.cast.length > 0) {
+          const castNames = fullDetails.cast.slice(0, 5).map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
+          if (castNames.length > 0) {
+            document.getElementById('modalCast').innerHTML = `<strong class="text-gray-300">Cast:</strong> ${castNames.join(', ')}`;
+          }
+        }
+
+        if (trueType === 'tv' && fullDetails.seasons && fullDetails.seasons.length > 0) {
+          tvControls.classList.remove('hidden');
+          setupTvSeasons(fullDetails.seasons);
+        } else if (trueType === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+        } else {
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
+        }
+      } catch (err) {
+        console.error('Details fetch error:', err);
+        if (item.type === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+        } else {
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
+        }
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    function setupTvSeasons(seasons) {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '';
+      seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.season;
+        opt.innerText = `Season ${s.season}`;
+        seasonSelect.appendChild(opt);
+      });
+      window.onSeasonChange();
+    }
+
+    function setupFallbackSeasons() {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+      populateEpisodes(24);
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, 1, 1);
+    }
+
+    window.onSeasonChange = function() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value);
+      const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
+      populateEpisodes(seasonData ? seasonData.maxEp : 24);
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, document.getElementById('episodeSelect').value || 1);
+    };
+
+    window.onEpisodeChange = function() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value) || 1;
+      const epNum = parseInt(document.getElementById('episodeSelect').value) || 1;
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, epNum);
+    };
+
+    function populateEpisodes(maxEp) {
+      const epSelect = document.getElementById('episodeSelect');
+      epSelect.innerHTML = '';
+      for (let i = 1; i <= maxEp; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Episode ${i}`;
+        epSelect.appendChild(opt);
+      }
+    }
+
+    async function loadMovieStream(detailPath) {
+      setPlayerLoading(true);
+      const qualityPills = document.getElementById('qualityPills');
+      const tvControls = document.getElementById('tvControls');
+      try {
+        const res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}`);
+        const data = await res.json();
+        
+        if (data.error && (data.error.includes('/api/tv') || data.error.includes('TV show'))) {
+          currentItem.type = 'tv';
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+          return;
+        }
+
+        if (data.qualities && data.qualities.length > 0) {
+          renderQualities(data.qualities, data.title || currentItem.title);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream rate-limit hit. Retry in 2 minutes.'}</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to fetch movie stream.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    async function fetchEpisodeStream() {
+      setPlayerLoading(true);
+      const qualityPills = document.getElementById('qualityPills');
+      const tvControls = document.getElementById('tvControls');
+      const season = document.getElementById('seasonSelect').value || 1;
+      const episode = document.getElementById('episodeSelect').value || 1;
+
+      try {
+        const res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}`);
+        const data = await res.json();
+
+        if (data.error && (data.error.includes('/api/movie') || data.error.includes('subject is a movie'))) {
+          currentItem.type = 'movie';
+          tvControls.classList.add('hidden');
+          return await loadMovieStream(currentItem.detailPath);
+        }
+
+        if (data.qualities && data.qualities.length > 0) {
+          renderQualities(data.qualities, `${currentItem.title}_S${season}E${episode}`);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'No stream files found for this episode.'}</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to load episode stream.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    function renderQualities(qualities, baseTitle) {
+      const qualityPills = document.getElementById('qualityPills');
+      qualityPills.innerHTML = '';
+      let defaultChosen = false;
+
+      qualities.forEach((q) => {
+        const btn = document.createElement('button');
+        const isVip = q.vipLocked;
+        btn.disabled = isVip;
+
+        btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+          isVip 
+            ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-800' 
+            : 'bg-gray-800 hover:bg-rose-600 text-gray-200 hover:text-white border border-gray-700'
+        }`;
+
+        btn.innerHTML = `
+          <span>${q.resolution}P</span>
+          ${q.size_mb ? `<span class="text-[10px] text-gray-400">(${q.size_mb} MB)</span>` : ''}
+          ${isVip ? '<i class="fa-solid fa-lock text-[10px]"></i>' : ''}
+        `;
+
+        btn.onclick = () => selectStreamQuality(q, baseTitle, btn);
+        qualityPills.appendChild(btn);
+
+        if (!defaultChosen && !isVip) {
+          selectStreamQuality(q, baseTitle, btn);
+          defaultChosen = true;
+        }
+      });
+    }
+
+    function selectStreamQuality(qualityObj, baseTitle, targetBtn) {
+      const qualityPills = document.getElementById('qualityPills');
+      const videoPlayer = document.getElementById('videoPlayer');
+      const downloadBtn = document.getElementById('downloadBtn');
+      // Prompt user for their personal API key to watch video
+      let userKey = document.getElementById('test-api-key').value;
+      if(!userKey) userKey = prompt("Please enter your API Key to stream or download:");
+      if(!userKey) {
+         alert("API Key is required to proxy videos.");
+         return;
+      }
+
+      Array.from(qualityPills.children).forEach(el => {
+        el.classList.remove('bg-rose-600', 'border-rose-500', 'text-white');
+      });
+      if (targetBtn) {
+        targetBtn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+      }
+
+      const dp = encodeURIComponent(currentItem.detailPath || '');
+      const rawUrl = encodeURIComponent(qualityObj.url);
+      const cleanName = encodeURIComponent(`${baseTitle}_${qualityObj.resolution}p.mp4`);
+
+      const playUrl = `${STREAM_PROXY}?url=${rawUrl}&dp=${dp}&apikey=${userKey}`;
+      const prevTime = videoPlayer.currentTime;
+      videoPlayer.src = playUrl;
+      videoPlayer.load();
+
+      if (prevTime > 0) {
+        videoPlayer.currentTime = prevTime;
+      }
+      videoPlayer.play().catch(() => {});
+
+      const downloadUrl = `${DL_PROXY}?url=${rawUrl}&name=${cleanName}&dp=${dp}&apikey=${userKey}`;
+      downloadBtn.href = downloadUrl;
+    }
+
+    async function loadSubtitles(detailPath, season = null, episode = null) {
+      const subStatus = document.getElementById('subStatus');
+      subStatus.innerText = 'Searching captions...';
+      let url = `${BASE_API}/api/subtitles?id=${encodeURIComponent(detailPath)}`;
+      if (season && episode) {
+        url += `&season=${season}&episode=${episode}`;
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        activeCaptions = data.captions || [];
+        populateSubtitles(activeCaptions);
+      } catch (err) {
+        console.error('Subtitle fetch failed:', err);
+        populateSubtitles([]);
+      }
+    }
+
+    function populateSubtitles(captions) {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+
+      if (!captions || captions.length === 0) {
+        subStatus.innerText = 'No captions available';
+        return;
+      }
+
+      subStatus.innerText = `${captions.length} language${captions.length > 1 ? 's' : ''} available`;
+
+      captions.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `${c.lanName || c.lan || 'Unknown'} (${(c.lan || '').toUpperCase()})`;
+        subtitleSelect.appendChild(opt);
+      });
+    }
+
+    window.onSubtitleSelect = async function() {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      const videoPlayer = document.getElementById('videoPlayer');
+      
+      const selectedVal = subtitleSelect.value;
+      removeActiveTracks();
+
+      if (selectedVal === 'off') {
+        downloadSubBtn.classList.add('hidden');
+        return;
+      }
+
+      const caption = activeCaptions[parseInt(selectedVal)];
+      if (!caption || !caption.url) return;
+
+      downloadSubBtn.href = caption.url;
+      downloadSubBtn.setAttribute('download', `${currentItem.title}_${caption.lanName || caption.lan}.srt`);
+      downloadSubBtn.classList.remove('hidden');
+
+      subStatus.innerText = `Loading ${caption.lanName}...`;
+
+      try {
+        // Just need API Key to fetch subtitles through stream proxy
+        let userKey = document.getElementById('test-api-key').value;
+        if(!userKey) userKey = prompt("API Key required to proxy subtitle files.");
+        if(!userKey) return;
+        
+        const proxiedSubUrl = `${STREAM_PROXY}?url=${encodeURIComponent(caption.url)}&apikey=${userKey}`;
+        const res = await fetch(proxiedSubUrl);
+        const srtData = await res.text();
+
+        const vttData = srtToWebVTT(srtData);
+
+        if (currentVttBlobUrl) {
+          URL.revokeObjectURL(currentVttBlobUrl);
+        }
+        const blob = new Blob([vttData], { type: 'text/vtt' });
+        currentVttBlobUrl = URL.createObjectURL(blob);
+
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = caption.lanName || caption.lan;
+        track.srclang = caption.lan || 'en';
+        track.src = currentVttBlobUrl;
+        track.default = true;
+
+        videoPlayer.appendChild(track);
+
+        track.addEventListener('load', () => {
+          for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+            videoPlayer.textTracks[i].mode = 'showing';
+          }
+        });
+
+        subStatus.innerText = `Active: ${caption.lanName || caption.lan}`;
+      } catch (err) {
+        console.error('Failed to parse subtitle track:', err);
+        subStatus.innerText = 'Failed to load track';
+      }
+    };
+
+    function removeActiveTracks() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      const oldTracks = videoPlayer.querySelectorAll('track');
+      oldTracks.forEach(t => t.remove());
+      for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+        videoPlayer.textTracks[i].mode = 'disabled';
+      }
+      if (currentVttBlobUrl) {
+        URL.revokeObjectURL(currentVttBlobUrl);
+        currentVttBlobUrl = null;
+      }
+    }
+
+    function resetSubtitles() {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      removeActiveTracks();
+      activeCaptions = [];
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+      subStatus.innerText = '';
+    }
+
+    window.closeModal = function() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      const playerModal = document.getElementById('playerModal');
+      videoPlayer.pause();
+      videoPlayer.removeAttribute('src');
+      videoPlayer.load();
+      removeActiveTracks();
+      playerModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    };
+
+    window.copyStreamLink = function() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      if (videoPlayer.src) {
+        navigator.clipboard.writeText(videoPlayer.src);
+        alert('Stream URL copied to clipboard!');
+      }
+    };
+
+    function showLoader(visible) {
+      document.getElementById('loader').classList.toggle('hidden', !visible);
+    }
+
+    function setPlayerLoading(visible) {
+      document.getElementById('playerSpinner').classList.toggle('hidden', !visible);
+    }
   </script>
 </body>
 </html>
