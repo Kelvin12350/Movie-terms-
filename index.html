@@ -72,6 +72,10 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::cue { background-color: rgba(0, 0, 0, 0.75); color: #ffffff; font-size: 15px; font-family: sans-serif; text-shadow: 0 1px 2px #000; }
   </style>
 </head>
 <body class="h-screen w-full flex flex-col font-sans antialiased selection:bg-brand-100 selection:text-brand-700">
@@ -153,6 +157,11 @@
         <button onclick="switchView('docs')" id="nav-docs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-book w-4 text-center"></i> Documentation
         </button>
+        
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6 px-3">MovieBox App</div>
+        <button onclick="switchView('moviebox')" id="nav-moviebox" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-dashed border-slate-300">
+          <i class="fa-solid fa-play w-4 text-center text-rose-500"></i> Open Movie App
+        </button>
       </div>
 
       <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
@@ -175,7 +184,7 @@
     <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-full">
       
       <!-- Top Header -->
-      <header class="h-16 flex items-center justify-between px-4 lg:px-10 border-b border-slate-200 bg-white/80 backdrop-blur z-20 flex-shrink-0">
+      <header id="main-header" class="h-16 flex items-center justify-between px-4 lg:px-10 border-b border-slate-200 bg-white/80 backdrop-blur z-20 flex-shrink-0">
         <div class="flex items-center gap-3">
           <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-900 p-2 -ml-2 rounded-lg hover:bg-slate-100">
             <i class="fa-solid fa-bars text-lg"></i>
@@ -193,7 +202,7 @@
       </header>
 
       <!-- Scrollable Content Viewport -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10">
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10 relative">
 
         <!-- ================= 0. GET STARTED VIEW ================= -->
         <div id="view-getstarted" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
@@ -205,7 +214,6 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            
             <!-- Free Endpoints Card -->
             <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col">
               <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-6 border border-emerald-100">
@@ -250,7 +258,6 @@
                 </button>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -340,30 +347,6 @@
               </div>
             </div>
           </div>
-
-          <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-8">
-              <div>
-                <h3 class="text-lg font-bold text-slate-900">Traffic Distribution</h3>
-                <p class="text-sm text-slate-500 mt-1">Mock representation of proxy usage over the last 7 days.</p>
-              </div>
-            </div>
-            <div class="h-48 lg:h-64 w-full border-b border-l border-slate-100 relative">
-              <svg class="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M0,80 Q10,60 20,70 T40,50 T60,30 T80,40 T100,20 L100,100 L0,100 Z" fill="url(#grad)" class="opacity-30"/>
-                <defs>
-                  <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div class="flex justify-between text-[10px] lg:text-xs font-semibold text-slate-400 mt-4 px-2">
-              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-            </div>
-          </div>
         </div>
 
         <!-- ================= 3. API KEYS VIEW ================= -->
@@ -435,7 +418,7 @@
                 
                 <div class="space-y-4">
                   <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Enter API Key (Required for Streams)</label>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Enter API Key (Required for ALL Sandbox requests)</label>
                     <input type="text" id="test-api-key" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-brand-500 font-mono" placeholder="cb_live_...">
                   </div>
                   <div>
@@ -513,7 +496,7 @@
             <p class="text-sm text-amber-800 mb-4 leading-relaxed">
               If you call our API directly from your frontend code using an absolute URL like <code class="font-mono text-xs px-1">https://movie-terms.vercel.app/...</code>, the browser will block it with a <strong>405 Method Not Allowed</strong> CORS error. You must route your requests through your own local domain.
               <br><br>
-              <strong>If you use Vercel:</strong> Create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/api/</code> calls to our servers behind the scenes.
+              <strong>If you use Vercel:</strong> Create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers behind the scenes.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -546,8 +529,8 @@
             <div class="code-window border border-slate-200">
               <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>JavaScript Constants</span></div>
               <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> API_KEY = <span class="syntax-string">'cb_live_YOUR_SECRET_KEY'</span>;
-<span class="syntax-method">const</span> BASE_API = <span class="syntax-string">''</span>; <span class="syntax-comment">// Empty string ensures requests hit your local proxy rewrite</span>
+<span class="syntax-method">const</span> API_KEY = <span class="syntax-string">'YOUR_SECRET_KEY'</span>;
+<span class="syntax-method">const</span> BASE_API = <span class="syntax-string">'/proxy-api'</span>; <span class="syntax-comment">// This bypasses the Vercel 405 error!</span>
 <span class="syntax-method">const</span> STREAM_PROXY = <span class="syntax-string">'/proxy-api/stream'</span>;
 <span class="syntax-method">const</span> DL_PROXY = <span class="syntax-string">'/proxy-api/dl'</span>;
               </div>
@@ -594,12 +577,12 @@
                 <div class="code-window border border-slate-200">
                   <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Logic</span></div>
                   <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
-<span class="syntax-method">let</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=\${id}`</span>);
+<span class="syntax-method">let</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${id}&apikey=\${API_KEY}`</span>);
 <span class="syntax-method">let</span> data = <span class="syntax-method">await</span> res.json();
 
 <span class="syntax-method">if</span> (data.error && data.error.includes(<span class="syntax-string">'This subject is a tv'</span>)) {
   <span class="syntax-comment">// Auto-Heal: Switch to TV endpoint</span>
-  res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=\${id}&season=1&episode=1`</span>);
+  res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${id}&season=1&episode=1&apikey=\${API_KEY}`</span>);
   data = <span class="syntax-method">await</span> res.json();
 }
                   </div>
@@ -624,7 +607,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/trending?limit=24`</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/trending?limit=24&apikey=\${API_KEY}`</span>);
 <span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
 <span class="syntax-method">const</span> trendingList = extractArray(data);
                 </div>
@@ -646,13 +629,13 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Fetch Anime</span>
-<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=anime&limit=24`</span>);
+<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=anime&limit=24&apikey=\${API_KEY}`</span>);
 
 <span class="syntax-comment">// Fetch K-Drama</span>
-<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=korean%20drama&limit=24`</span>);
+<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=korean%20drama&limit=24&apikey=\${API_KEY}`</span>);
 
 <span class="syntax-comment">// Specific Movie</span>
-<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/search?q=Deadpool&limit=24`</span>);
+<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=Deadpool&limit=24&apikey=\${API_KEY}`</span>);
                 </div>
               </div>
             </div>
@@ -671,7 +654,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/details?id=\${encodeURIComponent(detailPath)}`</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/details?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>);
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -691,7 +674,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/episode-matrix?id=\${encodeURIComponent(detailPath)}`</span>);
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/episode-matrix?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>);
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -712,10 +695,10 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/subtitles?id=\${encodeURIComponent(detailPath)}`</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>);
 
 <span class="syntax-comment">// TV Show</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/subtitles?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}&season=1&episode=1&apikey=\${API_KEY}`</span>);
                 </div>
               </div>
             </div>
@@ -735,10 +718,10 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie Source Request</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/movie?id=\${encodeURIComponent(detailPath)}`</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>);
 
 <span class="syntax-comment">// TV Request</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`/api/tv?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>);
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${encodeURIComponent(detailPath)}&season=1&episode=1&apikey=\${API_KEY}`</span>);
                 </div>
               </div>
             </div>
@@ -823,12 +806,8 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://movie-terms.vercel.app/api/:path*"
-    },
-    {
       "source": "/proxy-api/:path*",
-      "destination": "https://movie-terms.vercel.app/proxy-api/:path*"
+      "destination": "https://movie-terms.vercel.app/:path*"
     }
   ]
 }
@@ -837,23 +816,21 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 
   <div class="card">
     <h3>2. Test Metadata Fetching</h3>
-    <p style="font-size: 13px; color: #64748b;">(No API key required for these)</p>
-    <br>
+    <input type="text" id="myApiKey" placeholder="cb_live_..." />
+    <br><br>
     <button onclick="testTrending()">Test Trending</button>
     <button onclick="testSearch()" style="background: #0ea5e9; margin-left: 10px;">Test Anime Search</button>
   </div>
 
   <div class="card">
     <h3>3. Test Secure Video Streaming</h3>
-    <input type="text" id="myApiKey" placeholder="cb_live_..." />
-    <br><br>
     <button onclick="testVideo()" style="background: #e11d48;">Load Video Stream</button>
     <video id="player" controls playsinline preload="metadata" crossorigin="anonymous"></video>
   </div>
 
   <script>
-    // Global Configuration
-    const BASE_API = ''; // Empty string ensures requests route to your local proxy
+    // Global Configuration (Uses local proxy rewrite to bypass Vercel 405 error)
+    const BASE_API = '/proxy-api'; 
     const STREAM_PROXY = '/proxy-api/stream';
 
     // Safe Array Extractor (Prevents items.forEach errors)
@@ -869,8 +846,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 
     // Fetch API logic
     async function testTrending() {
+      const apiKey = document.getElementById('myApiKey').value.trim();
+      if(!apiKey) return alert("Enter API key");
       try {
-        const res = await fetch(\`/api/trending?limit=5\`);
+        const res = await fetch(\`\${BASE_API}/api/trending?limit=5&apikey=\${apiKey}\`);
         const data = await res.json();
         const arr = extractArray(data);
         console.log("Trending Data:", arr);
@@ -882,8 +861,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     }
 
     async function testSearch() {
+      const apiKey = document.getElementById('myApiKey').value.trim();
+      if(!apiKey) return alert("Enter API key");
       try {
-        const res = await fetch(\`/api/search?q=anime&limit=5\`);
+        const res = await fetch(\`\${BASE_API}/api/search?q=anime&limit=5&apikey=\${apiKey}\`);
         const data = await res.json();
         const arr = extractArray(data);
         console.log("Anime Data:", arr);
@@ -929,6 +910,9 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       </div>
     </main>
   </div>
+
+  <!-- MovieBox Embedded App Container -->
+  <!-- Note: When active, the main portal content is hidden and the app occupies this space. -->
 
   <!-- Firebase Integration & App Logic -->
   <script type="module">
@@ -1060,12 +1044,31 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         'wallet': 'Billing & Wallet', 
         'apikeys': 'API Key Management', 
         'tester': 'API Sandbox',
-        'docs': 'API Documentation' 
+        'docs': 'API Documentation',
+        'moviebox': 'Movie App View'
       };
-      document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
+      
+      // If going to moviebox, we hide the header since the app has its own
+      if (viewId === 'moviebox') {
+         document.getElementById('main-header').classList.add('hidden');
+      } else {
+         document.getElementById('main-header').classList.remove('hidden');
+         document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
+      }
 
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(`view-${viewId}`).classList.remove('hidden');
+      
+      // The movie app view is special (it lives in <main> outside the views), we manage its visibility manually
+      const mainMovieAppElements = [document.getElementById('grid'), document.getElementById('searchForm').parentElement.parentElement, document.getElementById('emptyState')];
+      
+      if (viewId === 'moviebox') {
+          mainMovieAppElements.forEach(el => el && el.classList.remove('hidden'));
+          loadTrending(); // Refresh movies
+      } else {
+          mainMovieAppElements.forEach(el => el && el.classList.add('hidden'));
+          const targetView = document.getElementById(`view-${viewId}`);
+          if (targetView) targetView.classList.remove('hidden');
+      }
       
       // Auto-refresh stats when opening overview
       if (viewId === 'overview') {
@@ -1079,7 +1082,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
       
       try {
-        const res = await fetch('https://movie-terms.vercel.app/');
+        const res = await fetch('/proxy-api/'); // ALWAYS hit local proxy
         const data = await res.json();
         
         // Calculate totals
@@ -1263,31 +1266,27 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     }
 
     // --- API Tester / Sandbox Logic ---
-    function extractArray(data) {
-      if (Array.isArray(data)) return data;
-      if (!data) return [];
-      const keys = ['results', 'items', 'list', 'data'];
-      for (let k of keys) {
-        if (Array.isArray(data[k])) return data[k];
-      }
-      return [];
-    }
-
     window.executeTestSearch = async () => {
       const query = document.getElementById('test-search-query').value.trim();
+      const apiKey = document.getElementById('test-api-key').value.trim();
       const output = document.getElementById('test-json-output');
       const resultsDiv = document.getElementById('test-search-results');
       
+      if (!apiKey) {
+         alert('Please enter an API Key first.');
+         document.getElementById('test-api-key').focus();
+         return;
+      }
       if (!query) {
          alert('Please enter a search query (e.g. Inception or Anime).');
          return;
       }
       
-      output.innerText = 'Searching...\nFetching from /api/search...';
+      output.innerText = 'Searching...\nFetching from /proxy-api/api/search...';
       resultsDiv.innerHTML = '';
       
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`/proxy-api/api/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`, { method: 'GET' });
         const data = await res.json();
         
         output.innerText = JSON.stringify(data, null, 2);
@@ -1325,17 +1324,17 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       try {
          // 1. Fetch the raw stream metadata (Free)
          const typeRoute = (item.type === 'tv' || item.detailPath.includes('/tv/')) ? 'tv' : 'movie';
-         let sourceUrl = `/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}`;
+         let sourceUrl = `/proxy-api/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}&apikey=${apiKey}`;
          if (typeRoute === 'tv') sourceUrl += '&season=1&episode=1';
          
-         let srcRes = await fetch(sourceUrl);
+         let srcRes = await fetch(sourceUrl, { method: 'GET' });
          let srcData = await srcRes.json();
          
          // Auto-Retry if the API states this is actually a TV show
          if (srcData.error && srcData.error.includes('This subject is a tv')) {
             output.innerText += `\n\n>> Auto-retrying as TV Show...`;
-            sourceUrl = `/api/tv?id=${encodeURIComponent(item.detailPath)}&season=1&episode=1`;
-            srcRes = await fetch(sourceUrl);
+            sourceUrl = `/proxy-api/api/tv?id=${encodeURIComponent(item.detailPath)}&season=1&episode=1&apikey=${apiKey}`;
+            srcRes = await fetch(sourceUrl, { method: 'GET' });
             srcData = await srcRes.json();
          }
 
@@ -1385,6 +1384,548 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         alert("Copied to clipboard!");
       }).catch(err => console.error('Failed to copy', err));
     };
+    
+    // ======== ORIGINAL MOVIEBOX APP JS ========
+    const BASE_API = '/proxy-api'; 
+    const STREAM_PROXY = '/proxy-api/stream';
+    const DL_PROXY = '/proxy-api/dl';
+    const PUBLIC_API_KEY = 'cb_live_5b8529460e4da2229349ddd7d3ae8da527aaa81cdc11f8fa'; // Used for the embedded demo app
+
+    // (The extractArray and srtToWebVTT functions are already defined above or below)
+    function srtToWebVTT(srtText) {
+      let vtt = srtText.replace(/\r\n|\r/g, '\n').trim();
+      vtt = vtt.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+      return 'WEBVTT\n\n' + vtt;
+    }
+
+    // Navigation Category Tabs (for the embedded app)
+    window.switchTab = function(tab) {
+      clearNavActive();
+      const activeBtn = document.getElementById(`nav-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-gray-900', 'text-gray-300', 'border-gray-800');
+        activeBtn.classList.add('bg-rose-600', 'text-white');
+      }
+
+      if (tab === 'home') {
+        loadTrending();
+      } else if (tab === 'anime') {
+        loadCategory('anime', '<i class="fa-solid fa-bolt text-indigo-400"></i> Popular Anime');
+      } else if (tab === 'kdrama') {
+        loadCategory('korean drama', '<i class="fa-solid fa-heart text-pink-400"></i> K-Drama Series & Movies');
+      } else if (tab === 'movies') {
+        loadCategory('2024 movie', '<i class="fa-solid fa-film text-emerald-400"></i> Popular Movies');
+      } else if (tab === 'series') {
+        loadCategory('series', '<i class="fa-solid fa-tv text-cyan-400"></i> Top TV Series');
+      }
+    };
+
+    function clearNavActive() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-rose-600', 'text-white');
+        btn.classList.add('bg-gray-900', 'text-gray-300', 'border-gray-800');
+      });
+    }
+
+    async function loadTrending() {
+      document.getElementById('sectionTitle').innerHTML = '<i class="fa-solid fa-fire text-amber-500"></i> Trending Now';
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/trending?limit=24&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('loadTrending error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function loadCategory(query, titleHtml) {
+      document.getElementById('sectionTitle').innerHTML = titleHtml;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('loadCategory error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function searchMovies(query) {
+      document.getElementById('sectionTitle').innerText = `Search: "${query}"`;
+      showLoader(true);
+      try {
+        const res = await fetch(`${BASE_API}/api/search?q=${encodeURIComponent(query)}&limit=24&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        const data = await res.json();
+        renderGrid(extractArray(data));
+      } catch (err) {
+        console.error('searchMovies error:', err);
+        renderGrid([]);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('searchForm').addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevents the form from submitting a POST request
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) {
+          clearNavActive();
+          searchMovies(query);
+        }
+      });
+    });
+
+    function renderGrid(items) {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      if (!Array.isArray(items) || items.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emptyState').classList.add('hidden');
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'group bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-rose-500/50 transition cursor-pointer flex flex-col';
+        card.onclick = () => openDetails(item);
+
+        const cover = item.cover || 'https://via.placeholder.com/300x450?text=No+Cover';
+        const isTv = item.type === 'tv';
+
+        card.innerHTML = `
+          <div class="aspect-[2/3] w-full overflow-hidden relative">
+            <img src="${cover}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" />
+            <div class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isTv ? 'bg-indigo-600' : 'bg-rose-600'} text-white">
+              ${isTv ? 'TV' : 'Movie'}
+            </div>
+            ${item.imdbRating ? `<div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-star text-[10px]"></i> ${item.imdbRating}</div>` : ''}
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <h4 class="text-sm font-semibold truncate group-hover:text-rose-400 transition">${item.title}</h4>
+            <p class="text-[11px] text-gray-500 mt-1">${item.releaseDate ? item.releaseDate.split('-')[0] : (item.genre || '')}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function openDetails(item) {
+      currentItem = { ...item };
+      const playerModal = document.getElementById('playerModal');
+      const tvControls = document.getElementById('tvControls');
+      const qualityPills = document.getElementById('qualityPills');
+      
+      playerModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalSynopsis').innerText = 'Loading synopsis & details...';
+      document.getElementById('modalCast').innerHTML = '';
+      document.getElementById('metaYearDuration').innerText = '';
+      document.getElementById('metaRating').innerHTML = '';
+      tvControls.classList.add('hidden');
+      qualityPills.innerHTML = '<span class="text-xs text-gray-400">Resolving stream sources...</span>';
+      resetSubtitles();
+      setPlayerLoading(true);
+
+      try {
+        const res = await fetch(`${BASE_API}/api/details?id=${encodeURIComponent(item.detailPath)}&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        fullDetails = await res.json();
+
+        const trueType = fullDetails.type || item.type || 'movie';
+        currentItem.type = trueType;
+
+        const badgeType = document.getElementById('badgeType');
+        badgeType.innerText = trueType.toUpperCase();
+        badgeType.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white ${trueType === 'tv' ? 'bg-indigo-600' : 'bg-rose-600'}`;
+
+        document.getElementById('modalTitle').innerText = fullDetails.title || item.title;
+        document.getElementById('modalSynopsis').innerText = fullDetails.synopsis || fullDetails.description || 'No overview available for this title.';
+
+        const year = fullDetails.releaseDate ? fullDetails.releaseDate.split('-')[0] : '';
+        const dur = fullDetails.duration ? `${fullDetails.duration} min` : '';
+        const country = fullDetails.country || '';
+        document.getElementById('metaYearDuration').innerText = [year, dur, country, fullDetails.genre].filter(Boolean).join(' • ');
+
+        const rating = fullDetails.imdbRatingValue || fullDetails.imdbRating || item.imdbRating;
+        if (rating) {
+          document.getElementById('metaRating').innerHTML = `<i class="fa-solid fa-star"></i> ${rating}`;
+        }
+
+        if (fullDetails.cast && fullDetails.cast.length > 0) {
+          const castNames = fullDetails.cast.slice(0, 5).map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
+          if (castNames.length > 0) {
+            document.getElementById('modalCast').innerHTML = `<strong class="text-gray-300">Cast:</strong> ${castNames.join(', ')}`;
+          }
+        }
+
+        if (trueType === 'tv' && fullDetails.seasons && fullDetails.seasons.length > 0) {
+          tvControls.classList.remove('hidden');
+          setupTvSeasons(fullDetails.seasons);
+        } else if (trueType === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+        } else {
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
+        }
+      } catch (err) {
+        console.error('Details fetch error:', err);
+        if (item.type === 'tv') {
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+        } else {
+          tvControls.classList.add('hidden');
+          await loadMovieStream(item.detailPath);
+          await loadSubtitles(item.detailPath);
+        }
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    function setupTvSeasons(seasons) {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '';
+      seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.season;
+        opt.innerText = `Season ${s.season}`;
+        seasonSelect.appendChild(opt);
+      });
+      window.onSeasonChange();
+    }
+
+    function setupFallbackSeasons() {
+      const seasonSelect = document.getElementById('seasonSelect');
+      seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+      populateEpisodes(24);
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, 1, 1);
+    }
+
+    window.onSeasonChange = function() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value);
+      const seasonData = fullDetails?.seasons?.find(s => s.season === seasonNum);
+      populateEpisodes(seasonData ? seasonData.maxEp : 24);
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, document.getElementById('episodeSelect').value || 1);
+    };
+
+    window.onEpisodeChange = function() {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value) || 1;
+      const epNum = parseInt(document.getElementById('episodeSelect').value) || 1;
+      fetchEpisodeStream();
+      loadSubtitles(currentItem.detailPath, seasonNum, epNum);
+    };
+
+    function populateEpisodes(maxEp) {
+      const epSelect = document.getElementById('episodeSelect');
+      epSelect.innerHTML = '';
+      for (let i = 1; i <= maxEp; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Episode ${i}`;
+        epSelect.appendChild(opt);
+      }
+    }
+
+    async function loadMovieStream(detailPath) {
+      setPlayerLoading(true);
+      const qualityPills = document.getElementById('qualityPills');
+      const tvControls = document.getElementById('tvControls');
+      try {
+        let res = await fetch(`${BASE_API}/api/movie?id=${encodeURIComponent(detailPath)}&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        let data = await res.json();
+        
+        if (data.error && (data.error.includes('/api/tv') || data.error.includes('TV show') || data.error.includes('This subject is a tv'))) {
+          currentItem.type = 'tv';
+          tvControls.classList.remove('hidden');
+          setupFallbackSeasons();
+          return;
+        }
+
+        if (data.qualities && data.qualities.length > 0) {
+          renderQualities(data.qualities, data.title || currentItem.title);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'Stream rate-limit hit. Retry in 2 minutes.'}</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to fetch movie stream.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    async function fetchEpisodeStream() {
+      setPlayerLoading(true);
+      const qualityPills = document.getElementById('qualityPills');
+      const tvControls = document.getElementById('tvControls');
+      const season = document.getElementById('seasonSelect').value || 1;
+      const episode = document.getElementById('episodeSelect').value || 1;
+
+      try {
+        let res = await fetch(`${BASE_API}/api/tv?id=${encodeURIComponent(currentItem.detailPath)}&season=${season}&episode=${episode}&apikey=${PUBLIC_API_KEY}`, { method: 'GET' });
+        let data = await res.json();
+
+        if (data.error && (data.error.includes('/api/movie') || data.error.includes('subject is a movie'))) {
+          currentItem.type = 'movie';
+          tvControls.classList.add('hidden');
+          return await loadMovieStream(currentItem.detailPath);
+        }
+
+        if (data.qualities && data.qualities.length > 0) {
+          renderQualities(data.qualities, `${currentItem.title}_S${season}E${episode}`);
+        } else {
+          qualityPills.innerHTML = `<span class="text-xs text-rose-400">${data.error || 'No stream files found for this episode.'}</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        qualityPills.innerHTML = `<span class="text-xs text-rose-500">Failed to load episode stream.</span>`;
+      } finally {
+        setPlayerLoading(false);
+      }
+    }
+
+    function renderQualities(qualities, baseTitle) {
+      const qualityPills = document.getElementById('qualityPills');
+      qualityPills.innerHTML = '';
+      let defaultChosen = false;
+
+      qualities.forEach((q) => {
+        const btn = document.createElement('button');
+        const isVip = q.vipLocked;
+        btn.disabled = isVip;
+
+        btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+          isVip 
+            ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-800' 
+            : 'bg-gray-800 hover:bg-rose-600 text-gray-200 hover:text-white border border-gray-700'
+        }`;
+
+        btn.innerHTML = `
+          <span>${q.resolution}P</span>
+          ${q.size_mb ? `<span class="text-[10px] text-gray-400">(${q.size_mb} MB)</span>` : ''}
+          ${isVip ? '<i class="fa-solid fa-lock text-[10px]"></i>' : ''}
+        `;
+
+        btn.onclick = () => selectStreamQuality(q, baseTitle, btn);
+        qualityPills.appendChild(btn);
+
+        if (!defaultChosen && !isVip) {
+          selectStreamQuality(q, baseTitle, btn);
+          defaultChosen = true;
+        }
+      });
+    }
+
+    function selectStreamQuality(qualityObj, baseTitle, targetBtn) {
+      const qualityPills = document.getElementById('qualityPills');
+      const videoPlayer = document.getElementById('videoPlayer');
+      const downloadBtn = document.getElementById('downloadBtn');
+      
+      // Prompt user for their personal API key to watch video
+      let userKey = null;
+      if (document.getElementById('test-api-key')) {
+          userKey = document.getElementById('test-api-key').value;
+      }
+      if(!userKey) userKey = prompt("Please enter your API Key to stream or download:");
+      if(!userKey) {
+         alert("API Key is required to proxy videos.");
+         return;
+      }
+
+      Array.from(qualityPills.children).forEach(el => {
+        el.classList.remove('bg-rose-600', 'border-rose-500', 'text-white');
+      });
+      if (targetBtn) {
+        targetBtn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+      }
+
+      const dp = encodeURIComponent(currentItem.detailPath || '');
+      const rawUrl = encodeURIComponent(qualityObj.url);
+      const cleanName = encodeURIComponent(`${baseTitle}_${qualityObj.resolution}p.mp4`);
+
+      const playUrl = `${STREAM_PROXY}?url=${rawUrl}&dp=${dp}&apikey=${userKey}`;
+      const prevTime = videoPlayer.currentTime;
+      videoPlayer.src = playUrl;
+      videoPlayer.load();
+
+      if (prevTime > 0) {
+        videoPlayer.currentTime = prevTime;
+      }
+      videoPlayer.play().catch(() => {});
+
+      const downloadUrl = `${DL_PROXY}?url=${rawUrl}&name=${cleanName}&dp=${dp}&apikey=${userKey}`;
+      downloadBtn.href = downloadUrl;
+    }
+
+    async function loadSubtitles(detailPath, season = null, episode = null) {
+      const subStatus = document.getElementById('subStatus');
+      subStatus.innerText = 'Searching captions...';
+      let url = `${BASE_API}/api/subtitles?id=${encodeURIComponent(detailPath)}&apikey=${PUBLIC_API_KEY}`;
+      if (season && episode) {
+        url += `&season=${season}&episode=${episode}`;
+      }
+
+      try {
+        const res = await fetch(url, { method: 'GET' });
+        const data = await res.json();
+        activeCaptions = data.captions || [];
+        populateSubtitles(activeCaptions);
+      } catch (err) {
+        console.error('Subtitle fetch failed:', err);
+        populateSubtitles([]);
+      }
+    }
+
+    function populateSubtitles(captions) {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+
+      if (!captions || captions.length === 0) {
+        subStatus.innerText = 'No captions available';
+        return;
+      }
+
+      subStatus.innerText = `${captions.length} language${captions.length > 1 ? 's' : ''} available`;
+
+      captions.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `${c.lanName || c.lan || 'Unknown'} (${(c.lan || '').toUpperCase()})`;
+        subtitleSelect.appendChild(opt);
+      });
+    }
+
+    window.onSubtitleSelect = async function() {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      const videoPlayer = document.getElementById('videoPlayer');
+      
+      const selectedVal = subtitleSelect.value;
+      removeActiveTracks();
+
+      if (selectedVal === 'off') {
+        downloadSubBtn.classList.add('hidden');
+        return;
+      }
+
+      const caption = activeCaptions[parseInt(selectedVal)];
+      if (!caption || !caption.url) return;
+
+      downloadSubBtn.href = caption.url;
+      downloadSubBtn.setAttribute('download', `${currentItem.title}_${caption.lanName || caption.lan}.srt`);
+      downloadSubBtn.classList.remove('hidden');
+
+      subStatus.innerText = `Loading ${caption.lanName}...`;
+
+      try {
+        let userKey = null;
+        if (document.getElementById('test-api-key')) {
+            userKey = document.getElementById('test-api-key').value;
+        }
+        if(!userKey) userKey = prompt("API Key required to proxy subtitle files.");
+        if(!userKey) return;
+        
+        const proxiedSubUrl = `${STREAM_PROXY}?url=${encodeURIComponent(caption.url)}&apikey=${userKey}`;
+        const res = await fetch(proxiedSubUrl, { method: 'GET' });
+        const srtData = await res.text();
+
+        const vttData = srtToWebVTT(srtData);
+
+        if (currentVttBlobUrl) {
+          URL.revokeObjectURL(currentVttBlobUrl);
+        }
+        const blob = new Blob([vttData], { type: 'text/vtt' });
+        currentVttBlobUrl = URL.createObjectURL(blob);
+
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = caption.lanName || caption.lan;
+        track.srclang = caption.lan || 'en';
+        track.src = currentVttBlobUrl;
+        track.default = true;
+
+        videoPlayer.appendChild(track);
+
+        track.addEventListener('load', () => {
+          for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+            videoPlayer.textTracks[i].mode = 'showing';
+          }
+        });
+
+        subStatus.innerText = `Active: ${caption.lanName || caption.lan}`;
+      } catch (err) {
+        console.error('Failed to parse subtitle track:', err);
+        subStatus.innerText = 'Failed to load track';
+      }
+    };
+
+    function removeActiveTracks() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      const oldTracks = videoPlayer.querySelectorAll('track');
+      oldTracks.forEach(t => t.remove());
+      for (let i = 0; i < videoPlayer.textTracks.length; i++) {
+        videoPlayer.textTracks[i].mode = 'disabled';
+      }
+      if (currentVttBlobUrl) {
+        URL.revokeObjectURL(currentVttBlobUrl);
+        currentVttBlobUrl = null;
+      }
+    }
+
+    function resetSubtitles() {
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      const downloadSubBtn = document.getElementById('downloadSubBtn');
+      const subStatus = document.getElementById('subStatus');
+      removeActiveTracks();
+      activeCaptions = [];
+      subtitleSelect.innerHTML = '<option value="off">Captions: Off</option>';
+      downloadSubBtn.classList.add('hidden');
+      subStatus.innerText = '';
+    }
+
+    window.closeModal = function() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      const playerModal = document.getElementById('playerModal');
+      videoPlayer.pause();
+      videoPlayer.removeAttribute('src');
+      videoPlayer.load();
+      removeActiveTracks();
+      playerModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    };
+
+    window.copyStreamLink = function() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      if (videoPlayer.src) {
+        navigator.clipboard.writeText(videoPlayer.src);
+        alert('Stream URL copied to clipboard!');
+      }
+    };
+
+    function showLoader(visible) {
+      document.getElementById('loader').classList.toggle('hidden', !visible);
+    }
+
+    function setPlayerLoading(visible) {
+      document.getElementById('playerSpinner').classList.toggle('hidden', !visible);
+    }
   </script>
 </body>
 </html>
