@@ -193,7 +193,7 @@
       </header>
 
       <!-- Scrollable Content Viewport -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10">
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10 relative">
 
         <!-- ================= 0. GET STARTED VIEW ================= -->
         <div id="view-getstarted" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
@@ -411,7 +411,7 @@
                 
                 <div class="space-y-4">
                   <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Enter API Key (Required for Streams)</label>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Enter API Key (Required for ALL Sandbox requests)</label>
                     <input type="text" id="test-api-key" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-brand-500 font-mono" placeholder="cb_live_...">
                   </div>
                   <div>
@@ -472,7 +472,6 @@
                 Want to see exactly how to implement the endpoints, Vercel routing, and API Keys? Download our complete, single-file HTML working example.
               </p>
             </div>
-            <!-- Auto-Generates Sample HTML File -->
             <a href="#" onclick="downloadSampleApp(); return false;" class="whitespace-nowrap px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-600/20 flex items-center gap-2">
               <i class="fa-solid fa-download"></i> Download Sample App
             </a>
@@ -497,7 +496,7 @@
             <p class="text-sm text-amber-800 mb-4">
               To use this API on your own website, you must route your frontend requests to our Base URL. 
               <br><br>
-              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder and add the code below. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers behind the scenes, completely avoiding the <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">405 Method Not Allowed</code> error[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span).
+              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder and add the code below. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers behind the scenes, completely avoiding the <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">405 Method Not Allowed</code> error[span_0](start_span)[span_0](end_span).
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -553,7 +552,7 @@
 <span class="syntax-method">function</span> extractArray(data) {
   <span class="syntax-method">if</span> (Array.isArray(data)) <span class="syntax-method">return</span> data;
   <span class="syntax-method">if</span> (!data) <span class="syntax-method">return</span> [];
-  <span class="syntax-method">const</span> keys = [<span class="syntax-string">'results'</span>, <span class="syntax-string">'items'</span>, <span class="syntax-string">'list'</span>, <span class="syntax-string">'data'</span>];
+  <span class="syntax-method">const</span> keys = [<span class="syntax-string">'results'</span>, <span class="syntax-string">'items'</span>, <span class="syntax-string">'list'</span>, <span class="syntax-string">'data'</span>, <span class="syntax-string">'subjects'</span>];
   <span class="syntax-method">for</span> (<span class="syntax-method">let</span> k <span class="syntax-method">of</span> keys) {
     <span class="syntax-method">if</span> (Array.isArray(data[k])) <span class="syntax-method">return</span> data[k];
   }
@@ -574,12 +573,12 @@
                 <div class="code-window border border-slate-200">
                   <div class="code-header !bg-slate-100 !text-slate-500 !border-slate-200"><span>Auto-Retry Logic</span></div>
                   <div class="code-body !bg-white !text-slate-800 border-t border-slate-200 text-xs">
-<span class="syntax-method">let</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${id}`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">let</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${id}&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">let</span> data = <span class="syntax-method">await</span> res.json();
 
 <span class="syntax-method">if</span> (data.error && data.error.includes(<span class="syntax-string">'This subject is a tv'</span>)) {
   <span class="syntax-comment">// Auto-Heal: Switch to TV endpoint</span>
-  res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${id}&season=1&episode=1`</span>, { method: <span class="syntax-string">'GET'</span> });
+  res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${id}&season=1&episode=1&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
   data = <span class="syntax-method">await</span> res.json();
 }
                   </div>
@@ -604,7 +603,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/trending?limit=24`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/trending?limit=24&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> data = <span class="syntax-method">await</span> res.json();
 <span class="syntax-method">const</span> trendingList = extractArray(data);
                 </div>
@@ -626,13 +625,13 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Fetch Anime</span>
-<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=anime&limit=24`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> anime = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=anime&limit=24&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 
 <span class="syntax-comment">// Fetch K-Drama</span>
-<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=korean%20drama&limit=24`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> kdrama = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=korean%20drama&limit=24&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 
 <span class="syntax-comment">// Specific Movie</span>
-<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=Deadpool&limit=24`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> movie = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/search?q=Deadpool&limit=24&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
                 </div>
               </div>
             </div>
@@ -651,7 +650,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/details?id=\${encodeURIComponent(detailPath)}`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/details?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> details = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -671,7 +670,7 @@
               <div class="code-window mt-2 lg:mt-0">
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
-<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/episode-matrix?id=\${encodeURIComponent(detailPath)}`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">const</span> res = <span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/episode-matrix?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 <span class="syntax-method">const</span> matrix = <span class="syntax-method">await</span> res.json();
                 </div>
               </div>
@@ -692,10 +691,10 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 
 <span class="syntax-comment">// TV Show</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/subtitles?id=\${encodeURIComponent(detailPath)}&season=1&episode=1&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
                 </div>
               </div>
             </div>
@@ -715,10 +714,10 @@
                 <div class="code-header"><span>JavaScript (Fetch via local proxy)</span></div>
                 <div class="code-body font-mono text-xs lg:text-[13px]">
 <span class="syntax-comment">// Movie Source Request</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${encodeURIComponent(detailPath)}`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/movie?id=\${encodeURIComponent(detailPath)}&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
 
 <span class="syntax-comment">// TV Request</span>
-<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${encodeURIComponent(detailPath)}&season=1&episode=1`</span>, { method: <span class="syntax-string">'GET'</span> });
+<span class="syntax-method">await</span> fetch(<span class="syntax-string">`\${BASE_API}/api/tv?id=\${encodeURIComponent(detailPath)}&season=1&episode=1&apikey=\${API_KEY}`</span>, { method: <span class="syntax-string">'GET'</span> });
                 </div>
               </div>
             </div>
@@ -804,7 +803,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
   "rewrites": [
     {
       "source": "/proxy-api/:path*",
-      "destination": "https://movie-terms.vercel.app/:path*"
+      "destination": "https://movie-terms.vercel.app/proxy-api/:path*"
     }
   ]
 }
@@ -812,23 +811,21 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
   </div>
 
   <div class="card">
-    <h3>2. Test Metadata Fetching</h3>
-    <p style="font-size: 13px; color: #64748b;">(No API key required for these)</p>
-    <br>
+    <h3>2. Test API Connectivity</h3>
+    <input type="text" id="myApiKey" placeholder="cb_live_..." />
+    <br><br>
     <button onclick="testTrending()">Test Trending</button>
     <button onclick="testSearch()" style="background: #0ea5e9; margin-left: 10px;">Test Anime Search</button>
   </div>
 
   <div class="card">
     <h3>3. Test Secure Video Streaming</h3>
-    <input type="text" id="myApiKey" placeholder="cb_live_..." />
-    <br><br>
     <button onclick="testVideo()" style="background: #e11d48;">Load Video Stream</button>
     <video id="player" controls playsinline preload="metadata" crossorigin="anonymous"></video>
   </div>
 
   <script>
-    // Global Configuration
+    // Global Configuration (Uses local proxy rewrite to bypass Vercel 405 error)
     const BASE_API = '/proxy-api'; 
     const STREAM_PROXY = '/proxy-api/stream';
 
@@ -845,8 +842,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 
     // Fetch API logic
     async function testTrending() {
+      const apiKey = document.getElementById('myApiKey').value.trim();
+      if(!apiKey) return alert("Enter API key");
       try {
-        const res = await fetch(\`\${BASE_API}/api/trending?limit=5\`, { method: 'GET' });
+        const res = await fetch(\`\${BASE_API}/api/trending?limit=5&apikey=\${apiKey}\`, { method: 'GET' });
         const data = await res.json();
         const arr = extractArray(data);
         console.log("Trending Data:", arr);
@@ -858,8 +857,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     }
 
     async function testSearch() {
+      const apiKey = document.getElementById('myApiKey').value.trim();
+      if(!apiKey) return alert("Enter API key");
       try {
-        const res = await fetch(\`\${BASE_API}/api/search?q=anime&limit=5\`, { method: 'GET' });
+        const res = await fetch(\`\${BASE_API}/api/search?q=anime&limit=5&apikey=\${apiKey}\`, { method: 'GET' });
         const data = await res.json();
         const arr = extractArray(data);
         console.log("Anime Data:", arr);
@@ -1251,9 +1252,15 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 
     window.executeTestSearch = async () => {
       const query = document.getElementById('test-search-query').value.trim();
+      const apiKey = document.getElementById('test-api-key').value.trim();
       const output = document.getElementById('test-json-output');
       const resultsDiv = document.getElementById('test-search-results');
       
+      if (!apiKey) {
+         alert('Please enter an API Key first.');
+         document.getElementById('test-api-key').focus();
+         return;
+      }
       if (!query) {
          alert('Please enter a search query (e.g. Inception or Anime).');
          return;
@@ -1263,7 +1270,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       resultsDiv.innerHTML = '';
       
       try {
-        const res = await fetch(`/proxy-api/api/search?q=${encodeURIComponent(query)}`, { method: 'GET' });
+        const res = await fetch(`/proxy-api/api/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`, { method: 'GET' });
         const data = await res.json();
         
         output.innerText = JSON.stringify(data, null, 2);
@@ -1299,18 +1306,16 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       output.innerText = `Resolving raw sources for ${item.title}...\nThis free metadata fetch does not deduct wallet funds.`;
       
       try {
-         // 1. Fetch the raw stream metadata (Free)
          const typeRoute = (item.type === 'tv' || item.detailPath.includes('/tv/')) ? 'tv' : 'movie';
-         let sourceUrl = `/proxy-api/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}`;
+         let sourceUrl = `/proxy-api/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}&apikey=${apiKey}`;
          if (typeRoute === 'tv') sourceUrl += '&season=1&episode=1';
          
          let srcRes = await fetch(sourceUrl, { method: 'GET' });
          let srcData = await srcRes.json();
          
-         // Auto-Retry if the API states this is actually a TV show
          if (srcData.error && srcData.error.includes('This subject is a tv')) {
             output.innerText += `\n\n>> Auto-retrying as TV Show...`;
-            sourceUrl = `/proxy-api/api/tv?id=${encodeURIComponent(item.detailPath)}&season=1&episode=1`;
+            sourceUrl = `/proxy-api/api/tv?id=${encodeURIComponent(item.detailPath)}&season=1&episode=1&apikey=${apiKey}`;
             srcRes = await fetch(sourceUrl, { method: 'GET' });
             srcData = await srcRes.json();
          }
@@ -1320,21 +1325,16 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
             return;
          }
          
-         // Extract raw media link
          const rawUrl = srcData.qualities?.[0]?.url || srcData.best_free?.url;
          if (!rawUrl) {
             output.innerText += `\n\nNo raw media URL found in the response:\n\n${JSON.stringify(srcData, null, 2)}`;
             return;
          }
          
-         // 2. Generate the proxy URL (Secured)
          const proxyUrl = `/proxy-api/stream?url=${encodeURIComponent(rawUrl)}&apikey=${apiKey}`;
-         
          output.innerText += `\n\n// 1. Retrieved raw stream sources for ${item.title}\n\n// 2. Constructed Secure Proxy URL:\n${proxyUrl}\n\n// 3. Ping testing stream headers (Counts as 1 request)...\n`;
          
-         // Test the headers (HEAD request) so we trigger the firewall/billing but don't download a gigabyte of video.
          const testStreamRes = await fetch(proxyUrl, { method: 'HEAD' });
-         
          output.innerText += `\n>> HTTP ${testStreamRes.status} ${testStreamRes.statusText}\n`;
          
          if (testStreamRes.ok || testStreamRes.status === 206) {
@@ -1346,7 +1346,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
          } else {
             output.innerText += `>> WARNING: Unexpected status code from proxy server.`;
          }
-         
       } catch (err) {
          output.innerText += '\n\nFetch Error:\n' + err.message;
       }
@@ -1356,10 +1355,9 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       let textToCopy = textOrElementId;
       const el = document.getElementById(textOrElementId);
       if(el) textToCopy = el.innerText;
-      
       navigator.clipboard.writeText(textToCopy).then(() => {
         alert("Copied to clipboard!");
-      }).catch(err => console.error('Failed to copy', err));
+      });
     };
   </script>
 </body>
