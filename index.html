@@ -174,8 +174,8 @@
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-full">
       
-      <!-- Top Header -->
-      <header class="h-16 flex items-center justify-between px-4 lg:px-10 border-b border-slate-200 bg-white/80 backdrop-blur z-20 flex-shrink-0">
+      <!-- Top Header (Made Sticky to prevent hiding) -->
+      <header id="main-header" class="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-10 border-b border-slate-200 bg-white/80 backdrop-blur flex-shrink-0">
         <div class="flex items-center gap-3">
           <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-900 p-2 -ml-2 rounded-lg hover:bg-slate-100">
             <i class="fa-solid fa-bars text-lg"></i>
@@ -472,6 +472,7 @@
                 Want to see exactly how to implement the endpoints, Vercel routing, and API Keys? Download our complete, single-file HTML working example.
               </p>
             </div>
+            <!-- Auto-Generates Sample HTML File -->
             <a href="#" onclick="downloadSampleApp(); return false;" class="whitespace-nowrap px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-brand-600/20 flex items-center gap-2">
               <i class="fa-solid fa-download"></i> Download Sample App
             </a>
@@ -496,7 +497,7 @@
             <p class="text-sm text-amber-800 mb-4">
               To use this API on your own website, you must route your frontend requests to our Base URL. 
               <br><br>
-              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder and add the code below. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers behind the scenes, completely avoiding the <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">405 Method Not Allowed</code> error[span_0](start_span)[span_0](end_span).
+              <strong>If you host your site on Vercel</strong>, create a <code class="font-mono font-bold text-amber-900 bg-amber-200/50 px-1.5 py-0.5 rounded">vercel.json</code> file in your root folder and add the code below. This tells Vercel to securely forward your local <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">/proxy-api/</code> calls to our servers behind the scenes, completely avoiding the <code class="font-mono text-[10px] bg-amber-200/50 px-1 rounded">405 Method Not Allowed</code> error.
             </p>
             <div class="code-window border border-amber-300">
               <div class="code-header !bg-amber-900 !border-amber-800 !text-amber-100"><span>vercel.json</span> <button onclick="copyText('vercelJson')" class="hover:text-white"><i class="fa-regular fa-copy"></i></button></div>
@@ -803,7 +804,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
   "rewrites": [
     {
       "source": "/proxy-api/:path*",
-      "destination": "https://movie-terms.vercel.app/proxy-api/:path*"
+      "destination": "https://movie-terms.vercel.app/:path*"
     }
   ]
 }
@@ -811,7 +812,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
   </div>
 
   <div class="card">
-    <h3>2. Test API Connectivity</h3>
+    <h3>2. Test Metadata Fetching</h3>
     <input type="text" id="myApiKey" placeholder="cb_live_..." />
     <br><br>
     <button onclick="testTrending()">Test Trending</button>
@@ -909,12 +910,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
 
   <!-- Firebase Integration & App Logic -->
   <script type="module">
-    // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getDatabase, ref, set, get, child, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-    // Provided Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCAL68ws8Zzdd4lx30pj0JxKzHBqX2ZLas",
       authDomain: "tiktok-5ddd5.firebaseapp.com",
@@ -926,7 +925,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       measurementId: "G-JBCKSGHNBE"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -935,7 +933,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     let isSidebarOpen = false;
     let billingListener = null;
 
-    // DOM Elements
     const authView = document.getElementById('auth-view');
     const dashboardView = document.getElementById('dashboard-view');
     const authForm = document.getElementById('auth-form');
@@ -945,7 +942,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
-    // Auth Listener
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -964,7 +960,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       }
     });
 
-    // Auth Form Submit (Login / Auto-Signup)
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value;
@@ -1001,7 +996,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       await signOut(auth);
     };
 
-    // Mobile Sidebar Toggle
     window.toggleSidebar = () => {
       isSidebarOpen = !isSidebarOpen;
       if (isSidebarOpen) {
@@ -1014,7 +1008,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     };
 
     window.switchView = (viewId) => {
-      // Auto-close sidebar on mobile when navigating
       if (window.innerWidth < 1024 && isSidebarOpen) {
         toggleSidebar();
       }
@@ -1039,18 +1032,16 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         'tester': 'API Sandbox',
         'docs': 'API Documentation' 
       };
+      
       document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
-
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(`view-${viewId}`).classList.remove('hidden');
       
-      // Auto-refresh stats when opening overview
       if (viewId === 'overview') {
         fetchRealStats();
       }
     };
 
-    // Fetch REAL Server Stats from Backend Root
     window.fetchRealStats = async () => {
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
@@ -1059,7 +1050,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         const res = await fetch('/proxy-api/', { method: 'GET' });
         const data = await res.json();
         
-        // Calculate totals
         const sessionServed = data.served || 0;
         const lifetimeServed = data.lifetime?.served || 0;
         const totalCalls = sessionServed + lifetimeServed;
@@ -1068,7 +1058,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         const lifetimeBytes = data.lifetime?.bytes || 0;
         const totalBytes = sessionBytes + lifetimeBytes;
         
-        // Convert to GB
         const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(2);
         
         document.getElementById('stat-calls').innerText = totalCalls.toLocaleString();
@@ -1080,10 +1069,9 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       }
     };
 
-    // --- Wallet & Billing Logic ---
     function attachBillingListener() {
       if (!currentUser) return;
-      const currentMonth = new Date().toISOString().slice(0, 7); // "2026-09"
+      const currentMonth = new Date().toISOString().slice(0, 7); 
       const billingRef = ref(db, `users/${currentUser.uid}/billing`);
       
       billingListener = onValue(billingRef, (snapshot) => {
@@ -1091,7 +1079,6 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         const balance = data.balance || 0;
         const usage = data[`usage_${currentMonth}`] || 0;
         
-        // Update UI
         document.getElementById('wallet-balance').innerText = balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('usage-current').innerText = usage;
         
@@ -1118,24 +1105,20 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       });
     }
 
-    // Paystack Integration
     window.initiatePaystack = (amount) => {
       if (!currentUser) return;
       
       const email = currentUser.email;
       
       let handler = PaystackPop.setup({
-        key: 'pk_test_58177955af8eb11f31a593884d4566cb71ecf7c1', // Provided Test Key
+        key: 'pk_test_58177955af8eb11f31a593884d4566cb71ecf7c1', 
         email: email,
-        amount: amount * 100, // Paystack works in kobo (multiply by 100)
+        amount: amount * 100, 
         currency: 'NGN',
         callback: function(response) {
-          // Verify transaction was successful
           if (response.status === "success") {
-            // Update the user's balance in Firebase Realtime Database
             const userBillingRef = ref(db, `users/${currentUser.uid}/billing`);
             
-            // We fetch the current balance first to add the new amount
             get(userBillingRef).then((snapshot) => {
               const currentData = snapshot.val() || {};
               const currentBalance = currentData.balance || 0;
@@ -1332,9 +1315,11 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
          }
          
          const proxyUrl = `/proxy-api/stream?url=${encodeURIComponent(rawUrl)}&apikey=${apiKey}`;
+         
          output.innerText += `\n\n// 1. Retrieved raw stream sources for ${item.title}\n\n// 2. Constructed Secure Proxy URL:\n${proxyUrl}\n\n// 3. Ping testing stream headers (Counts as 1 request)...\n`;
          
          const testStreamRes = await fetch(proxyUrl, { method: 'HEAD' });
+         
          output.innerText += `\n>> HTTP ${testStreamRes.status} ${testStreamRes.statusText}\n`;
          
          if (testStreamRes.ok || testStreamRes.status === 206) {
@@ -1346,6 +1331,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
          } else {
             output.innerText += `>> WARNING: Unexpected status code from proxy server.`;
          }
+         
       } catch (err) {
          output.innerText += '\n\nFetch Error:\n' + err.message;
       }
@@ -1355,9 +1341,10 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
       let textToCopy = textOrElementId;
       const el = document.getElementById(textOrElementId);
       if(el) textToCopy = el.innerText;
+      
       navigator.clipboard.writeText(textToCopy).then(() => {
         alert("Copied to clipboard!");
-      });
+      }).catch(err => console.error('Failed to copy', err));
     };
   </script>
 </body>
