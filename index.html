@@ -147,6 +147,9 @@
         <button onclick="switchView('apikeys')" id="nav-apikeys" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-key w-4 text-center"></i> API Keys
         </button>
+        <button onclick="switchView('tester')" id="nav-tester" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <i class="fa-solid fa-vial w-4 text-center"></i> API Sandbox (Test)
+        </button>
         <button onclick="switchView('docs')" id="nav-docs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-book w-4 text-center"></i> Documentation
         </button>
@@ -403,7 +406,77 @@
           </div>
         </div>
 
-        <!-- ================= 4. DOCUMENTATION VIEW ================= -->
+        <!-- ================= 4. API TESTER / SANDBOX VIEW ================= -->
+        <div id="view-tester" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
+          <div class="mb-8">
+            <h1 class="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">API Sandbox</h1>
+            <p class="text-sm text-slate-500 mt-1">Test search queries and stream generation securely from the portal.</p>
+          </div>
+
+          <!-- Warning Banner -->
+          <div class="mb-8 p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-4 items-start">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 mt-0.5"></i>
+            <div>
+              <h4 class="text-sm font-bold text-rose-900">Usage Warning</h4>
+              <p class="text-xs text-rose-800 mt-1">
+                Metadata searches (like finding a movie) are 100% free. However, <strong>clicking "Test Stream" will hit your API key and count against your 200 free requests</strong>. Do not spam stream tests or you may deplete your wallet balance.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Side: Controls & Results -->
+            <div class="lg:col-span-5 space-y-6">
+              
+              <!-- Setup Card -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">1. Setup Request</h3>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Enter API Key (Required for Streams)</label>
+                    <input type="text" id="test-api-key" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-brand-500 font-mono" placeholder="cb_live_...">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">Search Movie, Anime, TV Show</label>
+                    <div class="flex gap-2">
+                      <input type="text" id="test-search-query" class="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-brand-500" placeholder="e.g., Inception" onkeydown="if(event.key === 'Enter') executeTestSearch()">
+                      <button onclick="executeTestSearch()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-lg transition-colors text-sm shadow-sm">
+                        Search
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Results Card -->
+              <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">2. Search Results</h3>
+                <div id="test-search-results" class="text-sm text-slate-500">
+                  Search for a title to see results here.
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Side: JSON Output Viewer -->
+            <div class="lg:col-span-7">
+              <div class="code-window border border-slate-700 h-full min-h-[500px] flex flex-col">
+                <div class="code-header !bg-slate-900 !border-slate-800">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-terminal"></i> Response Payload</span>
+                  <button onclick="copyText('test-json-output')" class="hover:text-white transition-colors" title="Copy Output"><i class="fa-regular fa-copy"></i></button>
+                </div>
+                <div class="code-body !bg-[#0f172a] flex-1">
+                  <pre id="test-json-output" class="font-mono text-xs lg:text-[13px] text-brand-300 whitespace-pre-wrap word-break">Awaiting request...</pre>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================= 5. DOCUMENTATION VIEW ================= -->
         <div id="view-docs" class="view-section fade-in max-w-6xl mx-auto hidden pb-24">
           
           <div class="mb-8 max-w-3xl">
@@ -864,7 +937,6 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
           </div>
         </div>
 
-
       </div>
     </main>
   </div>
@@ -993,7 +1065,14 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
         activeBtn.style.borderLeft = '3px solid #4f46e5';
       }
 
-      const titles = { 'getstarted': 'Get Started', 'overview': 'System Statistics', 'wallet': 'Billing & Wallet', 'apikeys': 'API Key Management', 'docs': 'API Documentation' };
+      const titles = { 
+        'getstarted': 'Get Started', 
+        'overview': 'System Statistics', 
+        'wallet': 'Billing & Wallet', 
+        'apikeys': 'API Key Management', 
+        'tester': 'API Sandbox',
+        'docs': 'API Documentation' 
+      };
       document.getElementById('header-title').innerText = titles[viewId] || 'Dashboard';
 
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -1193,6 +1272,112 @@ fetch(<span class="syntax-string">'/api/trending'</span>, { method: <span class=
         loader.classList.add('hidden');
       }
     }
+
+    // --- API Tester / Sandbox Logic ---
+    function extractArray(data) {
+      if (Array.isArray(data)) return data;
+      if (!data) return [];
+      const keys = ['results', 'items', 'list', 'data'];
+      for (let k of keys) {
+        if (Array.isArray(data[k])) return data[k];
+      }
+      return [];
+    }
+
+    window.executeTestSearch = async () => {
+      const query = document.getElementById('test-search-query').value.trim();
+      const output = document.getElementById('test-json-output');
+      const resultsDiv = document.getElementById('test-search-results');
+      
+      if (!query) {
+         alert('Please enter a search query (e.g. Inception or Anime).');
+         return;
+      }
+      
+      output.innerText = 'Searching...\nFetching from https://movie-terms.vercel.app/api/search...';
+      resultsDiv.innerHTML = '';
+      
+      try {
+        const res = await fetch(`https://movie-terms.vercel.app/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        
+        output.innerText = JSON.stringify(data, null, 2);
+        
+        const arr = extractArray(data);
+        if (arr.length > 0) {
+          resultsDiv.innerHTML = '<p class="text-xs text-slate-500 mb-3">Select a title below to fetch its secure video proxy data:</p>';
+          arr.slice(0, 5).forEach(item => {
+             const btn = document.createElement('button');
+             btn.className = 'w-full text-left p-3 text-sm font-semibold bg-slate-100 hover:bg-brand-50 border border-slate-200 hover:border-brand-200 rounded-xl mb-2 truncate transition-colors flex items-center gap-2';
+             btn.innerHTML = `<span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded uppercase">${item.type || 'movie'}</span> <span class="truncate">${item.title}</span>`;
+             btn.onclick = () => executeTestStream(item);
+             resultsDiv.appendChild(btn);
+          });
+        } else {
+           resultsDiv.innerHTML = '<p class="text-xs text-rose-500">No results found.</p>';
+        }
+      } catch (err) {
+        output.innerText = 'Error fetching search:\n\n' + err.message;
+      }
+    };
+
+    window.executeTestStream = async (item) => {
+      const apiKey = document.getElementById('test-api-key').value.trim();
+      const output = document.getElementById('test-json-output');
+      
+      if (!apiKey) {
+         alert('Please enter your API Key in Step 1 to test proxy streaming.');
+         document.getElementById('test-api-key').focus();
+         return;
+      }
+      
+      output.innerText = `Resolving raw sources for ${item.title}...\nThis free metadata fetch does not deduct wallet funds.`;
+      
+      try {
+         // 1. Fetch the raw stream metadata (Free)
+         const typeRoute = (item.type === 'tv' || item.detailPath.includes('/tv/')) ? 'tv' : 'movie';
+         let sourceUrl = `https://movie-terms.vercel.app/api/${typeRoute}?id=${encodeURIComponent(item.detailPath)}`;
+         if (typeRoute === 'tv') sourceUrl += '&season=1&episode=1';
+         
+         const srcRes = await fetch(sourceUrl);
+         const srcData = await srcRes.json();
+         
+         if (srcData.error) {
+            output.innerText = `Error from ${typeRoute} endpoint:\n\n${JSON.stringify(srcData, null, 2)}`;
+            return;
+         }
+         
+         // Extract raw media link
+         const rawUrl = srcData.qualities?.[0]?.url || srcData.best_free?.url;
+         if (!rawUrl) {
+            output.innerText = `No raw media URL found in the response:\n\n${JSON.stringify(srcData, null, 2)}`;
+            return;
+         }
+         
+         // 2. Generate the proxy URL (Secured)
+         const proxyUrl = `https://movie-terms.vercel.app/proxy-api/stream?url=${encodeURIComponent(rawUrl)}&apikey=${apiKey}`;
+         
+         output.innerText = `// 1. Retrieved raw stream sources for ${item.title}\n\n// 2. Constructed Secure Proxy URL:\n${proxyUrl}\n\n// 3. Ping testing stream headers (Counts as 1 request)...\n`;
+         
+         // Test the headers (HEAD request) so we trigger the firewall/billing but don't download a gigabyte of video.
+         const testStreamRes = await fetch(proxyUrl, { method: 'HEAD' });
+         
+         output.innerText += `\n>> HTTP ${testStreamRes.status} ${testStreamRes.statusText}\n`;
+         
+         if (testStreamRes.ok || testStreamRes.status === 206) {
+            output.innerText += `>> SUCCESS: Stream active. Billing verified.`;
+         } else if (testStreamRes.status === 402) {
+            output.innerText += `>> BLOCKED (402): Out of funds. Free tier reached and wallet balance below ₦50.`;
+         } else if (testStreamRes.status === 403 || testStreamRes.status === 401) {
+            output.innerText += `>> BLOCKED (${testStreamRes.status}): Invalid API Key provided.`;
+         } else {
+            output.innerText += `>> WARNING: Unexpected status code from proxy server.`;
+         }
+         
+      } catch (err) {
+         output.innerText += '\n\nFetch Error:\n' + err.message;
+      }
+    };
 
     window.copyText = (textOrElementId) => {
       let textToCopy = textOrElementId;
