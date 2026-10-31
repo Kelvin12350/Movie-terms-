@@ -507,13 +507,16 @@
 {
   <span class="syntax-string">"rewrites"</span>: [
     {
+      <span class="syntax-string">"source"</span>: <span class="syntax-string">"/cb-api/:path*"</span>,
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/api/:path*"</span>
+    },
+    {
       <span class="syntax-string">"source"</span>: <span class="syntax-string">"/proxy-api/:path*"</span>,
-      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/:path*"</span>
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/:path*"</span>
     }
   ]
-}</div>
-            </div>
-          </div>
+}
+
 
           <!-- STEP 2: Global Configuration -->
           <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
