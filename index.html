@@ -117,8 +117,8 @@
   <!-- ================= DASHBOARD VIEW ================= -->
   <div id="dashboard-view" class="hidden absolute inset-0 w-full flex bg-slate-50 overflow-hidden">
     
-    <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+   <!-- Mobile Sidebar Overlay -->
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
 
     <!-- Sidebar -->
     <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 w-64 border-r border-slate-200 bg-white flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none">
@@ -310,7 +310,27 @@
             </div>
           </div>
         </div>
-        
+        <!-- API Base URL Change Warning Modal -->
+<div id="base-url-warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
+  <div class="w-full max-w-md bg-white rounded-3xl p-6 md:p-8 border border-amber-200 shadow-2xl fade-in">
+    <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4">
+      <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl"></i>
+    </div>
+    <h3 class="text-xl font-bold text-slate-900 mb-2">Important: API Base URL Changed</h3>
+    <p class="text-sm text-slate-600 leading-relaxed mb-6">
+      Our API Base URL has been updated. Please check the <strong>Documentation</strong> page for the new Base URL and update your configuration so your app keeps working properly.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <button onclick="closeBaseUrlWarning(true)" class="flex-1 py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-md flex items-center justify-center gap-2">
+        <i class="fa-solid fa-book"></i> Check Documentation
+      </button>
+      <button onclick="closeBaseUrlWarning(false)" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">
+        Dismiss
+      </button>
+    </div>
+  </div>
+</div>
+
         <!-- ================= 2. OVERVIEW VIEW (REAL STATS) ================= -->
         <div id="view-overview" class="view-section fade-in max-w-6xl mx-auto hidden pb-20">
           <div class="mb-6 flex items-center justify-between">
@@ -954,6 +974,13 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
+        window.closeBaseUrlWarning = (goToDocs = false) => {
+      document.getElementById('base-url-warning-modal').classList.add('hidden');
+      if (goToDocs) {
+        window.switchView('docs');
+      }
+    };
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -961,6 +988,7 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
         authView.classList.add('hidden');
         dashboardView.classList.remove('hidden');
         window.switchView('getstarted');
+        document.getElementById('base-url-warning-modal').classList.remove('hidden');
         loadApiKeys();
         window.fetchRealStats(); 
         attachBillingListener(); 
