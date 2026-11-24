@@ -188,7 +188,7 @@
           <span class="hidden sm:flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Systems Operational
           </span>
-          <a href="https://movie-terms.vercel.app/" target="_blank" class="text-xs lg:text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap">
+          <a href="https://api.globalmovie.site/" target="_blank" class="text-xs lg:text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap">
             <i class="fa-solid fa-arrow-up-right-from-square text-[10px] lg:text-xs"></i> Base URL
           </a>
         </div>
@@ -484,9 +484,9 @@
           <div class="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="overflow-hidden">
               <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Base URL</h2>
-              <code class="text-brand-600 text-sm lg:text-lg font-mono font-bold tracking-wide truncate block">https://movie-terms.vercel.app</code>
+              <code class="text-brand-600 text-sm lg:text-lg font-mono font-bold tracking-wide truncate block">https://api.globalmovie.site</code>
             </div>
-            <button onclick="copyText('https://movie-terms.vercel.app')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+            <button onclick="copyText('https://api.globalmovie.site')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
               <i class="fa-regular fa-copy"></i> Copy URL
             </button>
           </div>
@@ -508,11 +508,11 @@
   <span class="syntax-string">"rewrites"</span>: [
     {
       <span class="syntax-string">"source"</span>: <span class="syntax-string">"/cb-api/:path*"</span>,
-      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/api/:path*"</span>
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://api.globalmovie.site/api/:path*"</span>
     },
     {
       <span class="syntax-string">"source"</span>: <span class="syntax-string">"/proxy-api/:path*"</span>,
-      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://movie-terms.vercel.app/proxy-api/:path*"</span>
+      <span class="syntax-string">"destination"</span>: <span class="syntax-string">"https://api.globalmovie.site/proxy-api/:path*"</span>
     }
   ]
 }
@@ -811,11 +811,11 @@ downloadBtn.href = <span class="syntax-string">`\${DL_PROXY}?url=\${encodedUrl}&
   "rewrites": [
     {
       "source": "/cb-api/:path*",
-      "destination": "https://movie-terms.vercel.app/api/:path*"
+      "destination": "https://api.globalmovie.site/api/:path*"
     },
     {
       "source": "/proxy-api/:path*",
-      "destination": "https://movie-terms.vercel.app/proxy-api/:path*"
+      "destination": "https://api.globalmovie.site/proxy-api/:path*"
     }
   ]
 }
